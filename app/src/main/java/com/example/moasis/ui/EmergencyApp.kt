@@ -189,6 +189,7 @@ fun EmergencyApp(
                 isAiEnabled = viewState.isAiEnabled,
                 aiStatusText = viewState.aiStatusText,
                 aiProgress = viewState.aiProgress,
+                aiDownloadedBytes = viewState.aiDownloadedBytes,
                 isAiPreparing = viewState.isAiPreparing,
                 isAiReady = viewState.isAiReady,
                 canRetryAiPreparation = viewState.canRetryAiPreparation,
@@ -205,8 +206,10 @@ fun EmergencyApp(
             ScreenMode.ACTIVE -> ActiveProtocolScreen(
                 uiState = viewState.uiState,
                 statusText = viewState.statusText,
+                aiGenerationStatusText = viewState.aiGenerationStatusText,
                 aiStatusText = viewState.aiStatusText,
                 aiProgress = viewState.aiProgress,
+                aiDownloadedBytes = viewState.aiDownloadedBytes,
                 isAiPreparing = viewState.isAiPreparing,
                 canRetryAiPreparation = viewState.canRetryAiPreparation,
                 aiModelLabel = viewState.aiModelLabel,

@@ -1,5 +1,6 @@
 package com.example.moasis.ai.melange
 
+import android.util.Log
 import com.example.moasis.ai.model.LlmRequest
 import com.example.moasis.ai.model.LlmRequestMode
 import com.example.moasis.ai.model.LlmResponse
@@ -10,40 +11,57 @@ import com.example.moasis.ai.model.ResumePolicy
 class MelangeLlmEngine(
     private val modelManager: MelangeModelManager,
 ) : OnDeviceLlmEngine {
+    private val generationLock = Any()
+
     override fun generate(request: LlmRequest): Result<LlmResponse> {
-        val model = modelManager.getOrCreateModel()
-            .getOrElse { return Result.failure(it) }
-        val prompt = buildPrompt(request)
-
-        runCatching {
-            model.run(prompt)
-        }.getOrElse { return Result.failure(it) }
-
-        val output = StringBuilder()
-        while (true) {
-            val waitResult = runCatching { model.waitForNextToken() }
+        synchronized(generationLock) {
+            val model = modelManager.getOrCreateModel()
                 .getOrElse { return Result.failure(it) }
-            if (waitResult.generatedTokens == 0) {
-                break
-            }
-            if (waitResult.token.isNotEmpty()) {
-                output.append(waitResult.token)
-            }
-        }
+            val prompt = buildPrompt(request)
 
-        val spokenText = output.toString().trim().ifBlank { request.canonicalText }
-        return Result.success(
-            LlmResponse(
-                responseType = when (request.mode) {
-                    LlmRequestMode.PERSONALIZE_STEP -> LlmResponseType.PERSONALIZED_STEP
-                    LlmRequestMode.ANSWER_QUESTION -> LlmResponseType.QUESTION_ANSWER
-                },
-                spokenText = spokenText,
-                summaryText = request.canonicalText,
-                safetyNotes = request.constraints.forbiddenContent.map { "Avoid: $it" },
-                resumePolicy = ResumePolicy.RESUME_SAME_STEP,
+            runCatching { model.cleanUp() }
+            Log.d(TAG, "Starting LLM generation mode=${request.mode} protocol=${request.protocolId} step=${request.stepId ?: request.currentStepId ?: "unknown"}")
+
+            runCatching {
+                model.run(prompt)
+            }.getOrElse {
+                Log.e(TAG, "model.run failed", it)
+                return Result.failure(it)
+            }
+
+            val output = StringBuilder()
+            while (true) {
+                val waitResult = runCatching { model.waitForNextToken() }
+                    .getOrElse {
+                        Log.e(TAG, "waitForNextToken failed", it)
+                        runCatching { model.cleanUp() }
+                        return Result.failure(it)
+                    }
+                if (waitResult.generatedTokens == 0) {
+                    break
+                }
+                if (waitResult.token.isNotEmpty()) {
+                    output.append(waitResult.token)
+                }
+            }
+
+            runCatching { model.cleanUp() }
+
+            val spokenText = output.toString().trim().ifBlank { request.canonicalText }
+            Log.d(TAG, "Completed LLM generation chars=${spokenText.length}")
+            return Result.success(
+                LlmResponse(
+                    responseType = when (request.mode) {
+                        LlmRequestMode.PERSONALIZE_STEP -> LlmResponseType.PERSONALIZED_STEP
+                        LlmRequestMode.ANSWER_QUESTION -> LlmResponseType.QUESTION_ANSWER
+                    },
+                    spokenText = spokenText,
+                    summaryText = request.canonicalText,
+                    safetyNotes = request.constraints.forbiddenContent.map { "Avoid: $it" },
+                    resumePolicy = ResumePolicy.RESUME_SAME_STEP,
+                )
             )
-        )
+        }
     }
 
     private fun buildPrompt(request: LlmRequest): String {
@@ -88,5 +106,9 @@ class MelangeLlmEngine(
                 }
             }
         }
+    }
+
+    companion object {
+        private const val TAG = "MelangeLlmEngine"
     }
 }

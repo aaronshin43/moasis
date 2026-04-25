@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -27,6 +26,7 @@ fun HomeScreen(
     isAiEnabled: Boolean,
     aiStatusText: String?,
     aiProgress: Float?,
+    aiDownloadedBytes: Long?,
     isAiPreparing: Boolean,
     isAiReady: Boolean,
     canRetryAiPreparation: Boolean,
@@ -95,9 +95,16 @@ fun HomeScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        if (isAiEnabled && (isAiPreparing || aiProgress != null)) {
-            LinearProgressIndicator(
-                progress = { aiProgress ?: 0f },
+        aiDownloadedBytes?.takeIf { it > 0 }?.let {
+            Text(
+                text = "Downloaded: ${it.toReadableByteCount()}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (isAiEnabled && aiProgress != null) {
+            androidx.compose.material3.LinearProgressIndicator(
+                progress = { aiProgress },
                 modifier = Modifier.fillMaxWidth(),
             )
         }
@@ -159,5 +166,17 @@ fun HomeScreen(
         ) {
             Text("Try collapse scenario")
         }
+    }
+}
+
+private fun Long.toReadableByteCount(): String {
+    val kb = 1024L
+    val mb = kb * 1024L
+    val gb = mb * 1024L
+    return when {
+        this >= gb -> String.format("%.2f GB", this.toDouble() / gb)
+        this >= mb -> String.format("%.1f MB", this.toDouble() / mb)
+        this >= kb -> String.format("%.1f KB", this.toDouble() / kb)
+        else -> "$this B"
     }
 }

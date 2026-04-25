@@ -11,6 +11,7 @@ import com.zeticai.mlange.core.model.llm.LLMQuantType
 import com.zeticai.mlange.core.model.llm.LLMTarget
 import com.zeticai.mlange.core.model.llm.ZeticMLangeLLMModel
 import java.io.File
+import java.util.concurrent.atomic.AtomicBoolean
 
 class MelangeModelManager(
     context: Context,
@@ -70,6 +71,7 @@ class MelangeModelManager(
     fun getOrCreateModel(
         onProgress: ((Float) -> Unit)? = null,
         onStatusChanged: ((ModelLoadingStatus) -> Unit)? = null,
+        onDownloadedBytes: ((Long) -> Unit)? = null,
     ): Result<ZeticMLangeLLMModel> {
         if (!config.isConfigured) {
             return Result.failure(IllegalStateException("Melange runtime is not configured."))
@@ -90,24 +92,26 @@ class MelangeModelManager(
 
             val model = runCatching {
                 onStatusChanged?.invoke(ModelLoadingStatus.PENDING)
-                ZeticMLangeLLMModel(
-                    context = appContext,
-                    personalKey = config.personalKey,
-                    name = config.modelName,
-                    version = config.modelVersion,
-                    target = resolveTarget(config.targetName),
-                    quantType = resolveQuantType(config.quantTypeName),
-                    apType = resolveApType(config.apTypeName),
-                    onProgress = { progress ->
-                        lastProgress = progress
-                        onProgress?.invoke(progress)
-                        Log.d(TAG, "Melange init progress=${"%.2f".format(progress)}")
-                    },
-                    onStatusChanged = { status ->
-                        onStatusChanged?.invoke(status)
-                        Log.d(TAG, "Melange status=$status")
-                    },
-                )
+                withDownloadedBytes(onBytes = onDownloadedBytes) {
+                    ZeticMLangeLLMModel(
+                        context = appContext,
+                        personalKey = config.personalKey,
+                        name = config.modelName,
+                        version = config.modelVersion,
+                        target = resolveTarget(config.targetName),
+                        quantType = resolveQuantType(config.quantTypeName),
+                        apType = resolveApType(config.apTypeName),
+                        onProgress = { progress ->
+                            lastProgress = progress
+                            onProgress?.invoke(progress)
+                            Log.d(TAG, "Melange init progress=${"%.2f".format(progress)}")
+                        },
+                        onStatusChanged = { status ->
+                            onStatusChanged?.invoke(status)
+                            Log.d(TAG, "Melange status=$status")
+                        },
+                    )
+                }
             }.getOrElse { return Result.failure(it) }
 
             cachedModel = model
@@ -144,6 +148,37 @@ class MelangeModelManager(
     companion object {
         private const val TAG = "MelangeModelManager"
     }
+
+    private fun <T> withDownloadedBytes(
+        onBytes: ((Long) -> Unit)?,
+        block: () -> T,
+    ): T {
+        if (onBytes == null) {
+            return block()
+        }
+        val baseline = cacheRoot.sizeRecursivelyOrZero()
+        val running = AtomicBoolean(true)
+        val poller = Thread {
+            while (running.get()) {
+                onBytes((cacheRoot.sizeRecursivelyOrZero() - baseline).coerceAtLeast(0))
+                try {
+                    Thread.sleep(500)
+                } catch (_: InterruptedException) {
+                    return@Thread
+                }
+            }
+        }.apply {
+            isDaemon = true
+            start()
+        }
+        try {
+            return block()
+        } finally {
+            running.set(false)
+            poller.interrupt()
+            onBytes((cacheRoot.sizeRecursivelyOrZero() - baseline).coerceAtLeast(0))
+        }
+    }
 }
 
 data class AiCacheSnapshot(
@@ -161,3 +196,6 @@ data class AiCacheSnapshot(
         }
     }
 }
+
+private fun File.sizeRecursivelyOrZero(): Long =
+    if (!exists()) 0L else walkTopDown().filter { it.isFile }.sumOf { it.length() }

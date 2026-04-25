@@ -12,7 +12,6 @@ import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -38,8 +37,10 @@ import com.example.moasis.ui.component.WarningBanner
 fun ActiveProtocolScreen(
     uiState: UiState,
     statusText: String?,
+    aiGenerationStatusText: String?,
     aiStatusText: String?,
     aiProgress: Float?,
+    aiDownloadedBytes: Long?,
     isAiPreparing: Boolean,
     canRetryAiPreparation: Boolean,
     aiModelLabel: String?,
@@ -72,6 +73,13 @@ fun ActiveProtocolScreen(
                 color = MaterialTheme.colorScheme.primary,
             )
         }
+        aiGenerationStatusText?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
         aiStatusText?.let {
             Text(
                 text = it,
@@ -100,9 +108,16 @@ fun ActiveProtocolScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        if (isAiPreparing || aiProgress != null) {
-            LinearProgressIndicator(
-                progress = { aiProgress ?: 0f },
+        aiDownloadedBytes?.takeIf { it > 0 }?.let {
+            Text(
+                text = "Downloaded: ${it.toReadableByteCount()}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (aiProgress != null) {
+            androidx.compose.material3.LinearProgressIndicator(
+                progress = { aiProgress },
                 modifier = Modifier.fillMaxWidth(),
             )
         }
@@ -255,5 +270,17 @@ fun ActiveProtocolScreen(
                 }
             }
         }
+    }
+}
+
+private fun Long.toReadableByteCount(): String {
+    val kb = 1024L
+    val mb = kb * 1024L
+    val gb = mb * 1024L
+    return when {
+        this >= gb -> String.format("%.2f GB", this.toDouble() / gb)
+        this >= mb -> String.format("%.1f MB", this.toDouble() / mb)
+        this >= kb -> String.format("%.1f KB", this.toDouble() / kb)
+        else -> "$this B"
     }
 }
