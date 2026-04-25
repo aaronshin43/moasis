@@ -2,7 +2,10 @@ package com.example.moasis.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import com.example.moasis.BuildConfig
+import com.example.moasis.ai.melange.MelangeModelManager
+import com.example.moasis.ai.orchestrator.InferenceOrchestrator
 import com.example.moasis.data.protocol.ProtocolRepository
 import com.example.moasis.data.visual.VisualAssetRepository
 import com.example.moasis.domain.model.DialogueState
@@ -11,14 +14,25 @@ import com.example.moasis.domain.model.TurnContext
 import com.example.moasis.domain.model.UserTurn
 import com.example.moasis.domain.state.DialogueStateManager
 import com.example.moasis.domain.state.VisionTaskRouter
+import com.example.moasis.domain.usecase.AnswerQuestionUseCase
+import com.example.moasis.domain.usecase.QuestionAnswerResult
+import com.zeticai.mlange.core.model.ModelLoadingStatus
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class EmergencyViewModel(
     private val dialogueStateManager: DialogueStateManager,
     private val protocolRepository: ProtocolRepository,
     private val visualAssetRepository: VisualAssetRepository,
+    private val inferenceOrchestrator: InferenceOrchestrator,
+    private val answerQuestionUseCase: AnswerQuestionUseCase,
+    private val melangeModelManager: MelangeModelManager? = null,
+    private val aiEnabled: Boolean = BuildConfig.AI_ENABLED,
 ) : ViewModel() {
     private var speechRequestKeyCounter: Int = 0
     private val visionTaskRouter = VisionTaskRouter()
@@ -29,7 +43,7 @@ class EmergencyViewModel(
                 primaryInstruction = "Offline emergency guidance",
                 secondaryInstruction = "Describe what happened to begin.",
             ),
-            isAiEnabled = BuildConfig.AI_ENABLED,
+            isAiEnabled = aiEnabled,
         )
     )
     val viewState: StateFlow<EmergencyViewState> = _viewState.asStateFlow()
@@ -37,6 +51,17 @@ class EmergencyViewModel(
     private var currentDialogueState: DialogueState? = null
     private var pendingImagePaths: List<String> = emptyList()
     private var recentSubmittedImagePaths: List<String> = emptyList()
+    private var personalizationJob: Job? = null
+    private var questionAnswerJob: Job? = null
+    private var aiPreparationJob: Job? = null
+    private val personalizedInstructions = mutableMapOf<String, String>()
+    private val questionAnswers = mutableMapOf<String, QuestionAnswerResult>()
+
+    init {
+        if (aiEnabled && melangeModelManager != null) {
+            prepareAiModelIfNeeded()
+        }
+    }
 
     fun reduce(event: AppEvent) {
         when (event) {
@@ -125,6 +150,7 @@ class EmergencyViewModel(
             turn = turn,
             currentState = currentDialogueState,
         )
+        cancelAiJobs()
         currentDialogueState = result.dialogueState
         pendingImagePaths = emptyList()
         recentSubmittedImagePaths = submittedImages
@@ -149,6 +175,9 @@ class EmergencyViewModel(
                 forceSpeak = true,
             )
             UiAction.Back -> {
+                cancelAiJobs()
+                personalizedInstructions.clear()
+                questionAnswers.clear()
                 currentDialogueState = null
                 _viewState.value = EmergencyViewState(
                     screenMode = ScreenMode.HOME,
@@ -157,7 +186,11 @@ class EmergencyViewModel(
                         primaryInstruction = "Offline emergency guidance",
                         secondaryInstruction = "Describe what happened to begin.",
                     ),
-                    isAiEnabled = BuildConfig.AI_ENABLED,
+                    isAiEnabled = aiEnabled,
+                    aiStatusText = _viewState.value.aiStatusText,
+                    aiProgress = _viewState.value.aiProgress,
+                    isAiPreparing = _viewState.value.isAiPreparing,
+                    isAiReady = _viewState.value.isAiReady,
                     attachedImagePaths = emptyList(),
                 )
                 pendingImagePaths = emptyList()
@@ -204,14 +237,25 @@ class EmergencyViewModel(
             "Missing step ${dialogueState.stepIndex} for ${dialogueState.protocolId}"
         }
         val warningText = buildWarningText(step)
+        val personalizationKey = protocolPersonalizationKey(dialogueState)
+        val personalizedInstruction = personalizedInstructions[personalizationKey] ?: step.canonicalText
+
+        if (aiEnabled && personalizedInstructions[personalizationKey] == null) {
+            requestProtocolPersonalization(
+                dialogueState = dialogueState,
+                protocol = protocol,
+                step = step,
+                cacheKey = personalizationKey,
+            )
+        }
 
         return EmergencyViewState(
             screenMode = ScreenMode.ACTIVE,
             uiState = UiState(
                 title = protocol.title,
-                primaryInstruction = step.canonicalText,
-                secondaryInstruction = if (BuildConfig.AI_ENABLED) {
-                    "AI-enhanced phrasing enabled"
+                primaryInstruction = personalizedInstruction,
+                secondaryInstruction = if (aiEnabled) {
+                    "Melange on-device phrasing"
                 } else {
                     "Deterministic guidance mode"
                 },
@@ -224,7 +268,11 @@ class EmergencyViewModel(
             ),
             statusText = statusText,
             quickResponses = emptyList(),
-            isAiEnabled = BuildConfig.AI_ENABLED,
+            isAiEnabled = aiEnabled,
+            aiStatusText = _viewState.value.aiStatusText,
+            aiProgress = _viewState.value.aiProgress,
+            isAiPreparing = _viewState.value.isAiPreparing,
+            isAiReady = _viewState.value.isAiReady,
             transcriptDraft = _viewState.value.transcriptDraft,
             attachedImagePaths = pendingImagePaths.ifEmpty { recentSubmittedImagePaths },
         )
@@ -253,7 +301,11 @@ class EmergencyViewModel(
             ),
             statusText = statusText,
             quickResponses = if (node.type == "question") listOf("Yes", "No") else emptyList(),
-            isAiEnabled = BuildConfig.AI_ENABLED,
+            isAiEnabled = aiEnabled,
+            aiStatusText = _viewState.value.aiStatusText,
+            aiProgress = _viewState.value.aiProgress,
+            isAiPreparing = _viewState.value.isAiPreparing,
+            isAiReady = _viewState.value.isAiReady,
             transcriptDraft = _viewState.value.transcriptDraft,
             attachedImagePaths = pendingImagePaths.ifEmpty { recentSubmittedImagePaths },
         )
@@ -269,22 +321,41 @@ class EmergencyViewModel(
         val step = requireNotNull(protocol.steps.getOrNull(dialogueState.stepIndex)) {
             "Missing step ${dialogueState.stepIndex} for ${dialogueState.protocolId}"
         }
+        val answerKey = questionAnswerKey(dialogueState)
+        val answerResult = questionAnswers[answerKey]
+
+        if (aiEnabled && answerResult == null) {
+            requestQuestionAnswer(dialogueState, answerKey)
+        }
 
         return EmergencyViewState(
             screenMode = ScreenMode.ACTIVE,
             uiState = UiState(
                 title = protocol.title,
-                primaryInstruction = step.canonicalText,
-                secondaryInstruction = "Clarification captured. AI responses are disabled in this stage, so the app stays on the current step.",
+                primaryInstruction = answerResult?.resumeText ?: step.canonicalText,
+                secondaryInstruction = answerResult?.answerText
+                    ?: if (aiEnabled) {
+                        "Generating an on-device answer for the current step."
+                    } else {
+                        "Clarification captured. AI responses are disabled in this stage, so the app stays on the current step."
+                    },
                 warningText = buildWarningText(step),
                 visualAids = visualAssetRepository.getAssetsForStep(protocol.protocolId, step.stepId),
                 currentStep = dialogueState.stepIndex + 1,
                 totalSteps = protocol.steps.size,
                 showCallEmergencyButton = protocol.safetyFlags.any { it.contains("emergency_call") },
             ),
-            statusText = statusTextOverride ?: "Returning to the current deterministic step.",
+            statusText = statusTextOverride ?: answerResult?.fallbackReason ?: if (aiEnabled) {
+                "Question received. Melange is preparing a short answer on-device."
+            } else {
+                "Returning to the current step."
+            },
             quickResponses = emptyList(),
-            isAiEnabled = BuildConfig.AI_ENABLED,
+            isAiEnabled = aiEnabled,
+            aiStatusText = _viewState.value.aiStatusText,
+            aiProgress = _viewState.value.aiProgress,
+            isAiPreparing = _viewState.value.isAiPreparing,
+            isAiReady = _viewState.value.isAiReady,
             transcriptDraft = _viewState.value.transcriptDraft,
             attachedImagePaths = pendingImagePaths.ifEmpty { recentSubmittedImagePaths },
         )
@@ -305,7 +376,11 @@ class EmergencyViewModel(
             ),
             statusText = statusTextOverride ?: "Current step suspended by a higher-priority change.",
             quickResponses = emptyList(),
-            isAiEnabled = BuildConfig.AI_ENABLED,
+            isAiEnabled = aiEnabled,
+            aiStatusText = _viewState.value.aiStatusText,
+            aiProgress = _viewState.value.aiProgress,
+            isAiPreparing = _viewState.value.isAiPreparing,
+            isAiReady = _viewState.value.isAiReady,
             transcriptDraft = _viewState.value.transcriptDraft,
             attachedImagePaths = pendingImagePaths.ifEmpty { recentSubmittedImagePaths },
         )
@@ -321,7 +396,11 @@ class EmergencyViewModel(
             ),
             statusText = statusTextOverride ?: "Deterministic walkthrough finished.",
             quickResponses = emptyList(),
-            isAiEnabled = BuildConfig.AI_ENABLED,
+            isAiEnabled = aiEnabled,
+            aiStatusText = _viewState.value.aiStatusText,
+            aiProgress = _viewState.value.aiProgress,
+            isAiPreparing = _viewState.value.isAiPreparing,
+            isAiReady = _viewState.value.isAiReady,
             transcriptDraft = _viewState.value.transcriptDraft,
             attachedImagePaths = pendingImagePaths.ifEmpty { recentSubmittedImagePaths },
         )
@@ -347,6 +426,182 @@ class EmergencyViewModel(
     private fun nextSpeechRequestKey(): Int {
         speechRequestKeyCounter += 1
         return speechRequestKeyCounter
+    }
+
+    private fun prepareAiModelIfNeeded() {
+        val modelManager = melangeModelManager ?: return
+        if (!aiEnabled || modelManager.isPreparedInMemory() || aiPreparationJob != null) {
+            if (modelManager.isPreparedInMemory()) {
+                publishAiState(
+                    statusText = "AI model ready on device.",
+                    progress = 1f,
+                    isPreparing = false,
+                    isReady = true,
+                )
+            }
+            return
+        }
+
+        val initialStatus = if (modelManager.hasInternetConnection()) {
+            "Checking AI model and preparing local runtime."
+        } else {
+            "Checking whether the AI model is already available on device."
+        }
+        publishAiState(
+            statusText = initialStatus,
+            progress = null,
+            isPreparing = true,
+            isReady = false,
+        )
+
+        aiPreparationJob = viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                modelManager.getOrCreateModel(
+                    onProgress = { progress ->
+                        publishAiState(
+                            statusText = "Downloading AI model: ${(progress * 100).toInt()}%",
+                            progress = progress.coerceIn(0f, 1f),
+                            isPreparing = true,
+                            isReady = false,
+                        )
+                    },
+                    onStatusChanged = { status ->
+                        val statusText = when (status) {
+                            ModelLoadingStatus.UNKNOWN -> "Checking AI model."
+                            ModelLoadingStatus.PENDING -> "Preparing AI model."
+                            ModelLoadingStatus.DOWNLOADING -> "Downloading AI model."
+                            ModelLoadingStatus.TRANSFERRING -> "Finalizing AI model files."
+                            ModelLoadingStatus.COMPLETED -> "AI model ready on device."
+                            ModelLoadingStatus.FAILED -> "AI model preparation failed."
+                            ModelLoadingStatus.CANCELED -> "AI model download canceled."
+                            ModelLoadingStatus.WAITING_FOR_WIFI -> "Waiting for Wi-Fi to continue AI model download."
+                            ModelLoadingStatus.NOT_INSTALLED -> "AI model not installed yet. Download will start if network is available."
+                            ModelLoadingStatus.REQUIRES_USER_CONFIRMATION -> "AI model download needs user confirmation."
+                        }
+                        publishAiState(
+                            statusText = statusText,
+                            progress = if (status == ModelLoadingStatus.COMPLETED) 1f else _viewState.value.aiProgress,
+                            isPreparing = status != ModelLoadingStatus.COMPLETED,
+                            isReady = status == ModelLoadingStatus.COMPLETED,
+                        )
+                    },
+                )
+            }
+
+            if (result.isSuccess) {
+                publishAiState(
+                    statusText = "AI model ready on device.",
+                    progress = 1f,
+                    isPreparing = false,
+                    isReady = true,
+                )
+            } else {
+                val networkHint = if (modelManager.hasInternetConnection()) {
+                    "See the error and retry by relaunching the app."
+                } else {
+                    "Connect to the internet once to download the model."
+                }
+                publishAiState(
+                    statusText = "AI model is not ready. $networkHint",
+                    progress = null,
+                    isPreparing = false,
+                    isReady = false,
+                )
+            }
+            aiPreparationJob = null
+        }
+    }
+
+    private fun publishAiState(
+        statusText: String?,
+        progress: Float?,
+        isPreparing: Boolean,
+        isReady: Boolean,
+    ) {
+        _viewState.value = _viewState.value.copy(
+            aiStatusText = statusText,
+            aiProgress = progress,
+            isAiPreparing = isPreparing,
+            isAiReady = isReady,
+        )
+    }
+
+    private fun requestProtocolPersonalization(
+        dialogueState: DialogueState.ProtocolMode,
+        protocol: com.example.moasis.domain.model.Protocol,
+        step: ProtocolStep,
+        cacheKey: String,
+    ) {
+        personalizationJob?.cancel()
+        personalizationJob = viewModelScope.launch {
+            val response = withContext(Dispatchers.IO) {
+                inferenceOrchestrator.personalizeStep(
+                    scenarioId = dialogueState.scenarioId,
+                    protocol = protocol,
+                    step = step,
+                    slots = dialogueState.slots,
+                    targetListener = dialogueState.slots["patient_type"] ?: "caregiver",
+                )
+            }
+            personalizedInstructions[cacheKey] = response.spokenText
+
+            val currentState = currentDialogueState
+            if (currentState is DialogueState.ProtocolMode && protocolPersonalizationKey(currentState) == cacheKey) {
+                _viewState.value = _viewState.value.copy(
+                    uiState = _viewState.value.uiState.copy(
+                        primaryInstruction = response.spokenText,
+                    ),
+                    statusText = response.fallbackReason ?: _viewState.value.statusText,
+                )
+            }
+        }
+    }
+
+    private fun requestQuestionAnswer(
+        dialogueState: DialogueState.QuestionMode,
+        cacheKey: String,
+    ) {
+        questionAnswerJob?.cancel()
+        questionAnswerJob = viewModelScope.launch {
+            val answerResult = withContext(Dispatchers.IO) {
+                answerQuestionUseCase.answer(
+                    scenarioId = dialogueState.scenarioId,
+                    protocolId = dialogueState.protocolId,
+                    stepIndex = dialogueState.stepIndex,
+                    userQuestion = dialogueState.userQuestion,
+                )
+            }
+            questionAnswers[cacheKey] = answerResult
+
+            val currentState = currentDialogueState
+            if (currentState is DialogueState.QuestionMode && questionAnswerKey(currentState) == cacheKey) {
+                _viewState.value = _viewState.value.copy(
+                    uiState = _viewState.value.uiState.copy(
+                        primaryInstruction = answerResult.resumeText,
+                        secondaryInstruction = answerResult.answerText,
+                    ),
+                    statusText = answerResult.fallbackReason ?: "Returning to the current step.",
+                )
+            }
+        }
+    }
+
+    private fun protocolPersonalizationKey(dialogueState: DialogueState.ProtocolMode): String {
+        val slotsHash = dialogueState.slots.toSortedMap().entries.joinToString { "${it.key}=${it.value}" }
+        return "${dialogueState.scenarioId}|${dialogueState.protocolId}|${dialogueState.stepIndex}|$slotsHash"
+    }
+
+    private fun questionAnswerKey(dialogueState: DialogueState.QuestionMode): String {
+        return "${dialogueState.scenarioId}|${dialogueState.protocolId}|${dialogueState.stepIndex}|${dialogueState.userQuestion}"
+    }
+
+    private fun cancelAiJobs() {
+        aiPreparationJob?.cancel()
+        personalizationJob?.cancel()
+        questionAnswerJob?.cancel()
+        aiPreparationJob = null
+        personalizationJob = null
+        questionAnswerJob = null
     }
 
     private fun buildTurnContext(): TurnContext {
@@ -378,12 +633,21 @@ class EmergencyViewModel(
             null -> TurnContext(dialogueState = state)
         }
     }
+
+    override fun onCleared() {
+        cancelAiJobs()
+        super.onCleared()
+    }
 }
 
 class EmergencyViewModelFactory(
     private val dialogueStateManager: DialogueStateManager,
     private val protocolRepository: ProtocolRepository,
     private val visualAssetRepository: VisualAssetRepository,
+    private val inferenceOrchestrator: InferenceOrchestrator,
+    private val answerQuestionUseCase: AnswerQuestionUseCase,
+    private val melangeModelManager: MelangeModelManager? = null,
+    private val aiEnabled: Boolean = BuildConfig.AI_ENABLED,
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -392,6 +656,10 @@ class EmergencyViewModelFactory(
                 dialogueStateManager = dialogueStateManager,
                 protocolRepository = protocolRepository,
                 visualAssetRepository = visualAssetRepository,
+                inferenceOrchestrator = inferenceOrchestrator,
+                answerQuestionUseCase = answerQuestionUseCase,
+                melangeModelManager = melangeModelManager,
+                aiEnabled = aiEnabled,
             ) as T
         }
         error("Unsupported ViewModel class: ${modelClass.name}")

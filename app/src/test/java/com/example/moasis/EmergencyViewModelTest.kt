@@ -1,11 +1,16 @@
 package com.example.moasis
 
+import com.example.moasis.ai.melange.RuleBasedLlmEngine
+import com.example.moasis.ai.orchestrator.InferenceOrchestrator
+import com.example.moasis.ai.prompt.PromptFactory
 import com.example.moasis.data.protocol.FileSystemAssetTextSource
 import com.example.moasis.data.protocol.JsonProtocolDataSource
 import com.example.moasis.data.protocol.ProtocolRepository
 import com.example.moasis.data.visual.AssetCatalogDataSource
 import com.example.moasis.data.visual.VisualAssetRepository
+import com.example.moasis.domain.safety.KeywordResponseValidator
 import com.example.moasis.domain.state.DialogueStateManager
+import com.example.moasis.domain.usecase.AnswerQuestionUseCase
 import com.example.moasis.presentation.EmergencyViewModel
 import java.io.File
 import org.junit.Assert.assertEquals
@@ -24,6 +29,20 @@ class EmergencyViewModelTest {
         dialogueStateManager = DialogueStateManager(protocolRepository),
         protocolRepository = protocolRepository,
         visualAssetRepository = visualAssetRepository,
+        inferenceOrchestrator = InferenceOrchestrator(
+            llmEngine = RuleBasedLlmEngine(),
+            promptFactory = PromptFactory(),
+            responseValidator = KeywordResponseValidator(),
+        ),
+        answerQuestionUseCase = AnswerQuestionUseCase(
+            protocolRepository = protocolRepository,
+            inferenceOrchestrator = InferenceOrchestrator(
+                llmEngine = RuleBasedLlmEngine(),
+                promptFactory = PromptFactory(),
+                responseValidator = KeywordResponseValidator(),
+            ),
+        ),
+        aiEnabled = false,
     )
 
     @Test

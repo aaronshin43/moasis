@@ -12,6 +12,7 @@ import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -37,6 +38,9 @@ import com.example.moasis.ui.component.WarningBanner
 fun ActiveProtocolScreen(
     uiState: UiState,
     statusText: String?,
+    aiStatusText: String?,
+    aiProgress: Float?,
+    isAiPreparing: Boolean,
     quickResponses: List<String>,
     onSubmitText: (String) -> Unit,
     onAction: (UiAction) -> Unit,
@@ -47,7 +51,7 @@ fun ActiveProtocolScreen(
     onPickImage: () -> Unit,
     onCaptureImage: () -> Unit,
     onClearImages: () -> Unit,
-) {
+    ) {
     var draft by remember { mutableStateOf("") }
 
     Column(
@@ -62,6 +66,19 @@ fun ActiveProtocolScreen(
                 text = it,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.primary,
+            )
+        }
+        aiStatusText?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (isAiPreparing || aiProgress != null) {
+            LinearProgressIndicator(
+                progress = { aiProgress ?: 0f },
+                modifier = Modifier.fillMaxWidth(),
             )
         }
 

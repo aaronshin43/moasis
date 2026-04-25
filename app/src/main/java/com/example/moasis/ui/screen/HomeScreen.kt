@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -24,6 +25,10 @@ import androidx.compose.material.icons.outlined.Mic
 @Composable
 fun HomeScreen(
     isAiEnabled: Boolean,
+    aiStatusText: String?,
+    aiProgress: Float?,
+    isAiPreparing: Boolean,
+    isAiReady: Boolean,
     onStart: (String) -> Unit,
     onVoiceInput: () -> Unit,
     transcriptDraft: String,
@@ -48,10 +53,28 @@ fun HomeScreen(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Text(
-            text = if (isAiEnabled) "AI personalization enabled" else "AI disabled: deterministic guidance only",
+            text = when {
+                !isAiEnabled -> "AI disabled: deterministic guidance only"
+                isAiReady -> "AI personalization enabled: model ready"
+                isAiPreparing -> "AI personalization enabled: preparing model"
+                else -> "AI personalization enabled: model not ready yet"
+            },
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.primary,
         )
+        aiStatusText?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (isAiEnabled && (isAiPreparing || aiProgress != null)) {
+            LinearProgressIndicator(
+                progress = { aiProgress ?: 0f },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
         if (transcriptDraft.isNotBlank()) {
             Text(
                 text = transcriptDraft,

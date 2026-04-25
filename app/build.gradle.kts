@@ -5,6 +5,26 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+fun String.toBuildConfigString(): String = "\"${replace("\\", "\\\\").replace("\"", "\\\"")}\""
+
+val aiEnabled = providers.gradleProperty("MOASIS_AI_ENABLED")
+    .orElse("false")
+    .get()
+    .toBoolean()
+val melangePersonalKey = providers.gradleProperty("MOASIS_MELANGE_PERSONAL_KEY")
+    .orElse("")
+    .get()
+val melangeModelName = providers.gradleProperty("MOASIS_MELANGE_MODEL_NAME")
+    .orElse("")
+    .get()
+val melangeModelVersion = providers.gradleProperty("MOASIS_MELANGE_MODEL_VERSION")
+    .orElse("-1")
+    .get()
+    .toInt()
+val melangeModelMode = providers.gradleProperty("MOASIS_MELANGE_MODEL_MODE")
+    .orElse("RUN_AUTO")
+    .get()
+
 android {
     namespace = "com.example.moasis"
     compileSdk {
@@ -13,11 +33,15 @@ android {
 
     defaultConfig {
         applicationId = "com.example.moasis"
-        minSdk = 24
+        minSdk = 31
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
-        buildConfigField("boolean", "AI_ENABLED", "false")
+        buildConfigField("boolean", "AI_ENABLED", aiEnabled.toString())
+        buildConfigField("String", "MELANGE_PERSONAL_KEY", melangePersonalKey.toBuildConfigString())
+        buildConfigField("String", "MELANGE_MODEL_NAME", melangeModelName.toBuildConfigString())
+        buildConfigField("int", "MELANGE_MODEL_VERSION", melangeModelVersion.toString())
+        buildConfigField("String", "MELANGE_MODEL_MODE", melangeModelMode.toBuildConfigString())
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -39,6 +63,11 @@ android {
         compose = true
         buildConfig = true
     }
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
 }
 
 dependencies {
@@ -46,6 +75,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
@@ -60,6 +90,7 @@ dependencies {
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
+    implementation("com.zeticai.mlange:mlange:1.6.1")
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

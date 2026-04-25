@@ -187,6 +187,10 @@ fun EmergencyApp(
         when (viewState.screenMode) {
             ScreenMode.HOME -> HomeScreen(
                 isAiEnabled = viewState.isAiEnabled,
+                aiStatusText = viewState.aiStatusText,
+                aiProgress = viewState.aiProgress,
+                isAiPreparing = viewState.isAiPreparing,
+                isAiReady = viewState.isAiReady,
                 onStart = viewModel::startEmergency,
                 onVoiceInput = ::startListening,
                 transcriptDraft = viewState.transcriptDraft,
@@ -196,6 +200,9 @@ fun EmergencyApp(
             ScreenMode.ACTIVE -> ActiveProtocolScreen(
                 uiState = viewState.uiState,
                 statusText = viewState.statusText,
+                aiStatusText = viewState.aiStatusText,
+                aiProgress = viewState.aiProgress,
+                isAiPreparing = viewState.isAiPreparing,
                 quickResponses = viewState.quickResponses,
                 onSubmitText = viewModel::submitText,
                 onAction = { action -> viewModel.reduce(com.example.moasis.presentation.AppEvent.UserTappedAction(action)) },

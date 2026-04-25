@@ -4,8 +4,8 @@ Use this file as the compact handoff and restart context for implementation work
 
 ## Current Stage
 
-- Active stage: `S5`
-- Next gate: `manual image attachment verification`
+- Active stage: `S7-real`
+- Next gate: `manual Melange-enabled verification on a physical Android 12+ device`
 
 ## Frozen Contracts
 
@@ -63,20 +63,38 @@ Use this file as the compact handoff and restart context for implementation work
 - image-bearing `UserTurn` submission now carries cached internal image paths without analysis
 - camera `FileProvider` and cache-backed file paths configured
 - clean rebuild passed with `./gradlew.bat clean :app:testDebugUnitTest --rerun-tasks :app:assembleDebug`
+- prompt factory, on-device LLM interface, Melange model manager stub, Melange LLM stub, orchestrator, and answer-question use case added
+- keyword-based response validator now enforces required and forbidden keyword checks
+- ViewModel has an AI-enabled branch while preserving canonical fallback and the existing `AI_ENABLED=false` path
+- S7 AI and validator tests passed with `./gradlew.bat clean :app:testDebugUnitTest --rerun-tasks`
+- `:app:assembleDebug` passed after S7 integration
+- real Melange SDK dependency added with `jniLibs.useLegacyPackaging = true`
+- Melange dependency pinned to `com.zeticai.mlange:mlange:1.6.1`
+- BuildConfig plumbing added for `MOASIS_AI_ENABLED`, `MOASIS_MELANGE_PERSONAL_KEY`, `MOASIS_MELANGE_MODEL_NAME`, `MOASIS_MELANGE_MODEL_VERSION`, and `MOASIS_MELANGE_MODEL_MODE`
+- `INTERNET` permission added for the first-run Melange download path
+- app LLM runtime now selects a real Melange-backed adapter when configured and falls back to a deterministic rule-based engine otherwise
+- Melange adapter now uses the direct SDK path with `ZeticMLangeLLMModel(context, personalKey, name, version, modelMode, onProgress)`
+- Melange calls are now offloaded from the main thread in `EmergencyViewModel`; canonical guidance renders first and is updated when AI output returns
+- app startup now preloads the Melange model when AI is enabled and shows progress / readiness in the UI
+- current resolved Melange runtime requires `minSdk 31`, so the app baseline was raised from 24 to 31
+- `:app:testDebugUnitTest --rerun-tasks` passed after S7-real wiring
+- `:app:assembleDebug` passed after S7-real wiring
 
 ## Open Blockers
 
-- image attachment scenarios need manual emulator walkthrough confirmation
 - Room persistence is still deferred until after the S4 line
+- real Melange output still needs on-device verification with valid dashboard credentials and a physical Android 12+ device
+- exact runtime package layout is handled reflectively right now because the public docs do not publish stable Android import examples for `ZeticMLangeLLMModel`
 
 ## Next Unlock Condition
 
-To close `S6`, the repo needs:
+To close `S7-real`, the repo needs:
 
-1. confirm gallery image attachment appears as a thumbnail in the active screen
-2. confirm camera capture attaches and previews without a crash
-3. confirm submitting text plus image keeps deterministic progress and shows the safe image-disabled status
-4. confirm image-only submit leaves the current step intact and does not stall the flow
+1. supply valid `MOASIS_MELANGE_PERSONAL_KEY` and `MOASIS_MELANGE_MODEL_NAME` values
+2. verify AI-enabled personalization path on a physical Android 12+ device
+3. confirm question answering resumes the step cleanly when Melange is enabled
+4. confirm invalid output or runtime failure still falls back to canonical text in the UI
+5. keep `AI_ENABLED=false` as the guaranteed demo fallback
 
 ## Rollback Point
 
