@@ -4,8 +4,8 @@ Use this file as the compact handoff and restart context for implementation work
 
 ## Current Stage
 
-- Active stage: `S0`
-- Next gate: `manual launch verification, then S1`
+- Active stage: `S1`
+- Next gate: `contracts frozen`
 
 ## Frozen Contracts
 
@@ -18,22 +18,18 @@ Use this file as the compact handoff and restart context for implementation work
 - `PLAN.md` reviewed
 - execution workflow documented in `docs/EXECUTION_GUIDE.md`
 - `:app:assembleDebug` passed
+- app launches to a blank screen on emulator with no crash
 - package scaffolding added for `ui`, `presentation`, `audio`, `imaging`, `domain`, `data`, and `ai`
 - Android permissions added for audio, camera, and media images
 - repository note added for Melange and Gemma4 E2B procurement planning
 
 ## Open Blockers
 
-- app launch to blank screen is not manually verified yet
 - no domain models or protocol assets exist yet
 
 ## Next Unlock Condition
 
-To fully close `S0`, the repo needs:
-
-1. manual app launch confirmation with no crash
-
-After that, start `S1`:
+To close `S1`, the repo needs:
 
 1. create core pure-Kotlin models
 2. add serialization round-trip tests
