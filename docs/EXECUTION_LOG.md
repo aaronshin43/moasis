@@ -4,12 +4,32 @@ Use this file as the compact handoff and restart context for implementation work
 
 ## Current Stage
 
-- Active stage: `S1`
-- Next gate: `contracts frozen`
+- Active stage: `S2-lite`
+- Next gate: `minimal protocol assets and JSON lookup`
 
 ## Frozen Contracts
 
-- None yet
+- `UserTurn`
+- `ObservedFact`
+- `TurnContext`
+- `DialogueState`
+- `EntryIntent`
+- `DomainIntent`
+- `UiState`
+- `ChecklistItem`
+- `VisualAid`
+- `VisualAidType`
+- `AppEvent`
+- `UiAction`
+- `Protocol`
+- `ProtocolStep`
+- `AssetRef`
+- `Tree`
+- `TreeNode`
+- `Transition`
+- `Route`
+- `LlmRequest`
+- `LlmResponse`
 
 ## Passed Checks
 
@@ -22,18 +42,21 @@ Use this file as the compact handoff and restart context for implementation work
 - package scaffolding added for `ui`, `presentation`, `audio`, `imaging`, `domain`, `data`, and `ai`
 - Android permissions added for audio, camera, and media images
 - repository note added for Melange and Gemma4 E2B procurement planning
+- core pure-Kotlin model layer added in `domain/model`, `presentation`, and `ai/model`
+- serialization round-trip unit test passed with `:app:testDebugUnitTest`
 
 ## Open Blockers
 
-- no domain models or protocol assets exist yet
+- no protocol JSON assets exist yet
+- no JSON data source or repository lookup exists yet
 
 ## Next Unlock Condition
 
-To close `S1`, the repo needs:
+To close `S2-lite`, the repo needs:
 
-1. create core pure-Kotlin models
-2. add serialization round-trip tests
-3. freeze contract surfaces before parallel work
+1. create minimal protocol and tree JSON assets
+2. implement JSON loading for `Tree` and `Protocol`
+3. add repository lookup tests for known and missing IDs
 
 ## Rollback Point
 
