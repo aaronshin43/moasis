@@ -327,6 +327,24 @@ Core principles:
 - Determine task purpose based on conversation context, not image content alone
 - Start with rule-based routing in MVP and optionally add a lightweight classifier later
 
+Example MVP routing order:
+
+1. if `currentProtocolId == "first_aid_kit_inventory"` -> `KIT_DETECTION`
+2. if the current `step_id` or step metadata contains `expected_visual_check` -> `STEP_VERIFICATION`
+3. if `DialogueState == EntryMode` and the user text mentions a visible injury / body part / externally visible condition -> `INJURY_OBSERVATION`
+4. if the user asks a general contextual image question such as "What should I do based on this photo?" or "Does this look okay?" -> `GENERAL_MULTIMODAL_QA`
+5. if no rule matches clearly -> `GENERAL_MULTIMODAL_QA`
+
+Recommended implementation shape:
+
+```text
+1. protocol-specific override
+2. step-specific visual verification
+3. entry-mode visible injury observation
+4. generic multimodal question
+5. fallback to GENERAL_MULTIMODAL_QA
+```
+
 ### 6.6 Protocol State Machine
 
 Role:
@@ -394,6 +412,29 @@ Core behavior:
 - Control intents are handled immediately without the LLM
 - Clarification questions are sent to the LLM with the current step context
 - State-changing reports take priority over the current step and trigger state re-evaluation
+
+Forced classification rule:
+
+- If the utterance contains life-threat or severe state-change keywords, classify it as `STATE_CHANGING_REPORT` before any other pattern class.
+- Apply this rule regardless of the current protocol step.
+
+Representative keyword / pattern examples:
+
+- can't breathe / trouble breathing / breathing is strange
+- unconscious / not responding / collapsed
+- heavy bleeding / bleeding a lot
+- chest pain
+- seizure / convulsing
+- throat swelling / choking / severe allergic reaction
+
+MVP classification priority:
+
+```text
+1. life_threat_keywords match -> STATE_CHANGING_REPORT
+2. control_intent_patterns match -> CONTROL_INTENT
+3. clarification_question_patterns match -> CLARIFICATION_QUESTION
+4. else -> OUT_OF_DOMAIN
+```
 
 ### 6.9 Inference Orchestrator
 
@@ -1151,8 +1192,14 @@ Check the following:
 
 On failure:
 
-- use `canonical_text` as-is
-- or use a canned app response
+- use a short canned bridge response first
+- then return to `canonical_text` or a safe canned instruction
+
+Recommended canned bridge examples:
+
+- "Returning to the current step."
+- "I'll read that again slowly."
+- "I'll repeat only the important action."
 
 ---
 
@@ -1167,6 +1214,12 @@ When a new user input arrives, classify it in this order:
 3. `CLARIFICATION_QUESTION`
 4. `OUT_OF_DOMAIN`
 
+Forced re-triage rule:
+
+- If the utterance contains a life-threat keyword or severe symptom pattern, raise it to `STATE_CHANGING_REPORT` immediately regardless of current step context.
+- In that case, do not remain in the current domain tree; move to `ReTriageMode` or a higher-priority tree.
+- Example: during a burn step, "They can't breathe well" -> `STATE_CHANGING_REPORT`, not `CLARIFICATION_QUESTION`
+
 ### 15.2 Resume Policies
 
 - `resume_same_step`
@@ -1175,6 +1228,14 @@ When a new user input arrives, classify it in this order:
   - move to the next step if completion was confirmed
 - `retriage`
   - re-enter Entry Tree or re-evaluate the current tree when new symptoms are reported
+
+Resume utterance rule:
+
+- A `resume_same_step` utterance must not contain acknowledgment only.
+- It must include the key action verb or action phrase from the current step.
+- Example:
+  - weaker: "Let's continue."
+  - stronger: "Let's continue. Cool the burn under running water."
 
 ### 15.3 Runtime Context That Must Be Stored
 
@@ -1380,11 +1441,15 @@ app/
 - do not read overly long sentences at once
 - read the step and warning separately
 - after answering a question, use a short resume phrase
+- the resume phrase must include the key action verb or action phrase
+- when validator fallback is triggered, prefer the sequence: canned bridge + core action sentence
 
 Examples:
 
 - "I'll answer that question."
 - "Let's continue."
+- "Let's continue. Cool the burn under running water."
+- "Returning to the current step. Loosely cover it with a clean cloth."
 - "Returning to the current step."
 
 ### 18.3 Visual Aid Display Rules

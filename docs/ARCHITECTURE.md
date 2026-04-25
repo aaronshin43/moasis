@@ -327,6 +327,24 @@ MVP 기준 우선순위:
 - 목적 판단은 이미지 내용 단독이 아니라 대화 맥락 기반으로 한다.
 - MVP에서는 규칙 기반 라우팅으로 시작하고, 확장 시 경량 classifier를 추가할 수 있다.
 
+MVP 라우팅 순서 예시:
+
+1. `currentProtocolId == "first_aid_kit_inventory"` 이면 `KIT_DETECTION`
+2. 현재 `step_id` 또는 step metadata에 `expected_visual_check`가 있으면 `STEP_VERIFICATION`
+3. `DialogueState == EntryMode` 이고 사용자 텍스트가 보이는 상처/부위/겉으로 드러난 상태를 언급하면 `INJURY_OBSERVATION`
+4. 사용자가 "이 사진 보고 뭘 해야 해?", "이거 괜찮아 보여?"처럼 일반 맥락 질문을 하면 `GENERAL_MULTIMODAL_QA`
+5. 어느 규칙에도 명확히 걸리지 않으면 `GENERAL_MULTIMODAL_QA`
+
+권장 구현 형태:
+
+```text
+1. protocol-specific override
+2. step-specific visual verification
+3. entry-mode visible injury observation
+4. generic multimodal question
+5. fallback to GENERAL_MULTIMODAL_QA
+```
+
 ### 6.6 Protocol State Machine
 
 역할:
@@ -394,6 +412,29 @@ MVP 기준 우선순위:
 - control intent는 LLM 없이 즉시 처리
 - clarification은 현재 step context를 붙여 LLM에 전달
 - state-changing report는 기존 step보다 우선 처리하고 state machine 재평가
+
+강제 분류 규칙:
+
+- 발화에 생명위협 또는 중증 상태 변화 키워드가 포함되면 다른 패턴보다 우선하여 `STATE_CHANGING_REPORT`로 분류한다.
+- 이 규칙은 현재 사용자가 어떤 프로토콜 step에 있든 동일하게 적용한다.
+
+대표 키워드/패턴 예시:
+
+- 숨을 못 쉬어 / 숨쉬기 힘들어 / 호흡이 이상해
+- 의식이 없어 / 반응이 없어 / 쓰러졌어
+- 피가 많이 나 / 출혈이 심해
+- 가슴이 아파 / 흉통
+- 경련해 / 발작해
+- 목이 붓는 것 같아 / choking / 알레르기 반응 심해
+
+MVP 분류 우선순위:
+
+```text
+1. life_threat_keywords match -> STATE_CHANGING_REPORT
+2. control_intent_patterns match -> CONTROL_INTENT
+3. clarification_question_patterns match -> CLARIFICATION_QUESTION
+4. else -> OUT_OF_DOMAIN
+```
 
 ### 6.9 Inference Orchestrator
 
@@ -1151,8 +1192,14 @@ sealed class AppEvent {
 
 실패 시:
 
-- `canonical_text` 그대로 사용
-- 또는 앱 내 canned response 사용
+- 짧은 canned bridge response를 먼저 사용
+- 그 다음 `canonical_text` 또는 안전한 canned instruction으로 복귀
+
+권장 canned bridge 예시:
+
+- "현재 단계로 돌아갈게요."
+- "천천히 다시 읽어드릴게요."
+- "중요한 행동만 다시 말씀드릴게요."
 
 ---
 
@@ -1167,6 +1214,12 @@ sealed class AppEvent {
 3. `CLARIFICATION_QUESTION`
 4. `OUT_OF_DOMAIN`
 
+강제 재분기 규칙:
+
+- 발화에 생명위협 키워드 또는 중증 증상 패턴이 포함되면 현재 step 문맥과 무관하게 즉시 `STATE_CHANGING_REPORT`로 올린다.
+- 이 경우 현재 도메인 트리에 머무르지 말고 `ReTriageMode` 또는 더 높은 우선순위 트리로 이동한다.
+- 예: 화상 step 도중 "숨을 잘 못 쉬어" -> `CLARIFICATION_QUESTION`이 아니라 `STATE_CHANGING_REPORT`
+
 ### 15.2 복귀 정책
 
 - `resume_same_step`
@@ -1175,6 +1228,14 @@ sealed class AppEvent {
   - 완료가 확인되었으면 다음 step으로 이동
 - `retriage`
   - 새 증상 보고가 있으면 Entry Tree 또는 현재 tree 재평가
+
+복귀 발화 규칙:
+
+- `resume_same_step` 시 복귀 문장은 단순한 acknowledgment만 포함하면 안 된다.
+- 반드시 현재 행동의 핵심 동사 또는 행동 문구를 포함해야 한다.
+- 예:
+  - 덜 좋은 예: "이어서 진행할게요."
+  - 더 좋은 예: "이어서 진행할게요. 화상 부위를 흐르는 물에 식히세요."
 
 ### 15.3 저장해야 할 런타임 컨텍스트
 
@@ -1380,11 +1441,15 @@ app/
 - 한 번에 너무 긴 문장을 읽지 않음
 - step과 warning을 분리해 읽음
 - 질문 답변 후에는 복귀 멘트를 짧게 사용
+- 복귀 멘트에는 현재 행동의 핵심 동사 또는 행동 문구를 반드시 포함
+- validator fallback 시에는 canned bridge + 핵심 행동 문장 순서로 재생하는 것을 우선
 
 예:
 
 - "질문에 답할게요."
 - "이어서 진행할게요."
+- "이어서 진행할게요. 화상 부위를 흐르는 물에 식히세요."
+- "현재 단계로 돌아갈게요. 깨끗한 천으로 가볍게 덮으세요."
 - "지금 단계로 돌아갑니다."
 
 ### 18.3 시각 보조 자료 표시 규칙
