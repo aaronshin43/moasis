@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -20,10 +21,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Mic
 import com.example.moasis.presentation.UiAction
 import com.example.moasis.presentation.UiState
 import com.example.moasis.ui.component.StepCard
 import com.example.moasis.ui.component.VisualAidStrip
+import com.example.moasis.ui.component.VoiceStatusBar
 import com.example.moasis.ui.component.WarningBanner
 
 @Composable
@@ -34,6 +38,8 @@ fun ActiveProtocolScreen(
     onSubmitText: (String) -> Unit,
     onAction: (UiAction) -> Unit,
     onQuickResponse: (String) -> Unit,
+    onVoiceInput: () -> Unit,
+    transcriptDraft: String,
 ) {
     var draft by remember { mutableStateOf("") }
 
@@ -51,6 +57,12 @@ fun ActiveProtocolScreen(
                 color = MaterialTheme.colorScheme.primary,
             )
         }
+
+        VoiceStatusBar(
+            isListening = uiState.isListening,
+            isSpeaking = uiState.isSpeaking,
+            transcriptDraft = transcriptDraft,
+        )
 
         StepCard(
             title = uiState.title,
@@ -103,6 +115,17 @@ fun ActiveProtocolScreen(
             enabled = draft.isNotBlank(),
         ) {
             Text("Submit")
+        }
+
+        OutlinedButton(
+            onClick = onVoiceInput,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Mic,
+                contentDescription = "Voice input",
+            )
+            Text(if (uiState.isListening) " Listening..." else " Start voice input")
         }
 
         Row(

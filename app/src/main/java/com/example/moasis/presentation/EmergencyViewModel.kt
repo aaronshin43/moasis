@@ -17,6 +17,7 @@ class EmergencyViewModel(
     private val protocolRepository: ProtocolRepository,
     private val visualAssetRepository: VisualAssetRepository,
 ) : ViewModel() {
+    private var speechRequestKeyCounter: Int = 0
     private val _viewState = MutableStateFlow(
         EmergencyViewState(
             uiState = UiState(
@@ -35,9 +36,12 @@ class EmergencyViewModel(
         when (event) {
             is AppEvent.UserTappedAction -> handleAction(event.action)
             is AppEvent.UserSubmittedTurn -> submitText(event.turn.text ?: event.turn.voiceTranscript.orEmpty())
-            is AppEvent.VoiceTranscript -> if (event.isFinal) submitText(event.text)
-            is AppEvent.TtsCompleted,
-            is AppEvent.TtsInterrupted,
+            is AppEvent.VoiceTranscript -> handleVoiceTranscript(event.text, event.isFinal)
+            is AppEvent.TtsCompleted -> updateSpeaking(false)
+            is AppEvent.TtsInterrupted -> {
+                updateSpeaking(false)
+                updateStatus(event.reason)
+            }
             is AppEvent.LlmCompleted,
             is AppEvent.LlmFailed -> Unit
         }
@@ -45,6 +49,22 @@ class EmergencyViewModel(
 
     fun startEmergency(text: String) {
         submitText(text)
+    }
+
+    fun updateListening(isListening: Boolean) {
+        _viewState.value = _viewState.value.copy(
+            uiState = _viewState.value.uiState.copy(isListening = isListening),
+        )
+    }
+
+    fun updateSpeaking(isSpeaking: Boolean) {
+        _viewState.value = _viewState.value.copy(
+            uiState = _viewState.value.uiState.copy(isSpeaking = isSpeaking),
+        )
+    }
+
+    fun updateStatus(statusText: String?) {
+        _viewState.value = _viewState.value.copy(statusText = statusText)
     }
 
     fun submitText(text: String) {
@@ -63,13 +83,19 @@ class EmergencyViewModel(
             is DialogueState.QuestionMode -> buildQuestionViewState(dialogueState)
             is DialogueState.ReTriageMode -> buildRetriageViewState(dialogueState)
             DialogueState.Completed -> buildCompletedViewState()
-        }
+        }.copy(
+            transcriptDraft = "",
+            speechRequestKey = nextSpeechRequestKey(),
+        )
     }
 
     private fun handleAction(action: UiAction) {
         when (action) {
             UiAction.Next -> submitText("next")
-            UiAction.Repeat -> refreshCurrentState("Repeating the current deterministic guidance.")
+            UiAction.Repeat -> refreshCurrentState(
+                statusText = "Repeating the current deterministic guidance.",
+                forceSpeak = true,
+            )
             UiAction.Back -> {
                 currentDialogueState = null
                 _viewState.value = EmergencyViewState(
@@ -87,7 +113,7 @@ class EmergencyViewModel(
         }
     }
 
-    private fun refreshCurrentState(statusText: String) {
+    private fun refreshCurrentState(statusText: String, forceSpeak: Boolean = false) {
         _viewState.value = when (val dialogueState = currentDialogueState) {
             is DialogueState.ProtocolMode -> buildProtocolViewState(dialogueState, statusText)
             is DialogueState.EntryMode -> buildEntryViewState(dialogueState, statusText)
@@ -95,6 +121,20 @@ class EmergencyViewModel(
             is DialogueState.ReTriageMode -> buildRetriageViewState(dialogueState)
             DialogueState.Completed -> buildCompletedViewState()
             null -> _viewState.value.copy(statusText = statusText)
+        }.let {
+            if (forceSpeak) {
+                it.copy(speechRequestKey = nextSpeechRequestKey())
+            } else {
+                it
+            }
+        }
+    }
+
+    private fun handleVoiceTranscript(text: String, isFinal: Boolean) {
+        if (isFinal) {
+            submitText(text)
+        } else {
+            _viewState.value = _viewState.value.copy(transcriptDraft = text)
         }
     }
 
@@ -130,6 +170,7 @@ class EmergencyViewModel(
             statusText = statusText,
             quickResponses = emptyList(),
             isAiEnabled = BuildConfig.AI_ENABLED,
+            transcriptDraft = _viewState.value.transcriptDraft,
         )
     }
 
@@ -157,6 +198,7 @@ class EmergencyViewModel(
             statusText = statusText,
             quickResponses = if (node.type == "question") listOf("Yes", "No") else emptyList(),
             isAiEnabled = BuildConfig.AI_ENABLED,
+            transcriptDraft = _viewState.value.transcriptDraft,
         )
     }
 
@@ -183,6 +225,7 @@ class EmergencyViewModel(
             statusText = "Returning to the current deterministic step.",
             quickResponses = emptyList(),
             isAiEnabled = BuildConfig.AI_ENABLED,
+            transcriptDraft = _viewState.value.transcriptDraft,
         )
     }
 
@@ -199,6 +242,7 @@ class EmergencyViewModel(
             statusText = "Current step suspended by a higher-priority change.",
             quickResponses = emptyList(),
             isAiEnabled = BuildConfig.AI_ENABLED,
+            transcriptDraft = _viewState.value.transcriptDraft,
         )
     }
 
@@ -213,6 +257,7 @@ class EmergencyViewModel(
             statusText = "Deterministic walkthrough finished.",
             quickResponses = emptyList(),
             isAiEnabled = BuildConfig.AI_ENABLED,
+            transcriptDraft = _viewState.value.transcriptDraft,
         )
     }
 
@@ -231,6 +276,11 @@ class EmergencyViewModel(
             "bleeding_tree" -> "Bleeding Triage"
             else -> treeId.replace('_', ' ')
         }
+    }
+
+    private fun nextSpeechRequestKey(): Int {
+        speechRequestKeyCounter += 1
+        return speechRequestKeyCounter
     }
 }
 

@@ -4,8 +4,8 @@ Use this file as the compact handoff and restart context for implementation work
 
 ## Current Stage
 
-- Active stage: `S4`
-- Next gate: `manual deterministic demo verification`
+- Active stage: `S5`
+- Next gate: `manual voice flow verification`
 
 ## Frozen Contracts
 
@@ -54,20 +54,25 @@ Use this file as the compact handoff and restart context for implementation work
 - deterministic Compose screens, `EmergencyViewModel`, and `AI_ENABLED=false` wiring added
 - debug build passed with S4 UI wiring
 - ViewModel flow tests cover burn start, collapse start, collapse branching, and re-triage UI transitions
+- Android speech recognizer, TTS engine, audio controller, and voice event model added
+- voice status bar and microphone permission flow added to the Compose UI
+- `Repeat` now re-triggers step speech through a speech request key
+- `:app:assembleDebug` passed after S5 audio integration
+- `:app:testDebugUnitTest --rerun-tasks` passed after S5 audio integration
 
 ## Open Blockers
 
-- burn and collapse scenarios need manual emulator walkthrough confirmation in the new UI
+- voice scenarios need manual emulator walkthrough confirmation
 - Room persistence is still deferred until after the S4 line
 
 ## Next Unlock Condition
 
-To close `S4`, the repo needs:
+To close `S5`, the repo needs:
 
-1. confirm burn flow completes end-to-end in the emulator with `AI_ENABLED=false`
-2. confirm collapse flow branches correctly through yes/no input in the emulator
-3. confirm visual aids render on the burn step and the layout stays clean on steps without images
-4. confirm mid-step `they can't breathe` switches to the re-triage UI
+1. confirm speaking `my friend collapsed` starts the same deterministic flow as text input
+2. confirm speaking `next` during TTS stops speech and advances
+3. confirm microphone denial falls back to text-only use without a crash
+4. confirm empty or failed STT leaves the current step visible and prompts retry
 
 ## Rollback Point
 

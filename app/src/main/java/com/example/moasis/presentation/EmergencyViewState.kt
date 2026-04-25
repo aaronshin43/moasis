@@ -6,6 +6,8 @@ data class EmergencyViewState(
     val statusText: String? = null,
     val quickResponses: List<String> = emptyList(),
     val isAiEnabled: Boolean = false,
+    val transcriptDraft: String = "",
+    val speechRequestKey: Int = 0,
 )
 
 enum class ScreenMode {
