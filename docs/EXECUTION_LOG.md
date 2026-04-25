@@ -4,8 +4,8 @@ Use this file as the compact handoff and restart context for implementation work
 
 ## Current Stage
 
-- Active stage: `S2-lite`
-- Next gate: `minimal protocol assets and JSON lookup`
+- Active stage: `S3`
+- Next gate: `deterministic engine proven`
 
 ## Frozen Contracts
 
@@ -44,19 +44,23 @@ Use this file as the compact handoff and restart context for implementation work
 - repository note added for Melange and Gemma4 E2B procurement planning
 - core pure-Kotlin model layer added in `domain/model`, `presentation`, and `ai/model`
 - serialization round-trip unit test passed with `:app:testDebugUnitTest`
+- minimal protocol JSON assets added for entry, collapse, burn, and bleeding flows
+- visual asset catalog JSON added
+- file-backed JSON data sources and repositories added for protocols and visual assets
+- repository lookup tests passed with `:app:testDebugUnitTest`
 
 ## Open Blockers
 
-- no protocol JSON assets exist yet
-- no JSON data source or repository lookup exists yet
+- deterministic NLU and state logic do not exist yet
+- Room persistence is still deferred until after the S4 line
 
 ## Next Unlock Condition
 
-To close `S2-lite`, the repo needs:
+To close `S3`, the repo needs:
 
-1. create minimal protocol and tree JSON assets
-2. implement JSON loading for `Tree` and `Protocol`
-3. add repository lookup tests for known and missing IDs
+1. implement `RegexIntentMatcher`, `SlotExtractor`, and `NluRouter`
+2. implement `EntryTreeRouter`, `ProtocolStateMachine`, `InterruptionRouter`, `DialogueStateManager`, and `VisionTaskRouter`
+3. add scenario tests for burn entry, collapse entry, clarification preservation, re-triage, and next-step control
 
 ## Rollback Point
 
@@ -68,3 +72,4 @@ To close `S2-lite`, the repo needs:
 - Prioritize `S0 -> S1 -> S2-lite -> S3 -> S4`
 - Do not start LLM integration before the deterministic demo line exists
 - After `S1`, any contract change should be treated as a deliberate interface update
+- `S2-extended` remains deferred until after the S4 gate
