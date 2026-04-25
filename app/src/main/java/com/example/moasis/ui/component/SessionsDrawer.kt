@@ -1,14 +1,16 @@
 package com.example.moasis.ui.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -37,6 +39,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.moasis.ui.theme.MainOutline
 
 private val DrawerBg = Color(0xFFEDE6D8)
 
@@ -51,24 +54,18 @@ fun SessionsDrawer(
         modifier = modifier
             .width(300.dp)
             .fillMaxHeight()
+            .statusBarsPadding()
             .background(DrawerBg),
     ) {
         // Header
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 20.dp, end = 8.dp, top = 20.dp, bottom = 12.dp),
+                .padding(start = 20.dp, end = 8.dp, top = 12.dp, bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Column {
-                Text(
-                    text = "MOASIS",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.4.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
                 Text(
                     text = "Sessions",
                     style = MaterialTheme.typography.titleLarge,
@@ -170,6 +167,7 @@ private fun SessionRow(
                 modifier = Modifier
                     .size(36.dp)
                     .clip(CircleShape)
+                    .border(width = 1.dp, color = MainOutline, shape = CircleShape)
                     .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center,
             ) {

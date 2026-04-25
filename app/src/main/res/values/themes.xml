@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <style name="Theme.Moasis" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.Moasis.Starting" parent="Theme.Moasis">
+        <item name="android:windowBackground">@drawable/bg_launch_screen</item>
+        <item name="android:windowDisablePreview">false</item>
+    </style>
 </resources>
