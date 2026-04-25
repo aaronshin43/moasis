@@ -1,0 +1,40 @@
+[
+  {
+    "asset_id": "burn_cool_water_arm_01",
+    "file_name": "burn_cool_water_arm_01.webp",
+    "type": "image",
+    "tags": [
+      "burn",
+      "arm",
+      "cooling"
+    ],
+    "usage_scope": [
+      "burn_tree",
+      "burn_second_degree_general"
+    ],
+    "caption": "Example of cooling the burn under running water",
+    "content_description": "An arm burn being held under cool running water",
+    "variants": {
+      "default": "burn_cool_water_arm_01.webp"
+    }
+  },
+  {
+    "asset_id": "bandage_wrap_arm_01",
+    "file_name": "bandage_wrap_arm_01.webp",
+    "type": "image",
+    "tags": [
+      "bleeding",
+      "bandage",
+      "arm"
+    ],
+    "usage_scope": [
+      "bleeding_tree",
+      "bleeding_external_general"
+    ],
+    "caption": "Applying pressure with a clean bandage",
+    "content_description": "A clean bandage being pressed firmly on an arm wound",
+    "variants": {
+      "default": "bandage_wrap_arm_01.webp"
+    }
+  }
+]
