@@ -46,8 +46,22 @@ class EmergencyViewModelTest {
     )
 
     @Test
-    fun burn_input_shows_first_step_and_visual_aid() {
+    fun burn_input_starts_dispatcher_style_question_flow() {
         viewModel.startEmergency("I burned my arm")
+
+        val state = viewModel.viewState.value
+        assertEquals("Burn Triage", state.uiState.title)
+        assertEquals(
+            "Start cooling the burn with cool running water now if you can do it safely. Is the burn on the face, hands, feet, or genitals, over a large area, charred, or affecting breathing?",
+            state.uiState.primaryInstruction,
+        )
+        assertEquals(listOf("Yes", "No"), state.quickResponses)
+    }
+
+    @Test
+    fun burn_answers_route_into_second_degree_protocol() {
+        viewModel.startEmergency("there are blisters on my arm")
+        viewModel.submitText("no")
 
         val state = viewModel.viewState.value
         assertEquals("Second-degree burn basic care", state.uiState.title)
@@ -57,7 +71,6 @@ class EmergencyViewModelTest {
         )
         assertEquals(1, state.uiState.currentStep)
         assertEquals(6, state.uiState.totalSteps)
-        assertTrue(state.uiState.visualAids.isEmpty())
     }
 
     @Test
@@ -66,7 +79,10 @@ class EmergencyViewModelTest {
 
         val state = viewModel.viewState.value
         assertEquals("Collapsed Person Triage", state.uiState.title)
-        assertEquals("Is the area safe?", state.uiState.primaryInstruction)
+        assertEquals(
+            "Is the area safe? If not, move away from immediate danger and make the area as safe as you can before helping.",
+            state.uiState.primaryInstruction,
+        )
         assertEquals(listOf("Yes", "No"), state.quickResponses)
     }
 
@@ -83,7 +99,7 @@ class EmergencyViewModelTest {
 
     @Test
     fun state_changing_report_switches_to_retriage_ui() {
-        viewModel.startEmergency("I burned my arm")
+        viewModel.startEmergency("my father has severe chest pain")
         viewModel.submitText("they can't breathe")
 
         val state = viewModel.viewState.value
@@ -93,12 +109,12 @@ class EmergencyViewModelTest {
 
     @Test
     fun image_only_submission_keeps_current_flow_and_shows_attachment_status() {
-        viewModel.startEmergency("I burned my arm")
+        viewModel.startEmergency("my father has severe chest pain")
         viewModel.attachImage("C:/tmp/example.jpg")
         viewModel.submitTurn()
 
         val state = viewModel.viewState.value
-        assertEquals("Second-degree burn basic care", state.uiState.title)
+        assertEquals("Suspected heart attack (chest pain)", state.uiState.title)
         assertEquals(listOf("C:/tmp/example.jpg"), state.attachedImagePaths)
         assertTrue((state.statusText ?: "").contains("Image attached", ignoreCase = true))
     }

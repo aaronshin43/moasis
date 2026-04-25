@@ -10,7 +10,7 @@
   "steps": [
     {
       "step_id": "recognize_anaphylaxis",
-      "canonical_text": "Suspect anaphylaxis if a hive or rash appears with any of: swollen face, lips, or tongue, trouble breathing, tight throat, dizziness, or vomiting after exposure to a known trigger.",
+      "canonical_text": "Suspect anaphylaxis if there is swollen face, swollen lips, or a swollen tongue, trouble breathing, a tight throat, dizziness, or repeated vomiting after a likely trigger.",
       "must_keep_keywords": [
         "swollen",
         "trouble breathing",
@@ -21,7 +21,7 @@
     },
     {
       "step_id": "call_emergency_immediately",
-      "canonical_text": "Call emergency services now. Anaphylaxis can worsen within minutes.",
+      "canonical_text": "Call emergency services now and say it is a severe allergic reaction. Anaphylaxis can worsen within minutes.",
       "must_keep_keywords": [
         "Call emergency services"
       ],
@@ -32,7 +32,7 @@
     },
     {
       "step_id": "help_use_epinephrine",
-      "canonical_text": "If they have a prescribed epinephrine auto-injector, help them use it on the outer thigh as directed on the device. It can go through clothing.",
+      "canonical_text": "If they have a prescribed epinephrine auto-injector, help them use it in the outer thigh now as directed on the device. It can go through clothing.",
       "must_keep_keywords": [
         "epinephrine auto-injector",
         "outer thigh",
@@ -43,7 +43,7 @@
     },
     {
       "step_id": "position_for_anaphylaxis",
-      "canonical_text": "Lay them flat and raise their legs. If they are struggling to breathe, let them sit up. If vomiting, place them on their side. Do not let them suddenly stand up.",
+      "canonical_text": "Lay them flat and raise their legs if possible. If they are struggling to breathe, let them sit up. If vomiting or unconscious but breathing, place them on their side. Do not let them suddenly stand up.",
       "must_keep_keywords": [
         "Lay them flat",
         "raise their legs",
@@ -56,7 +56,7 @@
     },
     {
       "step_id": "repeat_epi_if_needed",
-      "canonical_text": "If symptoms do not improve after about 5 minutes and a second auto-injector is available, give another dose.",
+      "canonical_text": "If symptoms do not improve after about 5 minutes and a second auto-injector is available, give the second dose.",
       "must_keep_keywords": [
         "5 minutes",
         "second auto-injector"
@@ -66,7 +66,7 @@
     },
     {
       "step_id": "monitor_and_be_ready_for_cpr",
-      "canonical_text": "Stay with them. Watch breathing and alertness. Be ready to start chest compressions if they stop breathing.",
+      "canonical_text": "Stay with them and keep checking breathing and alertness. If they become unresponsive and stop breathing normally, start chest compressions.",
       "must_keep_keywords": [
         "Stay with them",
         "chest compressions"

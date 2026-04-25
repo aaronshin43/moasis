@@ -53,11 +53,12 @@
     },
     {
       "step_id": "if_unresponsive_or_seizing",
-      "canonical_text": "If they are unresponsive, seizing, or cannot swallow safely, do not give food or drink. Call emergency services now and place them on their side.",
+      "canonical_text": "If they are unresponsive, seizing, or cannot swallow safely, do not give food or drink. Call emergency services now and place them on their side. If they have prescribed glucagon and you know how to use it, give it as directed.",
       "must_keep_keywords": [
         "do not give food",
         "Call emergency services",
-        "on their side"
+        "on their side",
+        "glucagon"
       ],
       "forbidden_keywords": [
         "force them to drink"

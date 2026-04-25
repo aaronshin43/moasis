@@ -120,6 +120,34 @@ class RegexIntentMatcherTest {
         assertTrue(DomainIntent.CHEST_PAIN in result.domainHints)
     }
 
+    @Test
+    fun seizure_matches_seizure_domain() {
+        val result = matcher.match("my brother is having a seizure")
+        assertEquals(EntryIntent.SEIZURE, result.entryIntent)
+        assertTrue(DomainIntent.SEIZURE in result.domainHints)
+    }
+
+    @Test
+    fun stroke_fast_signs_match_stroke_domain() {
+        val result = matcher.match("his face droop and slurred speech started suddenly")
+        assertEquals(EntryIntent.GENERAL_EMERGENCY, result.entryIntent)
+        assertTrue(DomainIntent.STROKE in result.domainHints)
+    }
+
+    @Test
+    fun anaphylaxis_matches_allergic_reaction_domain() {
+        val result = matcher.match("she has anaphylaxis with swollen tongue")
+        assertEquals(EntryIntent.ALLERGIC_REACTION, result.entryIntent)
+        assertTrue(DomainIntent.ALLERGIC_REACTION in result.domainHints)
+    }
+
+    @Test
+    fun poisoning_matches_poisoning_domain() {
+        val result = matcher.match("he took too many pills and may be overdosing")
+        assertEquals(EntryIntent.POISONING, result.entryIntent)
+        assertTrue(DomainIntent.POISONING in result.domainHints)
+    }
+
     // --- GENERAL_EMERGENCY (fallback) ---
 
     @Test

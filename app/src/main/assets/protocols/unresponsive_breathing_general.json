@@ -9,8 +9,9 @@
   "steps": [
     {
       "step_id": "open_airway",
-      "canonical_text": "Tilt their head back gently and lift the chin to open the airway.",
+      "canonical_text": "Call emergency services now. Tilt their head back gently and lift the chin to open the airway.",
       "must_keep_keywords": [
+        "Call emergency services",
         "Tilt their head back",
         "lift the chin"
       ],
@@ -39,10 +40,11 @@
     },
     {
       "step_id": "keep_airway_clear",
-      "canonical_text": "Tilt the head slightly back and open the mouth so any fluids can drain. Stay with them and check breathing every minute.",
+      "canonical_text": "Tilt the head slightly back and open the mouth so any fluids can drain. Stay with them and check breathing every minute until emergency help arrives.",
       "must_keep_keywords": [
         "fluids can drain",
-        "check breathing"
+        "check breathing",
+        "emergency help arrives"
       ],
       "forbidden_keywords": [],
       "asset_refs": []

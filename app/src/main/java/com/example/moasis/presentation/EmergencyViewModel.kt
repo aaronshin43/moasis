@@ -466,8 +466,11 @@ class EmergencyViewModel(
         return when (treeId) {
             "collapsed_person_entry" -> "Collapsed Person Triage"
             "entry_general_emergency" -> "General Emergency Triage"
+            "general_assessment_tree" -> "General assessment"
             "burn_tree" -> "Burn Triage"
             "bleeding_tree" -> "Bleeding Triage"
+            "breathing_problem_tree" -> "Breathing Trouble Triage"
+            "choking_tree" -> "Choking Triage"
             else -> treeId.replace('_', ' ')
         }
     }

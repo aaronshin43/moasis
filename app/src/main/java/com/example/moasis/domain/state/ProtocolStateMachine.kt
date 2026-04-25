@@ -94,6 +94,13 @@ class ProtocolStateMachine {
                         currentNodeId = fallback
                         continue
                     }
+                    if (!fallback.isNullOrBlank() && fallback != node.id) {
+                        return TreeEvaluation.TreeRedirect(
+                            treeId = fallback,
+                            slots = slots,
+                            history = history,
+                        )
+                    }
                     return TreeEvaluation.AwaitingNode(
                         nodeId = node.id,
                         prompt = node.prompt,
@@ -155,13 +162,7 @@ class ProtocolStateMachine {
     }
 
     private fun resolveSlotAnswer(slotKey: String, slots: Map<String, String>): String? {
-        return when (slotKey) {
-            "scene_safe",
-            "responsive",
-            "breathing_normal",
-            "burn_severity" -> slots[slotKey] ?: slots["response"]
-            else -> slots[slotKey]
-        }
+        return slots[slotKey] ?: slots["response"]
     }
 
     private fun routeMatches(
@@ -169,6 +170,15 @@ class ProtocolStateMachine {
         slots: Map<String, String>,
         indicators: Set<String>,
     ): Boolean {
+        if ("&" in condition) {
+            return condition.split("&").all { part ->
+                routeMatches(part.trim(), slots, indicators)
+            }
+        }
+        if ("=" in condition) {
+            val (key, expected) = condition.split("=", limit = 2)
+            return slots[key.trim()] == expected.trim()
+        }
         return condition in indicators || slots[condition] == "yes"
     }
 

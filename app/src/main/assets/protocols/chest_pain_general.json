@@ -10,7 +10,7 @@
   "steps": [
     {
       "step_id": "recognize_heart_attack_signs",
-      "canonical_text": "Suspect a heart attack if there is pressure, squeezing, or pain in the center of the chest lasting more than a few minutes, possibly spreading to the arm, jaw, neck, or back, with sweating, shortness of breath, or nausea.",
+      "canonical_text": "Suspect a heart attack if there is pressure, squeezing, or pain in the center of the chest, especially if it spreads to the arm, jaw, neck, or back or comes with sweating, shortness of breath, or nausea.",
       "must_keep_keywords": [
         "pressure",
         "center of the chest",
@@ -21,7 +21,7 @@
     },
     {
       "step_id": "call_emergency_immediately",
-      "canonical_text": "Call emergency services now. Tell them you suspect a heart attack so the right team is dispatched.",
+      "canonical_text": "Call emergency services now and say you suspect a heart attack so the right team is dispatched.",
       "must_keep_keywords": [
         "Call emergency services",
         "suspect a heart attack"
@@ -33,7 +33,7 @@
     },
     {
       "step_id": "rest_and_position",
-      "canonical_text": "Have them stop all activity and rest. Sit them down with knees bent and back supported, or in whatever position eases breathing. Loosen tight clothing.",
+      "canonical_text": "Have them stop all activity and rest. Sit them down with the back supported, loosen tight clothing, and keep them as calm and still as possible.",
       "must_keep_keywords": [
         "stop all activity",
         "Sit them down"
@@ -45,7 +45,7 @@
     },
     {
       "step_id": "help_with_prescribed_nitro",
-      "canonical_text": "If they have prescribed nitroglycerin for chest pain, help them take it as directed on the label.",
+      "canonical_text": "If they have prescribed nitroglycerin for chest pain, help them take it exactly as directed on the label.",
       "must_keep_keywords": [
         "prescribed nitroglycerin",
         "as directed"
@@ -68,7 +68,7 @@
     },
     {
       "step_id": "be_ready_for_cpr",
-      "canonical_text": "Stay with them. If they become unresponsive and stop breathing normally, start chest compressions and use an AED if one is available.",
+      "canonical_text": "Stay with them and keep watching breathing and alertness. If they become unresponsive and stop breathing normally, start chest compressions and use an AED if one is available.",
       "must_keep_keywords": [
         "Stay with them",
         "chest compressions",

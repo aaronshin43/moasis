@@ -1,12 +1,34 @@
 {
   "tree_id": "bleeding_tree",
   "version": "1.0",
-  "start_node": "apply_pressure",
+  "start_node": "major_bleeding_check",
   "nodes": [
+    {
+      "id": "major_bleeding_check",
+      "type": "question",
+      "prompt": "Is blood spurting, pooling, or soaking through cloth quickly? Apply firm direct pressure now.",
+      "slot_key": "has_massive_bleeding",
+      "transitions": [
+        {
+          "when": "yes",
+          "to": "apply_pressure"
+        },
+        {
+          "when": "no",
+          "to": "minor_bleeding_protocol"
+        }
+      ]
+    },
     {
       "id": "apply_pressure",
       "type": "instruction",
       "instruction_id": "bleeding_external_general",
+      "next": "bleeding_terminal"
+    },
+    {
+      "id": "minor_bleeding_protocol",
+      "type": "instruction",
+      "instruction_id": "bleeding_minor_general",
       "next": "bleeding_terminal"
     },
     {

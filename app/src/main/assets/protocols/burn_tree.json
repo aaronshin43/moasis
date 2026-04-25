@@ -1,12 +1,28 @@
 {
   "tree_id": "burn_tree",
   "version": "1.0",
-  "start_node": "burn_severity",
+  "start_node": "high_risk_check",
   "nodes": [
+    {
+      "id": "high_risk_check",
+      "type": "question",
+      "prompt": "Start cooling the burn with cool running water now if you can do it safely. Is the burn on the face, hands, feet, or genitals, over a large area, charred, or affecting breathing?",
+      "slot_key": "burn_emergency_red_flags",
+      "transitions": [
+        {
+          "when": "yes",
+          "to": "high_risk_protocol"
+        },
+        {
+          "when": "no",
+          "to": "burn_severity"
+        }
+      ]
+    },
     {
       "id": "burn_severity",
       "type": "question",
-      "prompt": "Are there blisters or deeper skin damage?",
+      "prompt": "Are there blisters, peeled skin, white areas, or charred skin?",
       "slot_key": "burn_severity",
       "transitions": [
         {
@@ -15,14 +31,26 @@
         },
         {
           "when": "no",
-          "to": "second_degree_protocol"
+          "to": "minor_burn_protocol"
         }
       ]
+    },
+    {
+      "id": "high_risk_protocol",
+      "type": "instruction",
+      "instruction_id": "burn_high_risk_general",
+      "next": "burn_terminal"
     },
     {
       "id": "second_degree_protocol",
       "type": "instruction",
       "instruction_id": "burn_second_degree_general",
+      "next": "burn_terminal"
+    },
+    {
+      "id": "minor_burn_protocol",
+      "type": "instruction",
+      "instruction_id": "burn_minor_general",
       "next": "burn_terminal"
     },
     {

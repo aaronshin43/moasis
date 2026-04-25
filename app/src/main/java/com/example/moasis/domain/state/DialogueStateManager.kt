@@ -75,17 +75,19 @@ class DialogueStateManager(
         text: String,
         currentState: DialogueState.EntryMode,
     ): DialogueTurnResult {
-        val mergedSlots = currentState.slots + slotExtractor.extract(text).let { extracted ->
-            when {
-                extracted["response"] == "yes" -> mapOf(currentState.nodeIdToSlotKey() to "yes")
-                extracted["response"] == "no" -> mapOf(currentState.nodeIdToSlotKey() to "no")
-                else -> extracted
-            }
-        }.filterKeys { it.isNotBlank() }
-
         val tree = requireNotNull(protocolRepository.getTree(currentState.treeId)) {
             "Missing tree asset for ${currentState.treeId}"
         }
+        val currentNode = tree.nodes.firstOrNull { it.id == currentState.nodeId }
+        val extracted = slotExtractor.extract(text)
+        val persistentExtractedSlots = extracted.filterKeys { it.isNotBlank() && it != "response" }
+        val responseSlotKey = currentNode?.slotKey.orEmpty()
+        val responseSlots = when (extracted["response"]) {
+            "yes" -> if (responseSlotKey.isNotBlank()) mapOf(responseSlotKey to "yes") else emptyMap()
+            "no" -> if (responseSlotKey.isNotBlank()) mapOf(responseSlotKey to "no") else emptyMap()
+            else -> emptyMap()
+        }
+        val mergedSlots = (currentState.slots - "response") + persistentExtractedSlots + responseSlots
 
         val evaluation = protocolStateMachine.evaluateTree(tree, mergedSlots, indicators = mergedSlots.keys)
         return evaluation.toDialogueResult(
@@ -214,15 +216,6 @@ class DialogueStateManager(
         }
     }
 
-    private fun DialogueState.EntryMode.nodeIdToSlotKey(): String {
-        return when (nodeId) {
-            "scene_safe" -> "scene_safe"
-            "responsive_check" -> "responsive"
-            "breathing_check" -> "breathing_normal"
-            "burn_severity" -> "burn_severity"
-            else -> ""
-        }
-    }
 }
 
 data class DialogueTurnResult(

@@ -139,7 +139,8 @@ class AiIntegrationTest {
             aiEnabled = false,
         )
 
-        viewModel.startEmergency("I burned my arm")
+        viewModel.startEmergency("there are blisters on my arm")
+        viewModel.submitText("no")
 
         assertEquals(firstStep.canonicalText, viewModel.viewState.value.uiState.primaryInstruction)
     }

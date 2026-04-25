@@ -1,8 +1,24 @@
 {
   "tree_id": "cardiac_arrest_tree",
   "version": "1.0",
-  "start_node": "adult_cpr_protocol",
+  "start_node": "confirm_cardiac_arrest",
   "nodes": [
+    {
+      "id": "confirm_cardiac_arrest",
+      "type": "question",
+      "prompt": "Are they unresponsive and not breathing normally? If yes, send someone to call emergency services and get an AED now.",
+      "slot_key": "cardiac_arrest_confirmed",
+      "transitions": [
+        {
+          "when": "yes",
+          "to": "adult_cpr_protocol"
+        },
+        {
+          "when": "no",
+          "to_tree": "general_assessment_tree"
+        }
+      ]
+    },
     {
       "id": "adult_cpr_protocol",
       "type": "instruction",
