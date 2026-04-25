@@ -148,6 +148,19 @@ class EmergencyViewModel(
         )
     }
 
+    fun removeAttachedImage(imagePath: String) {
+        pendingImagePaths = pendingImagePaths.filterNot { it == imagePath }
+        recentSubmittedImagePaths = recentSubmittedImagePaths.filterNot { it == imagePath }
+        _viewState.value = _viewState.value.copy(
+            attachedImagePaths = pendingImagePaths.ifEmpty { recentSubmittedImagePaths },
+            statusText = if (pendingImagePaths.isEmpty() && recentSubmittedImagePaths.isEmpty()) {
+                null
+            } else {
+                _viewState.value.statusText
+            },
+        )
+    }
+
     fun clearSessionArtifacts() {
         pendingImagePaths = emptyList()
         recentSubmittedImagePaths = emptyList()

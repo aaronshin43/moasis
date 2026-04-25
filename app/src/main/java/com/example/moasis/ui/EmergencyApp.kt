@@ -190,6 +190,7 @@ fun EmergencyApp(
         onPickImage = ::openGalleryPicker,
         onCaptureImage = ::captureImage,
         onClearImages = viewModel::clearPendingImages,
+        onRemoveImage = viewModel::removeAttachedImage,
         onAction = { action -> viewModel.reduce(com.example.moasis.presentation.AppEvent.UserTappedAction(action)) },
         onRetryAiPreparation = viewModel::retryAiPreparation,
         modifier = modifier,

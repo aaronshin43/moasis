@@ -1,95 +1,143 @@
 package com.example.moasis.ui.component
 
 import android.graphics.BitmapFactory
+import androidx.compose.foundation.background
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import java.io.File
 
 @Composable
 fun AttachedImageStrip(
     imagePaths: List<String>,
     onClearImages: () -> Unit,
+    onRemoveImage: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (imagePaths.isEmpty()) {
         return
     }
 
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        Text(
-            text = "Attached images",
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+    Column(modifier = modifier) {
         LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(vertical = 6.dp),
+            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp),
         ) {
             items(imagePaths) { path ->
-                AttachedImageCard(imagePath = path)
+                AttachedImageCard(
+                    imagePath = path,
+                    onRemove = { onRemoveImage(path) },
+                )
             }
-        }
-        OutlinedButton(
-            onClick = onClearImages,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text("Clear attached images")
         }
     }
 }
 
 @Composable
-private fun AttachedImageCard(imagePath: String) {
+private fun AttachedImageCard(
+    imagePath: String,
+    onRemove: () -> Unit,
+) {
     val bitmap = remember(imagePath) {
-        BitmapFactory.decodeFile(imagePath)
+        decodeThumbnailBitmap(imagePath, 160, 160)
     }
 
     Surface(
-        shape = MaterialTheme.shapes.small,
+        shape = RoundedCornerShape(18.dp),
         color = MaterialTheme.colorScheme.surfaceVariant,
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)),
     ) {
-        if (bitmap != null) {
-            Image(
-                bitmap = bitmap.asImageBitmap(),
-                contentDescription = "Attached image",
-                modifier = Modifier
-                    .height(96.dp)
-                    .padding(4.dp),
-                contentScale = ContentScale.Crop,
-            )
-        } else {
+        Box {
+            if (bitmap != null) {
+                Image(
+                    bitmap = bitmap.asImageBitmap(),
+                    contentDescription = "Attached image",
+                    modifier = Modifier
+                        .size(76.dp)
+                        .clip(RoundedCornerShape(18.dp)),
+                    contentScale = ContentScale.Crop,
+                )
+            }
+
             Box(
                 modifier = Modifier
-                    .height(96.dp)
-                    .padding(horizontal = 20.dp),
+                    .align(Alignment.TopEnd)
+                    .size(24.dp)
+                    .padding(top = 4.dp, end = 4.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.96f)),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(
-                    text = File(imagePath).name,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                IconButton(
+                    onClick = onRemove,
+                    modifier = Modifier.size(24.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Close,
+                        contentDescription = "Remove attached image",
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(14.dp),
+                    )
+                }
             }
         }
     }
+}
+
+private fun decodeThumbnailBitmap(
+    imagePath: String,
+    reqWidth: Int,
+    reqHeight: Int,
+): android.graphics.Bitmap? {
+    val bounds = BitmapFactory.Options().apply {
+        inJustDecodeBounds = true
+    }
+    BitmapFactory.decodeFile(imagePath, bounds)
+
+    val sampleSize = calculateInSampleSize(bounds, reqWidth, reqHeight)
+    val options = BitmapFactory.Options().apply {
+        inSampleSize = sampleSize
+        inPreferredConfig = android.graphics.Bitmap.Config.RGB_565
+    }
+    return BitmapFactory.decodeFile(imagePath, options)
+}
+
+private fun calculateInSampleSize(
+    options: BitmapFactory.Options,
+    reqWidth: Int,
+    reqHeight: Int,
+): Int {
+    val (height, width) = options.run { outHeight to outWidth }
+    var inSampleSize = 1
+
+    if (height > reqHeight || width > reqWidth) {
+        var halfHeight = height / 2
+        var halfWidth = width / 2
+
+        while (halfHeight / inSampleSize >= reqHeight && halfWidth / inSampleSize >= reqWidth) {
+            inSampleSize *= 2
+        }
+    }
+
+    return inSampleSize.coerceAtLeast(1)
 }

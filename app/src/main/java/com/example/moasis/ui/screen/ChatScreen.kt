@@ -56,6 +56,7 @@ fun ChatScreen(
     onPickImage: () -> Unit,
     onCaptureImage: () -> Unit,
     onClearImages: () -> Unit,
+    onRemoveImage: (String) -> Unit,
     onAction: (UiAction) -> Unit,
     onRetryAiPreparation: () -> Unit,
     modifier: Modifier = Modifier,
@@ -132,6 +133,7 @@ fun ChatScreen(
                 AttachedImageStrip(
                     imagePaths = viewState.attachedImagePaths,
                     onClearImages = onClearImages,
+                    onRemoveImage = onRemoveImage,
                     modifier = Modifier.padding(horizontal = 12.dp),
                 )
             }
