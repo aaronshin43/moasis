@@ -15,7 +15,7 @@ The app must:
 
 Read these documents before making structural changes:
 
-- `ARCHITECTURE_EN.md`
+- `ARCHITECTURE.md`
 
 If the two documents ever differ, preserve the existing implementation direction and update both documents together.
 
@@ -66,14 +66,8 @@ If the two documents ever differ, preserve the existing implementation direction
 
 ## When Implementing
 
-Prefer this order:
-
-1. data models
-2. protocol/state logic
-3. repositories and local assets
-4. AI adapters and validators
-5. UI wiring
+Follow Steps in `PLAN.md`.
 
 ## File Placement
 
-Keep new files aligned with the package structure defined in `ARCHITECTURE_EN.md`.
+Keep new files aligned with the package structure defined in `ARCHITECTURE.md`.
