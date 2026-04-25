@@ -1,0 +1,41 @@
+{
+  "protocol_id": "drowning_breathing_general",
+  "title": "Drowning recovery care",
+  "category": "drowning",
+  "required_slots": [],
+  "safety_flags": [
+    "show_emergency_call_now"
+  ],
+  "steps": [
+    {
+      "step_id": "call_emergency_even_if_awake",
+      "canonical_text": "Call emergency services now even if they are awake, because lung problems can appear later after drowning.",
+      "must_keep_keywords": [
+        "Call emergency services",
+        "appear later"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "side_position_if_needed",
+      "canonical_text": "Keep them still and warm. If they vomit or become drowsy, place them on their side.",
+      "must_keep_keywords": [
+        "Keep them still",
+        "on their side"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "remove_wet_clothes_and_warm",
+      "canonical_text": "Remove wet clothing if you can do it safely, dry them, and cover them with blankets.",
+      "must_keep_keywords": [
+        "Remove wet clothing",
+        "blankets"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

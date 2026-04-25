@@ -1,0 +1,33 @@
+{
+  "tree_id": "stroke_fast_tree",
+  "version": "1.0",
+  "start_node": "confirm_fast_signs",
+  "nodes": [
+    {
+      "id": "confirm_fast_signs",
+      "type": "question",
+      "prompt": "Do they have face drooping, arm weakness, or slurred speech? Note the time symptoms started now.",
+      "slot_key": "has_stroke_signs",
+      "transitions": [
+        {
+          "when": "yes",
+          "to": "stroke_fast_protocol"
+        },
+        {
+          "when": "no",
+          "to_tree": "general_assessment_tree"
+        }
+      ]
+    },
+    {
+      "id": "stroke_fast_protocol",
+      "type": "instruction",
+      "instruction_id": "stroke_fast_general",
+      "next": "stroke_fast_terminal"
+    },
+    {
+      "id": "stroke_fast_terminal",
+      "type": "terminal"
+    }
+  ]
+}

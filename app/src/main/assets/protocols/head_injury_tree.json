@@ -1,0 +1,17 @@
+{
+  "tree_id": "head_injury_tree",
+  "version": "1.0",
+  "start_node": "head_injury_protocol",
+  "nodes": [
+    {
+      "id": "head_injury_protocol",
+      "type": "instruction",
+      "instruction_id": "head_injury_general",
+      "next": "head_injury_terminal"
+    },
+    {
+      "id": "head_injury_terminal",
+      "type": "terminal"
+    }
+  ]
+}

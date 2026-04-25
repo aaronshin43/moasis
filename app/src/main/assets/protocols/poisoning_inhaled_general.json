@@ -1,0 +1,42 @@
+{
+  "protocol_id": "poisoning_inhaled_general",
+  "title": "Inhaled poisoning response",
+  "category": "poisoning",
+  "required_slots": [],
+  "safety_flags": [
+    "show_emergency_call_now",
+    "show_scene_safety_first"
+  ],
+  "steps": [
+    {
+      "step_id": "move_to_fresh_air_if_safe",
+      "canonical_text": "Move them to fresh air only if you can do it safely. Open doors or windows and do not expose yourself to the fumes.",
+      "must_keep_keywords": [
+        "fresh air",
+        "do it safely"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "call_emergency_now",
+      "canonical_text": "Call emergency services now and say the person breathed fumes or gas.",
+      "must_keep_keywords": [
+        "Call emergency services",
+        "fumes or gas"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "check_breathing",
+      "canonical_text": "Keep checking breathing closely. If they become unresponsive and stop breathing normally, start chest compressions.",
+      "must_keep_keywords": [
+        "checking breathing",
+        "start chest compressions"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

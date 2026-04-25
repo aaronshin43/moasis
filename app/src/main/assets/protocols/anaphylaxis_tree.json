@@ -1,0 +1,33 @@
+{
+  "tree_id": "anaphylaxis_tree",
+  "version": "1.0",
+  "start_node": "confirm_anaphylaxis",
+  "nodes": [
+    {
+      "id": "confirm_anaphylaxis",
+      "type": "question",
+      "prompt": "Are the lips or tongue swelling, or is there trouble breathing after an allergic trigger? Use prescribed epinephrine now if available.",
+      "slot_key": "has_anaphylaxis_signs",
+      "transitions": [
+        {
+          "when": "yes",
+          "to": "anaphylaxis_protocol"
+        },
+        {
+          "when": "no",
+          "to_tree": "general_assessment_tree"
+        }
+      ]
+    },
+    {
+      "id": "anaphylaxis_protocol",
+      "type": "instruction",
+      "instruction_id": "anaphylaxis_general",
+      "next": "anaphylaxis_terminal"
+    },
+    {
+      "id": "anaphylaxis_terminal",
+      "type": "terminal"
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "protocol_id": "breathing_distress_general",
+  "title": "Severe breathing distress",
+  "category": "breathing",
+  "required_slots": [],
+  "safety_flags": [
+    "show_emergency_call_now"
+  ],
+  "steps": [
+    {
+      "step_id": "call_emergency_now",
+      "canonical_text": "Call emergency services now. Tell them the person is in severe breathing distress.",
+      "must_keep_keywords": [
+        "Call emergency services",
+        "severe breathing distress"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "sit_upright_immediately",
+      "canonical_text": "Keep them sitting upright and leaning slightly forward. Do not let them lie flat.",
+      "must_keep_keywords": [
+        "sitting upright",
+        "Do not let them lie flat"
+      ],
+      "forbidden_keywords": [
+        "make them lie down"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "help_with_prescribed_medication",
+      "canonical_text": "If they have a prescribed inhaler, spacer, or breathing medication, help them use it exactly as directed.",
+      "must_keep_keywords": [
+        "prescribed inhaler",
+        "as directed"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "prepare_for_cpr_if_they_collapse",
+      "canonical_text": "Stay with them and watch breathing closely. If they become unresponsive and stop breathing normally, start chest compressions and use an AED if one is available.",
+      "must_keep_keywords": [
+        "start chest compressions",
+        "AED"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

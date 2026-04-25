@@ -1,0 +1,17 @@
+{
+  "tree_id": "nosebleed_tree",
+  "version": "1.0",
+  "start_node": "nosebleed_protocol",
+  "nodes": [
+    {
+      "id": "nosebleed_protocol",
+      "type": "instruction",
+      "instruction_id": "nosebleed_general",
+      "next": "nosebleed_terminal"
+    },
+    {
+      "id": "nosebleed_terminal",
+      "type": "terminal"
+    }
+  ]
+}

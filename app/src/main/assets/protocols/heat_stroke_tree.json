@@ -1,0 +1,17 @@
+{
+  "tree_id": "heat_stroke_tree",
+  "version": "1.0",
+  "start_node": "heat_stroke_protocol",
+  "nodes": [
+    {
+      "id": "heat_stroke_protocol",
+      "type": "instruction",
+      "instruction_id": "heat_stroke_general",
+      "next": "heat_stroke_terminal"
+    },
+    {
+      "id": "heat_stroke_terminal",
+      "type": "terminal"
+    }
+  ]
+}

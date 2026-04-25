@@ -1,0 +1,39 @@
+{
+  "tree_id": "infant_choking_tree",
+  "version": "1.0",
+  "start_node": "infant_cough_or_cry_check",
+  "nodes": [
+    {
+      "id": "infant_cough_or_cry_check",
+      "type": "question",
+      "prompt": "Can the infant cough or cry? If yes, keep watching and do not put your fingers in the mouth.",
+      "slot_key": "can_cough_or_speak",
+      "transitions": [
+        {
+          "when": "yes",
+          "to": "infant_partial_choking_protocol"
+        },
+        {
+          "when": "no",
+          "to": "infant_choking_protocol"
+        }
+      ]
+    },
+    {
+      "id": "infant_partial_choking_protocol",
+      "type": "instruction",
+      "instruction_id": "infant_choking_partial_general",
+      "next": "infant_choking_terminal"
+    },
+    {
+      "id": "infant_choking_protocol",
+      "type": "instruction",
+      "instruction_id": "infant_choking_general",
+      "next": "infant_choking_terminal"
+    },
+    {
+      "id": "infant_choking_terminal",
+      "type": "terminal"
+    }
+  ]
+}

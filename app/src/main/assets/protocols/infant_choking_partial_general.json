@@ -1,0 +1,34 @@
+{
+  "protocol_id": "infant_choking_partial_general",
+  "title": "Infant partial choking support",
+  "category": "choking",
+  "required_slots": [],
+  "safety_flags": [
+    "show_emergency_call_if_condition_worsens"
+  ],
+  "steps": [
+    {
+      "step_id": "encourage_cough_or_cry",
+      "canonical_text": "Let the infant keep coughing or crying and watch closely. Do not put your fingers in the infant's mouth.",
+      "must_keep_keywords": [
+        "keep coughing or crying",
+        "Do not put your fingers"
+      ],
+      "forbidden_keywords": [
+        "blind finger sweep",
+        "finger sweep"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "watch_for_silent_choking",
+      "canonical_text": "If the infant becomes silent, cannot cry, turns blue, or breathing gets worse, switch to full choking response and call emergency services.",
+      "must_keep_keywords": [
+        "turns blue",
+        "call emergency services"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

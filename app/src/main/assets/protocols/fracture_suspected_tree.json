@@ -1,0 +1,17 @@
+{
+  "tree_id": "fracture_suspected_tree",
+  "version": "1.0",
+  "start_node": "fracture_suspected_protocol",
+  "nodes": [
+    {
+      "id": "fracture_suspected_protocol",
+      "type": "instruction",
+      "instruction_id": "fracture_suspected_general",
+      "next": "fracture_suspected_terminal"
+    },
+    {
+      "id": "fracture_suspected_terminal",
+      "type": "terminal"
+    }
+  ]
+}

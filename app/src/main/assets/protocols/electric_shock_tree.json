@@ -1,0 +1,17 @@
+{
+  "tree_id": "electric_shock_tree",
+  "version": "1.0",
+  "start_node": "electric_shock_protocol",
+  "nodes": [
+    {
+      "id": "electric_shock_protocol",
+      "type": "instruction",
+      "instruction_id": "electric_shock_general",
+      "next": "electric_shock_terminal"
+    },
+    {
+      "id": "electric_shock_terminal",
+      "type": "terminal"
+    }
+  ]
+}

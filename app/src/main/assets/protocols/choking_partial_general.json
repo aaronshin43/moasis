@@ -1,0 +1,43 @@
+{
+  "protocol_id": "choking_partial_general",
+  "title": "Partial choking support",
+  "category": "choking",
+  "required_slots": [],
+  "safety_flags": [
+    "show_emergency_call_if_condition_worsens"
+  ],
+  "steps": [
+    {
+      "step_id": "encourage_forceful_coughing",
+      "canonical_text": "Tell them to keep coughing forcefully and stay with them. Do not hit their back while they are coughing effectively.",
+      "must_keep_keywords": [
+        "keep coughing forcefully",
+        "Do not hit their back"
+      ],
+      "forbidden_keywords": [
+        "blind finger sweep"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "watch_for_worsening_obstruction",
+      "canonical_text": "Watch closely for inability to speak, silent coughing, blue lips, or worsening breathing. If that happens, switch to full choking response and call emergency services.",
+      "must_keep_keywords": [
+        "blue lips",
+        "call emergency services"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "do_not_give_food_or_drink",
+      "canonical_text": "Do not give food or drink until the obstruction is clearly gone and breathing is normal again.",
+      "must_keep_keywords": [
+        "Do not give food or drink",
+        "breathing is normal"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

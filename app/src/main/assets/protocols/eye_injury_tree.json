@@ -1,0 +1,17 @@
+{
+  "tree_id": "eye_injury_tree",
+  "version": "1.0",
+  "start_node": "eye_injury_protocol",
+  "nodes": [
+    {
+      "id": "eye_injury_protocol",
+      "type": "instruction",
+      "instruction_id": "eye_injury_general",
+      "next": "eye_injury_terminal"
+    },
+    {
+      "id": "eye_injury_terminal",
+      "type": "terminal"
+    }
+  ]
+}

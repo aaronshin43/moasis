@@ -1,0 +1,33 @@
+{
+  "tree_id": "chest_pain_tree",
+  "version": "1.0",
+  "start_node": "confirm_chest_pain_pattern",
+  "nodes": [
+    {
+      "id": "confirm_chest_pain_pattern",
+      "type": "question",
+      "prompt": "Is there chest pressure or pain, or pain spreading to the arm, jaw, neck, or back? Stop all activity and keep them resting.",
+      "slot_key": "has_chest_pain",
+      "transitions": [
+        {
+          "when": "yes",
+          "to": "chest_pain_protocol"
+        },
+        {
+          "when": "no",
+          "to_tree": "general_assessment_tree"
+        }
+      ]
+    },
+    {
+      "id": "chest_pain_protocol",
+      "type": "instruction",
+      "instruction_id": "chest_pain_general",
+      "next": "chest_pain_terminal"
+    },
+    {
+      "id": "chest_pain_terminal",
+      "type": "terminal"
+    }
+  ]
+}

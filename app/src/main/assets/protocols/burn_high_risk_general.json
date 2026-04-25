@@ -1,0 +1,57 @@
+{
+  "protocol_id": "burn_high_risk_general",
+  "title": "High-risk burn response",
+  "category": "burn",
+  "required_slots": [],
+  "safety_flags": [
+    "show_emergency_call_now",
+    "show_time_critical_banner"
+  ],
+  "steps": [
+    {
+      "step_id": "call_emergency_now",
+      "canonical_text": "Call emergency services now for this burn. Burns to the face, hands, feet, genitals, large areas, deep burns, or burns affecting breathing need urgent care.",
+      "must_keep_keywords": [
+        "Call emergency services",
+        "face",
+        "breathing"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "cool_if_safe",
+      "canonical_text": "Cool the burn with cool running water for up to 20 minutes if it is safe to do so and the person is not shivering.",
+      "must_keep_keywords": [
+        "cool running water",
+        "20 minutes"
+      ],
+      "forbidden_keywords": [
+        "ice directly"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "remove_restrictive_items",
+      "canonical_text": "Remove rings, watches, or loose clothing near the burn before swelling starts. Do not peel away clothing stuck to the burn.",
+      "must_keep_keywords": [
+        "Remove rings",
+        "Do not peel away clothing"
+      ],
+      "forbidden_keywords": [
+        "pull stuck clothing"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "cover_and_monitor_airway",
+      "canonical_text": "Loosely cover the burn with a clean cloth or gauze and keep watching breathing until emergency help arrives.",
+      "must_keep_keywords": [
+        "Loosely cover",
+        "watching breathing"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

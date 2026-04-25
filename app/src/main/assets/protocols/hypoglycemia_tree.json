@@ -1,0 +1,39 @@
+{
+  "tree_id": "hypoglycemia_tree",
+  "version": "1.0",
+  "start_node": "can_swallow_check",
+  "nodes": [
+    {
+      "id": "can_swallow_check",
+      "type": "question",
+      "prompt": "Are they awake enough to swallow safely? If yes, get fast sugar ready now.",
+      "slot_key": "can_swallow_safely",
+      "transitions": [
+        {
+          "when": "yes",
+          "to": "hypoglycemia_protocol"
+        },
+        {
+          "when": "no",
+          "to": "hypoglycemia_unresponsive_protocol"
+        }
+      ]
+    },
+    {
+      "id": "hypoglycemia_protocol",
+      "type": "instruction",
+      "instruction_id": "hypoglycemia_general",
+      "next": "hypoglycemia_terminal"
+    },
+    {
+      "id": "hypoglycemia_unresponsive_protocol",
+      "type": "instruction",
+      "instruction_id": "hypoglycemia_unresponsive_general",
+      "next": "hypoglycemia_terminal"
+    },
+    {
+      "id": "hypoglycemia_terminal",
+      "type": "terminal"
+    }
+  ]
+}

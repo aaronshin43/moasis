@@ -1,0 +1,17 @@
+{
+  "tree_id": "hypothermia_tree",
+  "version": "1.0",
+  "start_node": "hypothermia_protocol",
+  "nodes": [
+    {
+      "id": "hypothermia_protocol",
+      "type": "instruction",
+      "instruction_id": "hypothermia_general",
+      "next": "hypothermia_terminal"
+    },
+    {
+      "id": "hypothermia_terminal",
+      "type": "terminal"
+    }
+  ]
+}
