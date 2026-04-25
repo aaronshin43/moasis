@@ -1,0 +1,74 @@
+{
+  "protocol_id": "eye_injury_general",
+  "title": "Eye injury basic care",
+  "category": "trauma",
+  "required_slots": [],
+  "safety_flags": [
+    "show_emergency_call_if_chemical_or_penetrating"
+  ],
+  "steps": [
+    {
+      "step_id": "chemical_splash_rinse",
+      "canonical_text": "If a chemical splashed into the eye, rinse with cool clean running water for at least 15 minutes. Tilt the head so water flows away from the other eye.",
+      "must_keep_keywords": [
+        "running water",
+        "15 minutes",
+        "away from the other eye"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "do_not_rub",
+      "canonical_text": "Do not rub the eye. Rubbing can scratch the surface or push an object deeper.",
+      "must_keep_keywords": [
+        "Do not rub"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "loose_object_blink_or_rinse",
+      "canonical_text": "If a small loose particle is on the surface, try blinking gently or rinsing with clean water to flush it out.",
+      "must_keep_keywords": [
+        "blinking",
+        "rinsing"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "do_not_remove_embedded",
+      "canonical_text": "If an object is stuck in or through the eye, do not try to remove it. Do not press on the eye.",
+      "must_keep_keywords": [
+        "do not try to remove",
+        "Do not press"
+      ],
+      "forbidden_keywords": [
+        "pull it out"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "cover_loosely",
+      "canonical_text": "Cover the eye loosely with a clean pad or paper cup taped in place. Cover the other eye too so they keep both still.",
+      "must_keep_keywords": [
+        "loosely",
+        "clean pad",
+        "the other eye too"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "seek_emergency_eye_care",
+      "canonical_text": "Get emergency eye care now for any chemical splash, embedded object, cut to the eye, or sudden vision loss.",
+      "must_keep_keywords": [
+        "emergency eye care",
+        "sudden vision loss"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

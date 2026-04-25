@@ -1,0 +1,81 @@
+{
+  "protocol_id": "chest_pain_general",
+  "title": "Suspected heart attack (chest pain)",
+  "category": "cardiac",
+  "required_slots": [],
+  "safety_flags": [
+    "show_emergency_call_now",
+    "show_time_critical_banner"
+  ],
+  "steps": [
+    {
+      "step_id": "recognize_heart_attack_signs",
+      "canonical_text": "Suspect a heart attack if there is pressure, squeezing, or pain in the center of the chest lasting more than a few minutes, possibly spreading to the arm, jaw, neck, or back, with sweating, shortness of breath, or nausea.",
+      "must_keep_keywords": [
+        "pressure",
+        "center of the chest",
+        "shortness of breath"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "call_emergency_immediately",
+      "canonical_text": "Call emergency services now. Tell them you suspect a heart attack so the right team is dispatched.",
+      "must_keep_keywords": [
+        "Call emergency services",
+        "suspect a heart attack"
+      ],
+      "forbidden_keywords": [
+        "drive them yourself"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "rest_and_position",
+      "canonical_text": "Have them stop all activity and rest. Sit them down with knees bent and back supported, or in whatever position eases breathing. Loosen tight clothing.",
+      "must_keep_keywords": [
+        "stop all activity",
+        "Sit them down"
+      ],
+      "forbidden_keywords": [
+        "walk it off"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "help_with_prescribed_nitro",
+      "canonical_text": "If they have prescribed nitroglycerin for chest pain, help them take it as directed on the label.",
+      "must_keep_keywords": [
+        "prescribed nitroglycerin",
+        "as directed"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "aspirin_if_advised",
+      "canonical_text": "If emergency services advise it and they are not allergic to aspirin and not bleeding, have them chew one regular adult aspirin slowly.",
+      "must_keep_keywords": [
+        "not allergic",
+        "chew",
+        "aspirin"
+      ],
+      "forbidden_keywords": [
+        "give multiple aspirin"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "be_ready_for_cpr",
+      "canonical_text": "Stay with them. If they become unresponsive and stop breathing normally, start chest compressions and use an AED if one is available.",
+      "must_keep_keywords": [
+        "Stay with them",
+        "chest compressions",
+        "AED"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

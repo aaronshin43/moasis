@@ -1,0 +1,86 @@
+{
+  "protocol_id": "hypothermia_general",
+  "title": "Hypothermia warming care",
+  "category": "environmental",
+  "required_slots": [],
+  "safety_flags": [
+    "show_emergency_call_now"
+  ],
+  "steps": [
+    {
+      "step_id": "recognize_hypothermia",
+      "canonical_text": "Suspect hypothermia in someone exposed to cold who shows shivering, confusion, slurred speech, drowsiness, slow breathing, or pale cold skin.",
+      "must_keep_keywords": [
+        "shivering",
+        "slurred speech",
+        "drowsiness"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "move_to_warm_place",
+      "canonical_text": "Move them gently to a warm, dry place out of wind and rain.",
+      "must_keep_keywords": [
+        "warm",
+        "dry"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "remove_wet_clothing",
+      "canonical_text": "Remove wet clothing and replace it with dry layers. Cover the head and neck.",
+      "must_keep_keywords": [
+        "Remove wet clothing",
+        "head and neck"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "wrap_in_blankets",
+      "canonical_text": "Wrap them in blankets or sleeping bags. Insulate them from the cold ground as well.",
+      "must_keep_keywords": [
+        "blankets",
+        "from the cold ground"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "no_direct_heat_or_rubbing",
+      "canonical_text": "Do not use a hot bath, heating pad, or hot water bottle directly on the skin. Do not rub or massage their arms or legs.",
+      "must_keep_keywords": [
+        "Do not use",
+        "Do not rub"
+      ],
+      "forbidden_keywords": [
+        "rub limbs"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "warm_sweet_drink_if_alert",
+      "canonical_text": "If they are fully alert and able to swallow safely, give a warm, sweet, non-alcoholic drink. Do not give alcohol or caffeine.",
+      "must_keep_keywords": [
+        "warm",
+        "non-alcoholic"
+      ],
+      "forbidden_keywords": [
+        "give coffee"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "call_and_handle_gently",
+      "canonical_text": "Call emergency services now. Handle them gently. Rough movement can trigger a dangerous heart rhythm.",
+      "must_keep_keywords": [
+        "Call emergency services",
+        "Handle them gently"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

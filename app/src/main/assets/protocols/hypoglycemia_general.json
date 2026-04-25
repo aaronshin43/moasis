@@ -1,0 +1,68 @@
+{
+  "protocol_id": "hypoglycemia_general",
+  "title": "Low blood sugar response",
+  "category": "diabetes",
+  "required_slots": [],
+  "safety_flags": [
+    "show_emergency_call_if_unresponsive_or_seizing"
+  ],
+  "steps": [
+    {
+      "step_id": "recognize_low_sugar_signs",
+      "canonical_text": "Suspect low blood sugar in a diabetic person who suddenly looks shaky, sweaty, pale, confused, weak, or unusually hungry.",
+      "must_keep_keywords": [
+        "low blood sugar",
+        "shaky",
+        "confused"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "give_fast_sugar_if_alert",
+      "canonical_text": "If they are awake and can swallow safely, give about 15 grams of fast sugar: glucose tablets, half a cup of fruit juice, a sugary soft drink, or a spoon of sugar.",
+      "must_keep_keywords": [
+        "15 grams",
+        "fast sugar"
+      ],
+      "forbidden_keywords": [
+        "diet drink",
+        "sugar-free"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "recheck_after_15_minutes",
+      "canonical_text": "Wait about 15 minutes. If they still feel unwell or look the same, give another 15 grams of fast sugar.",
+      "must_keep_keywords": [
+        "15 minutes",
+        "another 15 grams"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "follow_up_snack",
+      "canonical_text": "Once they feel better, give a small snack with both carbohydrate and protein, such as a sandwich or crackers with cheese.",
+      "must_keep_keywords": [
+        "carbohydrate",
+        "protein"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "if_unresponsive_or_seizing",
+      "canonical_text": "If they are unresponsive, seizing, or cannot swallow safely, do not give food or drink. Call emergency services now and place them on their side.",
+      "must_keep_keywords": [
+        "do not give food",
+        "Call emergency services",
+        "on their side"
+      ],
+      "forbidden_keywords": [
+        "force them to drink"
+      ],
+      "asset_refs": []
+    }
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "protocol_id": "electric_shock_general",
+  "title": "Electric shock response",
+  "category": "trauma",
+  "required_slots": [],
+  "safety_flags": [
+    "show_emergency_call_now",
+    "show_scene_safety_first"
+  ],
+  "steps": [
+    {
+      "step_id": "cut_power_before_approach",
+      "canonical_text": "Do not touch them while they are still in contact with electricity. Turn off the power at the main switch or unplug the source first.",
+      "must_keep_keywords": [
+        "Do not touch them",
+        "Turn off the power"
+      ],
+      "forbidden_keywords": [
+        "pull them away",
+        "grab them"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "high_voltage_keep_distance",
+      "canonical_text": "If the source is a high-voltage line, fallen power line, or industrial machine, stay at least 6 meters away and call emergency services. Only utility workers can make it safe.",
+      "must_keep_keywords": [
+        "6 meters",
+        "Call emergency services"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "separate_with_nonconductive_only_if_safe",
+      "canonical_text": "If the power cannot be turned off and the source is low voltage, you can use a dry wooden stick, broom handle, or similar non-conductive object to push them away. Never use anything wet or metal.",
+      "must_keep_keywords": [
+        "dry wooden",
+        "non-conductive"
+      ],
+      "forbidden_keywords": [
+        "use a metal",
+        "wet object"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "check_responsiveness_breathing",
+      "canonical_text": "Once it is safe, check if they respond and whether they are breathing normally.",
+      "must_keep_keywords": [
+        "respond",
+        "breathing normally"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "cpr_if_not_breathing",
+      "canonical_text": "If they are not breathing or only gasping, call emergency services now and start chest compressions. Use an AED as soon as one is available.",
+      "must_keep_keywords": [
+        "Call emergency services",
+        "chest compressions",
+        "AED"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "treat_burns_at_contact_points",
+      "canonical_text": "Cool any burns at entry or exit points under cool running water and cover loosely with a clean cloth. Do not move them if a fall may have hurt their neck or back.",
+      "must_keep_keywords": [
+        "cool running water",
+        "Do not move them"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

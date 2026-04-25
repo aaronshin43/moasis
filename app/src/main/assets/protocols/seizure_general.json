@@ -4,15 +4,69 @@
   "category": "seizure",
   "required_slots": [],
   "safety_flags": [
-    "show_emergency_call_if_first_or_long_seizure"
+    "show_emergency_call_if_first_or_long_seizure",
+    "show_emergency_call_if_repeats_or_no_recovery"
   ],
   "steps": [
     {
-      "step_id": "protect_from_injury",
-      "canonical_text": "Protect the person from nearby hazards and do not restrain them during the seizure.",
+      "step_id": "time_the_seizure",
+      "canonical_text": "Note the time the seizure starts. Most seizures stop on their own within a few minutes.",
       "must_keep_keywords": [
-        "protect",
-        "do not restrain"
+        "Note the time"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "clear_hazards",
+      "canonical_text": "Move sharp or hard objects away from them. Do not move the person unless they are in danger.",
+      "must_keep_keywords": [
+        "Move sharp",
+        "Do not move the person"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "do_not_restrain_or_insert",
+      "canonical_text": "Do not hold them down and do not put anything in their mouth, including your fingers.",
+      "must_keep_keywords": [
+        "do not hold them down",
+        "do not put anything in their mouth"
+      ],
+      "forbidden_keywords": [
+        "put a spoon",
+        "hold their tongue"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "cushion_head",
+      "canonical_text": "Place something soft, like a folded jacket, under their head to protect it.",
+      "must_keep_keywords": [
+        "soft",
+        "under their head"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "after_seizure_recovery_position",
+      "canonical_text": "Once the seizure ends, gently turn them onto their side and check that their airway is clear. Stay with them until they are fully awake.",
+      "must_keep_keywords": [
+        "onto their side",
+        "Stay with them"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "when_to_call_emergency",
+      "canonical_text": "Call emergency services now if the seizure lasts more than 5 minutes, another starts right after, they do not wake up, they are injured, in water, or pregnant, or if this is their first seizure.",
+      "must_keep_keywords": [
+        "Call emergency services",
+        "5 minutes",
+        "first seizure"
       ],
       "forbidden_keywords": [],
       "asset_refs": []

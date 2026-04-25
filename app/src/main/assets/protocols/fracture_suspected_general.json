@@ -1,0 +1,84 @@
+{
+  "protocol_id": "fracture_suspected_general",
+  "title": "Suspected fracture or sprain",
+  "category": "trauma",
+  "required_slots": [
+    "location"
+  ],
+  "safety_flags": [
+    "show_emergency_call_if_open_fracture",
+    "show_emergency_call_if_spine_or_neck"
+  ],
+  "steps": [
+    {
+      "step_id": "do_not_realign",
+      "canonical_text": "Do not try to straighten the limb or push a bone back into place. Keep it in the position you found it.",
+      "must_keep_keywords": [
+        "Do not try to straighten",
+        "Keep it in the position"
+      ],
+      "forbidden_keywords": [
+        "push the bone",
+        "set the bone"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "open_fracture_cover",
+      "canonical_text": "If a bone is sticking out or there is a deep wound, cover it loosely with a clean cloth and apply gentle pressure around the wound to control bleeding.",
+      "must_keep_keywords": [
+        "clean cloth",
+        "around the wound"
+      ],
+      "forbidden_keywords": [
+        "push the bone back"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "immobilize_joint_above_and_below",
+      "canonical_text": "Support the injured area and the joints above and below it with padding. A folded jacket, towel, or magazine works as a splint.",
+      "must_keep_keywords": [
+        "Support",
+        "above and below",
+        "splint"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "rice_for_sprains",
+      "canonical_text": "For a likely sprain or strain, use RICE: Rest the area, apply Ice wrapped in cloth, lightly Compress with a bandage, and Elevate it if possible.",
+      "must_keep_keywords": [
+        "Rest",
+        "Ice",
+        "Compress",
+        "Elevate"
+      ],
+      "forbidden_keywords": [
+        "ice directly on skin"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "check_circulation",
+      "canonical_text": "Check that fingers or toes beyond the injury stay warm and pink and can still move and feel. If they turn cold, blue, or numb, loosen the wrap.",
+      "must_keep_keywords": [
+        "warm and pink",
+        "loosen the wrap"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "no_food_until_evaluated",
+      "canonical_text": "Do not give food or drink in case surgery is needed. Seek medical evaluation, or call emergency services for major injuries, open fractures, or suspected neck or back injury.",
+      "must_keep_keywords": [
+        "Do not give food",
+        "neck or back injury"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

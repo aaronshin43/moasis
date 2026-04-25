@@ -3,14 +3,55 @@
   "title": "General assessment",
   "category": "general",
   "required_slots": [],
-  "safety_flags": [],
+  "safety_flags": [
+    "show_emergency_call_if_condition_worsens"
+  ],
   "steps": [
     {
-      "step_id": "observe_and_reassess",
-      "canonical_text": "Keep the person still, observe changes, and continue to reassess breathing and responsiveness.",
+      "step_id": "keep_still_and_comfortable",
+      "canonical_text": "Keep the person still and comfortable. Do not move them unless the area is unsafe.",
       "must_keep_keywords": [
-        "observe",
-        "reassess"
+        "Keep the person still"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "check_airway_breathing",
+      "canonical_text": "Check that the airway is clear and that they are breathing normally. Reassess every minute.",
+      "must_keep_keywords": [
+        "airway",
+        "breathing normally"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "watch_skin_and_alertness",
+      "canonical_text": "Watch for changes in skin color, sweating, alertness, or speech. Tell emergency services about anything that gets worse.",
+      "must_keep_keywords": [
+        "skin color",
+        "alertness"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "record_symptoms_and_timing",
+      "canonical_text": "Note when symptoms started, what changed, and any medications or allergies, so you can share this when help arrives.",
+      "must_keep_keywords": [
+        "when symptoms started",
+        "medications"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "no_food_or_drink_if_uncertain",
+      "canonical_text": "Do not give food, drink, or medication if you are unsure of the cause or if they are drowsy. Call emergency services if anything worsens.",
+      "must_keep_keywords": [
+        "Do not give food",
+        "Call emergency services"
       ],
       "forbidden_keywords": [],
       "asset_refs": []

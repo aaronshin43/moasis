@@ -8,11 +8,50 @@
   ],
   "steps": [
     {
-      "step_id": "encourage_cough_or_back_blows",
-      "canonical_text": "If they can cough, encourage coughing. If not, give back blows and seek emergency help immediately.",
+      "step_id": "assess_cough",
+      "canonical_text": "Ask if they are choking. If they can cough or speak, encourage them to keep coughing forcefully.",
       "must_keep_keywords": [
-        "cough",
-        "back blows"
+        "keep coughing"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "five_back_blows",
+      "canonical_text": "If they cannot cough, speak, or breathe, lean them forward and give up to 5 back blows firmly between the shoulder blades with the heel of your hand.",
+      "must_keep_keywords": [
+        "5 back blows",
+        "between the shoulder blades"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "five_abdominal_thrusts",
+      "canonical_text": "If the object is not out, stand behind them, place a fist just above the navel, and give up to 5 abdominal thrusts inward and upward.",
+      "must_keep_keywords": [
+        "5 abdominal thrusts",
+        "above the navel"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "alternate_until_clear",
+      "canonical_text": "Keep alternating 5 back blows and 5 abdominal thrusts until the object comes out, they can breathe, or they become unresponsive.",
+      "must_keep_keywords": [
+        "alternating",
+        "until"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "if_unresponsive_start_cpr",
+      "canonical_text": "If they become unresponsive, call emergency services now, lower them to the floor, and start chest compressions.",
+      "must_keep_keywords": [
+        "call emergency services",
+        "chest compressions"
       ],
       "forbidden_keywords": [],
       "asset_refs": []

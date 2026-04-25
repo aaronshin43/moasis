@@ -1,0 +1,75 @@
+{
+  "protocol_id": "nosebleed_general",
+  "title": "Nosebleed basic care",
+  "category": "bleeding",
+  "required_slots": [],
+  "safety_flags": [
+    "show_emergency_call_if_bleeding_not_controlled"
+  ],
+  "steps": [
+    {
+      "step_id": "sit_and_lean_forward",
+      "canonical_text": "Have them sit down and lean slightly forward. Do not let them tilt the head back, which can send blood down the throat.",
+      "must_keep_keywords": [
+        "lean slightly forward",
+        "Do not let them tilt the head back"
+      ],
+      "forbidden_keywords": [
+        "tilt head back"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "pinch_soft_nose",
+      "canonical_text": "Pinch the soft part of the nose, just below the bony bridge, firmly with thumb and finger for 10 to 15 minutes without letting go.",
+      "must_keep_keywords": [
+        "Pinch the soft part",
+        "10 to 15 minutes"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "breathe_through_mouth",
+      "canonical_text": "Have them breathe through the mouth and spit out blood instead of swallowing it.",
+      "must_keep_keywords": [
+        "breathe through the mouth",
+        "spit out"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "no_blowing_or_sniffing",
+      "canonical_text": "Do not blow, sniff, or pick the nose for several hours after the bleeding stops.",
+      "must_keep_keywords": [
+        "Do not blow"
+      ],
+      "forbidden_keywords": [
+        "blow nose"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "cold_pack_optional",
+      "canonical_text": "If available, place a cold pack wrapped in cloth on the bridge of the nose to slow bleeding.",
+      "must_keep_keywords": [
+        "cold pack",
+        "wrapped in cloth"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "when_to_seek_help",
+      "canonical_text": "Seek emergency help if bleeding does not stop after 20 minutes, follows a head injury, is very heavy, or the person takes blood-thinning medication.",
+      "must_keep_keywords": [
+        "20 minutes",
+        "head injury",
+        "blood-thinning"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

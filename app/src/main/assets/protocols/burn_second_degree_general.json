@@ -6,9 +6,20 @@
     "location"
   ],
   "safety_flags": [
-    "show_emergency_call_if_face_or_airway"
+    "show_emergency_call_if_face_or_airway",
+    "show_emergency_call_if_large_area_or_deep"
   ],
   "steps": [
+    {
+      "step_id": "stop_burning_source",
+      "canonical_text": "Move the person away from the heat source. If clothing is on fire, have them stop, drop, and roll, or smother the flames with a blanket.",
+      "must_keep_keywords": [
+        "stop, drop, and roll",
+        "heat source"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
     {
       "step_id": "cool_water",
       "canonical_text": "Cool the burn area under cool running water for at least 10 minutes.",
@@ -31,11 +42,48 @@
       ]
     },
     {
+      "step_id": "remove_jewelry_and_loose_clothing",
+      "canonical_text": "While cooling, gently remove jewelry, watches, or loose clothing near the burn before swelling sets in. Do not peel away anything stuck to the skin.",
+      "must_keep_keywords": [
+        "remove jewelry",
+        "do not peel"
+      ],
+      "forbidden_keywords": [
+        "pull stuck clothing"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "do_not_apply_substances",
+      "canonical_text": "Do not apply ice, butter, oil, toothpaste, or ointments to the burn. They trap heat or risk infection.",
+      "must_keep_keywords": [
+        "do not apply",
+        "ice"
+      ],
+      "forbidden_keywords": [
+        "apply butter",
+        "apply oil",
+        "apply toothpaste",
+        "apply ointment"
+      ],
+      "asset_refs": []
+    },
+    {
       "step_id": "cover_clean",
       "canonical_text": "Loosely cover the area with a clean cloth or gauze.",
       "must_keep_keywords": [
         "clean cloth",
         "loosely cover"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "watch_for_severe_burn_signs",
+      "canonical_text": "Call emergency services now if the burn covers a large area, is on the face, hands, feet, or genitals, looks deep or charred, or if breathing is affected.",
+      "must_keep_keywords": [
+        "call emergency services",
+        "face"
       ],
       "forbidden_keywords": [],
       "asset_refs": []

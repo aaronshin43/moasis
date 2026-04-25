@@ -1,0 +1,82 @@
+{
+  "protocol_id": "poisoning_general",
+  "title": "Poisoning or overdose response",
+  "category": "poisoning",
+  "required_slots": [],
+  "safety_flags": [
+    "show_emergency_call_now"
+  ],
+  "steps": [
+    {
+      "step_id": "identify_exposure",
+      "canonical_text": "Find out, if you can, what they took or were exposed to, how much, and when. Look for bottles, containers, or plants near them.",
+      "must_keep_keywords": [
+        "what they took",
+        "how much",
+        "when"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "call_emergency_immediately",
+      "canonical_text": "Call emergency services or a poison control line now. Follow their instructions, which depend on the substance.",
+      "must_keep_keywords": [
+        "Call emergency services",
+        "poison control"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "do_not_induce_vomiting",
+      "canonical_text": "Do not make them vomit and do not give salt water, milk, or charcoal unless emergency services tell you to.",
+      "must_keep_keywords": [
+        "Do not make them vomit"
+      ],
+      "forbidden_keywords": [
+        "induce vomiting",
+        "make them throw up"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "skin_or_eye_contact",
+      "canonical_text": "If the substance is on the skin or in the eyes, rinse with running water for at least 15 minutes while removing contaminated clothing.",
+      "must_keep_keywords": [
+        "rinse",
+        "15 minutes"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "inhaled_exposure",
+      "canonical_text": "If they breathed in fumes, move them to fresh air right away. Open windows and stay safe yourself.",
+      "must_keep_keywords": [
+        "fresh air"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "if_unresponsive_recovery",
+      "canonical_text": "If they are unresponsive but breathing, place them on their side. If they stop breathing, start chest compressions.",
+      "must_keep_keywords": [
+        "on their side",
+        "chest compressions"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "bring_evidence_to_hospital",
+      "canonical_text": "Bring the container, label, or any sample of the substance to the hospital so the team can identify it.",
+      "must_keep_keywords": [
+        "Bring the container"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

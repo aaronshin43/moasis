@@ -8,11 +8,51 @@
   ],
   "steps": [
     {
-      "step_id": "recovery_position",
-      "canonical_text": "Place the person on their side and monitor breathing until help arrives.",
+      "step_id": "open_airway",
+      "canonical_text": "Tilt their head back gently and lift the chin to open the airway.",
       "must_keep_keywords": [
-        "side",
-        "monitor breathing"
+        "Tilt their head back",
+        "lift the chin"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "confirm_breathing",
+      "canonical_text": "Look at the chest, listen, and feel for normal breathing for up to 10 seconds. Treat occasional gasps as not breathing.",
+      "must_keep_keywords": [
+        "10 seconds",
+        "gasps as not breathing"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "recovery_position",
+      "canonical_text": "If they are breathing normally, gently roll them onto their side into the recovery position. Do not move them if a back or neck injury is suspected.",
+      "must_keep_keywords": [
+        "recovery position",
+        "neck injury"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "keep_airway_clear",
+      "canonical_text": "Tilt the head slightly back and open the mouth so any fluids can drain. Stay with them and check breathing every minute.",
+      "must_keep_keywords": [
+        "fluids can drain",
+        "check breathing"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "switch_to_cpr_if_breathing_stops",
+      "canonical_text": "If they stop breathing or you only see gasping, call emergency services now and start chest compressions.",
+      "must_keep_keywords": [
+        "call emergency services",
+        "chest compressions"
       ],
       "forbidden_keywords": [],
       "asset_refs": []

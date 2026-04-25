@@ -4,15 +4,67 @@
   "category": "breathing",
   "required_slots": [],
   "safety_flags": [
-    "show_emergency_call_now"
+    "show_emergency_call_now",
+    "show_emergency_call_if_blue_lips_or_drowsy"
   ],
   "steps": [
     {
-      "step_id": "assist_breathing",
-      "canonical_text": "Help them sit upright, loosen tight clothing, and call emergency services if breathing worsens.",
+      "step_id": "sit_upright",
+      "canonical_text": "Help them sit upright and lean slightly forward. Do not let them lie flat.",
       "must_keep_keywords": [
         "sit upright",
-        "call emergency services"
+        "lean slightly forward"
+      ],
+      "forbidden_keywords": [
+        "lie down"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "loosen_clothing",
+      "canonical_text": "Loosen any tight clothing around the neck, chest, or waist.",
+      "must_keep_keywords": [
+        "loosen",
+        "tight clothing"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "reassure_and_pace_breathing",
+      "canonical_text": "Stay calm and reassure them. Encourage slow, steady breaths.",
+      "must_keep_keywords": [
+        "reassure",
+        "slow"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "fresh_air_if_environmental",
+      "canonical_text": "If the air is smoky, dusty, or the area feels stuffy, move them to fresh air or open a window.",
+      "must_keep_keywords": [
+        "fresh air"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "help_with_prescribed_inhaler",
+      "canonical_text": "If they have a prescribed inhaler or breathing medication, help them use it as directed on the device.",
+      "must_keep_keywords": [
+        "prescribed",
+        "as directed"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "watch_for_severe_signs",
+      "canonical_text": "Call emergency services now if you see blue lips or fingertips, inability to speak in full sentences, drowsiness, or worsening breathing.",
+      "must_keep_keywords": [
+        "call emergency services",
+        "blue lips"
       ],
       "forbidden_keywords": [],
       "asset_refs": []

@@ -1,0 +1,78 @@
+{
+  "protocol_id": "head_injury_general",
+  "title": "Head injury basic care",
+  "category": "trauma",
+  "required_slots": [],
+  "safety_flags": [
+    "show_emergency_call_if_loss_of_consciousness",
+    "show_emergency_call_if_red_flag_symptoms"
+  ],
+  "steps": [
+    {
+      "step_id": "do_not_move_if_neck_suspected",
+      "canonical_text": "If a fall, crash, or strong blow may have hurt the neck or back, do not move them. Support the head in the position you found it.",
+      "must_keep_keywords": [
+        "do not move them",
+        "Support the head"
+      ],
+      "forbidden_keywords": [
+        "sit them up",
+        "stand them up"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "check_responsiveness_and_breathing",
+      "canonical_text": "Check if they respond to your voice and whether they are breathing normally. Treat occasional gasps as not breathing.",
+      "must_keep_keywords": [
+        "respond to your voice",
+        "breathing normally"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "control_bleeding_and_cold_pack",
+      "canonical_text": "If there is a cut on the scalp, apply gentle pressure with a clean cloth. A cold pack wrapped in cloth can ease swelling on a bump.",
+      "must_keep_keywords": [
+        "clean cloth",
+        "cold pack"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "watch_red_flag_symptoms",
+      "canonical_text": "Call emergency services now if you see any of: loss of consciousness, repeated vomiting, severe headache, confusion, seizure, unequal pupils, clear fluid or blood from ear or nose, or weakness on one side.",
+      "must_keep_keywords": [
+        "Call emergency services",
+        "loss of consciousness",
+        "repeated vomiting",
+        "unequal pupils"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "no_pain_medication",
+      "canonical_text": "Do not give aspirin or other pain medication after a head injury, as some can worsen bleeding.",
+      "must_keep_keywords": [
+        "Do not give aspirin"
+      ],
+      "forbidden_keywords": [
+        "give ibuprofen"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "monitor_and_keep_still",
+      "canonical_text": "Keep them still and observe for several hours. Even if they feel fine, get medical evaluation after any significant head impact.",
+      "must_keep_keywords": [
+        "Keep them still",
+        "medical evaluation"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

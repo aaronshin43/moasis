@@ -1,0 +1,78 @@
+{
+  "protocol_id": "anaphylaxis_general",
+  "title": "Severe allergic reaction (anaphylaxis)",
+  "category": "allergy",
+  "required_slots": [],
+  "safety_flags": [
+    "show_emergency_call_now",
+    "show_time_critical_banner"
+  ],
+  "steps": [
+    {
+      "step_id": "recognize_anaphylaxis",
+      "canonical_text": "Suspect anaphylaxis if a hive or rash appears with any of: swollen face, lips, or tongue, trouble breathing, tight throat, dizziness, or vomiting after exposure to a known trigger.",
+      "must_keep_keywords": [
+        "swollen",
+        "trouble breathing",
+        "tight throat"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "call_emergency_immediately",
+      "canonical_text": "Call emergency services now. Anaphylaxis can worsen within minutes.",
+      "must_keep_keywords": [
+        "Call emergency services"
+      ],
+      "forbidden_keywords": [
+        "wait and see"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "help_use_epinephrine",
+      "canonical_text": "If they have a prescribed epinephrine auto-injector, help them use it on the outer thigh as directed on the device. It can go through clothing.",
+      "must_keep_keywords": [
+        "epinephrine auto-injector",
+        "outer thigh",
+        "as directed"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "position_for_anaphylaxis",
+      "canonical_text": "Lay them flat and raise their legs. If they are struggling to breathe, let them sit up. If vomiting, place them on their side. Do not let them suddenly stand up.",
+      "must_keep_keywords": [
+        "Lay them flat",
+        "raise their legs",
+        "Do not let them suddenly stand up"
+      ],
+      "forbidden_keywords": [
+        "make them stand"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "repeat_epi_if_needed",
+      "canonical_text": "If symptoms do not improve after about 5 minutes and a second auto-injector is available, give another dose.",
+      "must_keep_keywords": [
+        "5 minutes",
+        "second auto-injector"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "monitor_and_be_ready_for_cpr",
+      "canonical_text": "Stay with them. Watch breathing and alertness. Be ready to start chest compressions if they stop breathing.",
+      "must_keep_keywords": [
+        "Stay with them",
+        "chest compressions"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

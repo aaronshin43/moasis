@@ -4,12 +4,13 @@
   "category": "bleeding",
   "required_slots": [],
   "safety_flags": [
-    "show_emergency_call_if_bleeding_not_controlled"
+    "show_emergency_call_if_bleeding_not_controlled",
+    "show_emergency_call_if_signs_of_shock"
   ],
   "steps": [
     {
       "step_id": "apply_direct_pressure",
-      "canonical_text": "Apply firm direct pressure with a clean cloth or bandage.",
+      "canonical_text": "Apply firm direct pressure to the wound with a clean cloth or bandage.",
       "must_keep_keywords": [
         "direct pressure",
         "clean cloth"
@@ -24,6 +25,59 @@
           "priority": 10
         }
       ]
+    },
+    {
+      "step_id": "do_not_remove_embedded_object",
+      "canonical_text": "If an object is stuck in the wound, do not pull it out. Press firmly around it and pad the area to hold it still.",
+      "must_keep_keywords": [
+        "do not pull",
+        "press firmly around"
+      ],
+      "forbidden_keywords": [
+        "remove the object",
+        "pull out"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "add_layers_if_soaked",
+      "canonical_text": "If blood soaks through, add more cloth on top and keep pressing. Do not remove the first cloth.",
+      "must_keep_keywords": [
+        "add more cloth",
+        "do not remove"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "elevate_if_safe",
+      "canonical_text": "If a limb is bleeding and there is no suspected fracture, raise it above heart level while keeping pressure.",
+      "must_keep_keywords": [
+        "above heart level",
+        "no suspected fracture"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "secure_with_bandage",
+      "canonical_text": "Once bleeding slows, secure the cloth firmly with a bandage. Check that fingers or toes beyond the bandage stay warm and pink.",
+      "must_keep_keywords": [
+        "secure",
+        "warm and pink"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "watch_for_shock",
+      "canonical_text": "Watch for signs of shock: pale or clammy skin, weakness, fast breathing, or confusion. If they appear, lay the person down and call emergency services now.",
+      "must_keep_keywords": [
+        "signs of shock",
+        "call emergency services"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
     }
   ]
 }

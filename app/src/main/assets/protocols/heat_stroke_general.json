@@ -1,0 +1,75 @@
+{
+  "protocol_id": "heat_stroke_general",
+  "title": "Heat stroke emergency cooling",
+  "category": "environmental",
+  "required_slots": [],
+  "safety_flags": [
+    "show_emergency_call_now"
+  ],
+  "steps": [
+    {
+      "step_id": "recognize_heat_stroke",
+      "canonical_text": "Suspect heat stroke if someone in heat shows very hot skin, confusion, slurred speech, fast pulse, headache, vomiting, or loss of consciousness.",
+      "must_keep_keywords": [
+        "very hot skin",
+        "confusion"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "move_to_cool_place",
+      "canonical_text": "Move them to a shaded or air-conditioned place right away.",
+      "must_keep_keywords": [
+        "shaded",
+        "air-conditioned"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "remove_excess_clothing",
+      "canonical_text": "Remove or loosen heavy and tight clothing.",
+      "must_keep_keywords": [
+        "Remove",
+        "loosen"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "cool_aggressively",
+      "canonical_text": "Cool them as fast as possible: spray or sponge with cool water and fan them, or place cold wet cloths or ice packs on the neck, armpits, and groin.",
+      "must_keep_keywords": [
+        "cool water",
+        "neck",
+        "armpits",
+        "groin"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "call_emergency_immediately",
+      "canonical_text": "Call emergency services now. Heat stroke is life-threatening even if they look better after cooling.",
+      "must_keep_keywords": [
+        "Call emergency services",
+        "life-threatening"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "small_sips_only_if_alert",
+      "canonical_text": "If they are fully alert and able to swallow safely, give small sips of cool water. Do not give drinks if they are confused or drowsy.",
+      "must_keep_keywords": [
+        "small sips",
+        "Do not give drinks"
+      ],
+      "forbidden_keywords": [
+        "salt tablets"
+      ],
+      "asset_refs": []
+    }
+  ]
+}

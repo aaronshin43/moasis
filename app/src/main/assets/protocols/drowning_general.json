@@ -1,0 +1,76 @@
+{
+  "protocol_id": "drowning_general",
+  "title": "Drowning rescue and care",
+  "category": "drowning",
+  "required_slots": [],
+  "safety_flags": [
+    "show_emergency_call_now",
+    "show_scene_safety_first"
+  ],
+  "steps": [
+    {
+      "step_id": "rescue_without_entering_water",
+      "canonical_text": "Do not enter the water unless you are trained. Try to reach with a long object, throw a flotation device, or row a boat to them.",
+      "must_keep_keywords": [
+        "Do not enter the water",
+        "reach",
+        "throw"
+      ],
+      "forbidden_keywords": [
+        "swim out to them"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "call_emergency_immediately",
+      "canonical_text": "Call emergency services now. Call even if they seem fine after rescue, since lung problems can appear later.",
+      "must_keep_keywords": [
+        "Call emergency services",
+        "appear later"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "check_breathing_on_land",
+      "canonical_text": "Once they are on a firm flat surface, check if they respond and whether they are breathing normally. Treat occasional gasps as not breathing.",
+      "must_keep_keywords": [
+        "firm flat surface",
+        "breathing normally"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "do_not_try_to_drain_water",
+      "canonical_text": "Do not press on the abdomen or hold them upside down to drain water. This delays care and can cause vomiting.",
+      "must_keep_keywords": [
+        "Do not press on the abdomen"
+      ],
+      "forbidden_keywords": [
+        "drain the lungs"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "cpr_if_not_breathing",
+      "canonical_text": "If they are not breathing, start chest compressions in the center of the chest. If you are trained, give 5 initial rescue breaths and continue with 30 compressions and 2 breaths.",
+      "must_keep_keywords": [
+        "chest compressions",
+        "rescue breaths"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "warm_after_cold_water",
+      "canonical_text": "If the water was cold, also remove wet clothing once they are stable, dry them, and cover with blankets to prevent hypothermia.",
+      "must_keep_keywords": [
+        "remove wet clothing",
+        "blankets"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}
