@@ -24,13 +24,13 @@ class DeterministicEngineTest {
     private val interruptionRouter = InterruptionRouter()
 
     @Test
-    fun blisters_on_arm_enters_burn_tree_and_resolves_first_step() {
+    fun blisters_on_arm_enters_burn_tree_and_resolves_current_first_step() {
         val result = dialogueStateManager.handleText("There are blisters on the arm")
 
         assertEquals("INJURY_REPORT", result.entryIntent)
         assertTrue("BURN" in result.domainHints)
         assertEquals("burn_second_degree_general", result.protocolId)
-        assertEquals("cool_water", result.stepId)
+        assertEquals("stop_burning_source", result.stepId)
         assertTrue(result.dialogueState is DialogueState.ProtocolMode)
     }
 

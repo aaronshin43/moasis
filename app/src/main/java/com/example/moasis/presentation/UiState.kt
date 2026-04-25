@@ -8,6 +8,7 @@ data class UiState(
     val title: String = "",
     val primaryInstruction: String = "",
     val secondaryInstruction: String? = null,
+    val guidanceOriginLabel: String? = null,
     val warningText: String? = null,
     val checklist: List<ChecklistItem> = emptyList(),
     val visualAids: List<VisualAid> = emptyList(),

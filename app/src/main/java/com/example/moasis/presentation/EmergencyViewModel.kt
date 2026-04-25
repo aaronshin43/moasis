@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.moasis.BuildConfig
+import com.example.moasis.ai.melange.classifyAiPreparationFailure
 import com.example.moasis.ai.melange.MelangeModelManager
 import com.example.moasis.ai.orchestrator.InferenceOrchestrator
 import com.example.moasis.data.protocol.ProtocolRepository
@@ -44,6 +45,8 @@ class EmergencyViewModel(
                 secondaryInstruction = "Describe what happened to begin.",
             ),
             isAiEnabled = aiEnabled,
+            aiModelLabel = melangeModelManager?.configuredModelLabel(),
+            aiCacheSummaryText = melangeModelManager?.inspectCache()?.summaryText(),
         )
     )
     val viewState: StateFlow<EmergencyViewState> = _viewState.asStateFlow()
@@ -80,6 +83,10 @@ class EmergencyViewModel(
 
     fun startEmergency(text: String) {
         submitTurn(text = text)
+    }
+
+    fun retryAiPreparation() {
+        prepareAiModelIfNeeded(force = true)
     }
 
     fun updateListening(isListening: Boolean) {
@@ -150,7 +157,7 @@ class EmergencyViewModel(
             turn = turn,
             currentState = currentDialogueState,
         )
-        cancelAiJobs()
+        cancelResponseJobs()
         currentDialogueState = result.dialogueState
         pendingImagePaths = emptyList()
         recentSubmittedImagePaths = submittedImages
@@ -174,8 +181,9 @@ class EmergencyViewModel(
                 statusText = "Repeating the current deterministic guidance.",
                 forceSpeak = true,
             )
+            UiAction.RetryAiPreparation -> retryAiPreparation()
             UiAction.Back -> {
-                cancelAiJobs()
+                cancelResponseJobs()
                 personalizedInstructions.clear()
                 questionAnswers.clear()
                 currentDialogueState = null
@@ -191,6 +199,11 @@ class EmergencyViewModel(
                     aiProgress = _viewState.value.aiProgress,
                     isAiPreparing = _viewState.value.isAiPreparing,
                     isAiReady = _viewState.value.isAiReady,
+                    canRetryAiPreparation = _viewState.value.canRetryAiPreparation,
+                    aiModelLabel = _viewState.value.aiModelLabel,
+                    aiRouteText = _viewState.value.aiRouteText,
+                    aiCacheSummaryText = _viewState.value.aiCacheSummaryText,
+                    aiDiagnosticDetail = _viewState.value.aiDiagnosticDetail,
                     attachedImagePaths = emptyList(),
                 )
                 pendingImagePaths = emptyList()
@@ -259,6 +272,9 @@ class EmergencyViewModel(
                 } else {
                     "Deterministic guidance mode"
                 },
+                guidanceOriginLabel = protocolGuidanceOriginLabel(
+                    hasPersonalizedInstruction = personalizedInstructions[personalizationKey] != null,
+                ),
                 warningText = warningText,
                 visualAids = visualAssetRepository.getAssetsForStep(protocol.protocolId, step.stepId),
                 currentStep = dialogueState.stepIndex + 1,
@@ -273,6 +289,11 @@ class EmergencyViewModel(
             aiProgress = _viewState.value.aiProgress,
             isAiPreparing = _viewState.value.isAiPreparing,
             isAiReady = _viewState.value.isAiReady,
+            canRetryAiPreparation = _viewState.value.canRetryAiPreparation,
+            aiModelLabel = _viewState.value.aiModelLabel,
+            aiRouteText = _viewState.value.aiRouteText,
+            aiCacheSummaryText = _viewState.value.aiCacheSummaryText,
+            aiDiagnosticDetail = _viewState.value.aiDiagnosticDetail,
             transcriptDraft = _viewState.value.transcriptDraft,
             attachedImagePaths = pendingImagePaths.ifEmpty { recentSubmittedImagePaths },
         )
@@ -295,6 +316,7 @@ class EmergencyViewModel(
                 title = treeTitle(dialogueState.treeId),
                 primaryInstruction = node.prompt ?: "Answer the next question.",
                 secondaryInstruction = "Use the quickest accurate answer you can.",
+                guidanceOriginLabel = "Deterministic entry triage",
                 currentStep = 0,
                 totalSteps = 0,
                 showCallEmergencyButton = dialogueState.treeId == "collapsed_person_entry",
@@ -306,6 +328,11 @@ class EmergencyViewModel(
             aiProgress = _viewState.value.aiProgress,
             isAiPreparing = _viewState.value.isAiPreparing,
             isAiReady = _viewState.value.isAiReady,
+            canRetryAiPreparation = _viewState.value.canRetryAiPreparation,
+            aiModelLabel = _viewState.value.aiModelLabel,
+            aiRouteText = _viewState.value.aiRouteText,
+            aiCacheSummaryText = _viewState.value.aiCacheSummaryText,
+            aiDiagnosticDetail = _viewState.value.aiDiagnosticDetail,
             transcriptDraft = _viewState.value.transcriptDraft,
             attachedImagePaths = pendingImagePaths.ifEmpty { recentSubmittedImagePaths },
         )
@@ -339,6 +366,11 @@ class EmergencyViewModel(
                     } else {
                         "Clarification captured. AI responses are disabled in this stage, so the app stays on the current step."
                     },
+                guidanceOriginLabel = when {
+                    answerResult != null -> "AI answer with deterministic step resume"
+                    aiEnabled -> "Deterministic step while AI answer is pending"
+                    else -> "Deterministic canonical step"
+                },
                 warningText = buildWarningText(step),
                 visualAids = visualAssetRepository.getAssetsForStep(protocol.protocolId, step.stepId),
                 currentStep = dialogueState.stepIndex + 1,
@@ -356,6 +388,11 @@ class EmergencyViewModel(
             aiProgress = _viewState.value.aiProgress,
             isAiPreparing = _viewState.value.isAiPreparing,
             isAiReady = _viewState.value.isAiReady,
+            canRetryAiPreparation = _viewState.value.canRetryAiPreparation,
+            aiModelLabel = _viewState.value.aiModelLabel,
+            aiRouteText = _viewState.value.aiRouteText,
+            aiCacheSummaryText = _viewState.value.aiCacheSummaryText,
+            aiDiagnosticDetail = _viewState.value.aiDiagnosticDetail,
             transcriptDraft = _viewState.value.transcriptDraft,
             attachedImagePaths = pendingImagePaths.ifEmpty { recentSubmittedImagePaths },
         )
@@ -371,6 +408,7 @@ class EmergencyViewModel(
                 title = "Re-triage required",
                 primaryInstruction = dialogueState.newInput,
                 secondaryInstruction = "A higher-priority report interrupted the current step. Continue with the new report from here.",
+                guidanceOriginLabel = "Deterministic re-triage",
                 warningText = "Leave the current step and reassess immediately.",
                 showCallEmergencyButton = true,
             ),
@@ -381,6 +419,11 @@ class EmergencyViewModel(
             aiProgress = _viewState.value.aiProgress,
             isAiPreparing = _viewState.value.isAiPreparing,
             isAiReady = _viewState.value.isAiReady,
+            canRetryAiPreparation = _viewState.value.canRetryAiPreparation,
+            aiModelLabel = _viewState.value.aiModelLabel,
+            aiRouteText = _viewState.value.aiRouteText,
+            aiCacheSummaryText = _viewState.value.aiCacheSummaryText,
+            aiDiagnosticDetail = _viewState.value.aiDiagnosticDetail,
             transcriptDraft = _viewState.value.transcriptDraft,
             attachedImagePaths = pendingImagePaths.ifEmpty { recentSubmittedImagePaths },
         )
@@ -393,6 +436,7 @@ class EmergencyViewModel(
                 title = "Scenario complete",
                 primaryInstruction = "No further deterministic steps are pending.",
                 secondaryInstruction = "Start a new report if the situation changes.",
+                guidanceOriginLabel = "Deterministic completion state",
             ),
             statusText = statusTextOverride ?: "Deterministic walkthrough finished.",
             quickResponses = emptyList(),
@@ -401,6 +445,11 @@ class EmergencyViewModel(
             aiProgress = _viewState.value.aiProgress,
             isAiPreparing = _viewState.value.isAiPreparing,
             isAiReady = _viewState.value.isAiReady,
+            canRetryAiPreparation = _viewState.value.canRetryAiPreparation,
+            aiModelLabel = _viewState.value.aiModelLabel,
+            aiRouteText = _viewState.value.aiRouteText,
+            aiCacheSummaryText = _viewState.value.aiCacheSummaryText,
+            aiDiagnosticDetail = _viewState.value.aiDiagnosticDetail,
             transcriptDraft = _viewState.value.transcriptDraft,
             attachedImagePaths = pendingImagePaths.ifEmpty { recentSubmittedImagePaths },
         )
@@ -428,15 +477,37 @@ class EmergencyViewModel(
         return speechRequestKeyCounter
     }
 
-    private fun prepareAiModelIfNeeded() {
+    private fun prepareAiModelIfNeeded(force: Boolean = false) {
         val modelManager = melangeModelManager ?: return
-        if (!aiEnabled || modelManager.isPreparedInMemory() || aiPreparationJob != null) {
+        if (!aiEnabled) {
+            return
+        }
+        if (!modelManager.isLikelySupportedAbi()) {
+            publishAiState(
+                statusText = "This device ABI is not supported for Melange local runtime.",
+                progress = null,
+                isPreparing = false,
+                isReady = false,
+                canRetry = false,
+                routeText = "Runtime ABI compatibility check",
+                diagnosticDetail = null,
+            )
+            return
+        }
+        if (force) {
+            aiPreparationJob?.cancel()
+            aiPreparationJob = null
+        }
+        if (modelManager.isPreparedInMemory() || aiPreparationJob != null) {
             if (modelManager.isPreparedInMemory()) {
                 publishAiState(
                     statusText = "AI model ready on device.",
                     progress = 1f,
                     isPreparing = false,
                     isReady = true,
+                    canRetry = false,
+                    routeText = "In-memory model reuse",
+                    diagnosticDetail = null,
                 )
             }
             return
@@ -452,6 +523,9 @@ class EmergencyViewModel(
             progress = null,
             isPreparing = true,
             isReady = false,
+            canRetry = false,
+            routeText = "Startup cache and model check",
+            diagnosticDetail = null,
         )
 
         aiPreparationJob = viewModelScope.launch {
@@ -463,6 +537,13 @@ class EmergencyViewModel(
                             progress = progress.coerceIn(0f, 1f),
                             isPreparing = true,
                             isReady = false,
+                            canRetry = false,
+                            routeText = if (_viewState.value.aiRouteText == "Play Asset Delivery lookup") {
+                                "Play Asset Delivery download"
+                            } else {
+                                "Direct Melange metadata or model download"
+                            },
+                            diagnosticDetail = null,
                         )
                     },
                     onStatusChanged = { status ->
@@ -483,6 +564,9 @@ class EmergencyViewModel(
                             progress = if (status == ModelLoadingStatus.COMPLETED) 1f else _viewState.value.aiProgress,
                             isPreparing = status != ModelLoadingStatus.COMPLETED,
                             isReady = status == ModelLoadingStatus.COMPLETED,
+                            canRetry = status == ModelLoadingStatus.FAILED || status == ModelLoadingStatus.CANCELED || status == ModelLoadingStatus.WAITING_FOR_WIFI,
+                            routeText = statusToRouteText(status),
+                            diagnosticDetail = _viewState.value.aiDiagnosticDetail,
                         )
                     },
                 )
@@ -494,18 +578,23 @@ class EmergencyViewModel(
                     progress = 1f,
                     isPreparing = false,
                     isReady = true,
+                    canRetry = false,
+                    routeText = _viewState.value.aiRouteText ?: "Local model ready",
+                    diagnosticDetail = null,
                 )
             } else {
-                val networkHint = if (modelManager.hasInternetConnection()) {
-                    "See the error and retry by relaunching the app."
-                } else {
-                    "Connect to the internet once to download the model."
-                }
+                val failure = classifyAiPreparationFailure(
+                    throwable = requireNotNull(result.exceptionOrNull()),
+                    hasInternetConnection = modelManager.hasInternetConnection(),
+                )
                 publishAiState(
-                    statusText = "AI model is not ready. $networkHint",
+                    statusText = failure.userMessage,
                     progress = null,
                     isPreparing = false,
                     isReady = false,
+                    canRetry = failure.canRetry,
+                    routeText = classifyFailureRouteText(requireNotNull(result.exceptionOrNull())),
+                    diagnosticDetail = failure.detail,
                 )
             }
             aiPreparationJob = null
@@ -517,12 +606,21 @@ class EmergencyViewModel(
         progress: Float?,
         isPreparing: Boolean,
         isReady: Boolean,
+        canRetry: Boolean,
+        routeText: String?,
+        diagnosticDetail: String?,
     ) {
+        val cacheSummary = melangeModelManager?.inspectCache()?.summaryText()
         _viewState.value = _viewState.value.copy(
             aiStatusText = statusText,
             aiProgress = progress,
             isAiPreparing = isPreparing,
             isAiReady = isReady,
+            canRetryAiPreparation = canRetry,
+            aiModelLabel = melangeModelManager?.configuredModelLabel() ?: _viewState.value.aiModelLabel,
+            aiRouteText = routeText,
+            aiCacheSummaryText = cacheSummary,
+            aiDiagnosticDetail = diagnosticDetail,
         )
     }
 
@@ -550,6 +648,11 @@ class EmergencyViewModel(
                 _viewState.value = _viewState.value.copy(
                     uiState = _viewState.value.uiState.copy(
                         primaryInstruction = response.spokenText,
+                        guidanceOriginLabel = if (response.usedFallback) {
+                            "Canonical step retained after AI validation"
+                        } else {
+                            "AI-personalized step wording"
+                        },
                     ),
                     statusText = response.fallbackReason ?: _viewState.value.statusText,
                 )
@@ -579,10 +682,52 @@ class EmergencyViewModel(
                     uiState = _viewState.value.uiState.copy(
                         primaryInstruction = answerResult.resumeText,
                         secondaryInstruction = answerResult.answerText,
+                        guidanceOriginLabel = if (answerResult.usedFallback) {
+                            "Deterministic resume after AI fallback"
+                        } else {
+                            "AI answer with deterministic step resume"
+                        },
                     ),
                     statusText = answerResult.fallbackReason ?: "Returning to the current step.",
                 )
             }
+        }
+    }
+
+    private fun protocolGuidanceOriginLabel(hasPersonalizedInstruction: Boolean): String {
+        return when {
+            !aiEnabled -> "Deterministic canonical step"
+            hasPersonalizedInstruction -> "AI-personalized step wording"
+            _viewState.value.isAiReady -> "Canonical step while AI rewrite is pending"
+            else -> "Deterministic canonical step"
+        }
+    }
+
+    private fun statusToRouteText(status: ModelLoadingStatus): String {
+        return when (status) {
+            ModelLoadingStatus.UNKNOWN -> "Startup cache and model check"
+            ModelLoadingStatus.PENDING -> "Model constructor and metadata setup"
+            ModelLoadingStatus.DOWNLOADING -> "Model payload download in progress"
+            ModelLoadingStatus.TRANSFERRING -> "Model payload transfer and finalization"
+            ModelLoadingStatus.COMPLETED -> _viewState.value.aiRouteText ?: "Local model ready"
+            ModelLoadingStatus.FAILED -> _viewState.value.aiRouteText ?: "Model preparation failed"
+            ModelLoadingStatus.CANCELED -> "Model preparation canceled"
+            ModelLoadingStatus.WAITING_FOR_WIFI -> "Waiting for network policy clearance"
+            ModelLoadingStatus.NOT_INSTALLED -> "Play Asset Delivery lookup"
+            ModelLoadingStatus.REQUIRES_USER_CONFIRMATION -> "Play Asset Delivery requires user confirmation"
+        }
+    }
+
+    private fun classifyFailureRouteText(throwable: Throwable): String {
+        val messageChain = generateSequence(throwable) { it.cause }
+            .joinToString(" ") { cause -> cause.message.orEmpty() }
+            .lowercase()
+
+        return when {
+            "bandwidth limit exceeded" in messageChain || "code is 429" in messageChain -> "Direct Melange model download"
+            "itemstore" in messageChain || "assetpack" in messageChain || "onerror(-100)" in messageChain -> "Play Asset Delivery lookup"
+            "unsatisfiedlinkerror" in messageChain || "libggml-cpu.so" in messageChain -> "Local native runtime load"
+            else -> _viewState.value.aiRouteText ?: "Unknown preparation route"
         }
     }
 
@@ -595,11 +740,9 @@ class EmergencyViewModel(
         return "${dialogueState.scenarioId}|${dialogueState.protocolId}|${dialogueState.stepIndex}|${dialogueState.userQuestion}"
     }
 
-    private fun cancelAiJobs() {
-        aiPreparationJob?.cancel()
+    private fun cancelResponseJobs() {
         personalizationJob?.cancel()
         questionAnswerJob?.cancel()
-        aiPreparationJob = null
         personalizationJob = null
         questionAnswerJob = null
     }
@@ -635,7 +778,9 @@ class EmergencyViewModel(
     }
 
     override fun onCleared() {
-        cancelAiJobs()
+        aiPreparationJob?.cancel()
+        aiPreparationJob = null
+        cancelResponseJobs()
         super.onCleared()
     }
 }

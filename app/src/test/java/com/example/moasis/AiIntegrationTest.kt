@@ -28,6 +28,7 @@ class AiIntegrationTest {
     private val protocolRepository = ProtocolRepository(JsonProtocolDataSource(assetSource))
     private val protocol = requireNotNull(protocolRepository.getProtocol("burn_second_degree_general"))
     private val step = requireNotNull(protocol.steps.firstOrNull { it.stepId == "cool_water" })
+    private val firstStep = requireNotNull(protocol.steps.firstOrNull())
     private val promptFactory = PromptFactory()
     private val validator = KeywordResponseValidator()
 
@@ -83,7 +84,7 @@ class AiIntegrationTest {
         val result = useCase.answer(
             scenarioId = "burn",
             protocolId = protocol.protocolId,
-            stepIndex = 0,
+            stepIndex = protocol.steps.indexOfFirst { it.stepId == "cool_water" },
             userQuestion = "Can I use ice?",
         )
 
@@ -140,7 +141,7 @@ class AiIntegrationTest {
 
         viewModel.startEmergency("I burned my arm")
 
-        assertEquals(step.canonicalText, viewModel.viewState.value.uiState.primaryInstruction)
+        assertEquals(firstStep.canonicalText, viewModel.viewState.value.uiState.primaryInstruction)
     }
 
     private fun findAssetRoot(): File {

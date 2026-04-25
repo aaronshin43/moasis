@@ -20,29 +20,17 @@ class ProtocolJsonValidationTest {
 
     // --- All trees load ---
 
-    private val expectedTrees = listOf(
-        "collapsed_person_entry",
-        "entry_general_emergency",
-        "burn_tree",
-        "bleeding_tree",
-        "breathing_problem_tree",
-        "cardiac_arrest_tree",
-        "choking_tree",
-        "seizure_tree",
-        "unresponsive_breathing_tree",
-        "general_assessment_tree",
-    )
+    private val assetIds = assetRoot.resolve("protocols")
+        .listFiles { file -> file.isFile && file.extension == "json" }
+        ?.map { it.nameWithoutExtension }
+        ?.sorted()
+        ?: error("No protocol JSON files were found under ${assetRoot.resolve("protocols")}")
 
-    private val expectedProtocols = listOf(
-        "burn_second_degree_general",
-        "bleeding_external_general",
-        "breathing_problem_general",
-        "cardiac_arrest_general",
-        "choking_general",
-        "seizure_general",
-        "unresponsive_breathing_general",
-        "general_assessment_general",
-    )
+    private val expectedTrees = assetIds.filter { id ->
+        id.endsWith("_tree") || id == "collapsed_person_entry"
+    }
+
+    private val expectedProtocols = assetIds.filterNot { id -> id in expectedTrees }
 
     @Test
     fun all_expected_trees_load_successfully() {

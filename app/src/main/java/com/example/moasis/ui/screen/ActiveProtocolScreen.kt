@@ -41,6 +41,10 @@ fun ActiveProtocolScreen(
     aiStatusText: String?,
     aiProgress: Float?,
     isAiPreparing: Boolean,
+    canRetryAiPreparation: Boolean,
+    aiModelLabel: String?,
+    aiRouteText: String?,
+    aiCacheSummaryText: String?,
     quickResponses: List<String>,
     onSubmitText: (String) -> Unit,
     onAction: (UiAction) -> Unit,
@@ -75,6 +79,27 @@ fun ActiveProtocolScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+        aiModelLabel?.let {
+            Text(
+                text = "Model: $it",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        aiRouteText?.let {
+            Text(
+                text = "Route: $it",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        aiCacheSummaryText?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         if (isAiPreparing || aiProgress != null) {
             LinearProgressIndicator(
                 progress = { aiProgress ?: 0f },
@@ -97,6 +122,7 @@ fun ActiveProtocolScreen(
             } else {
                 null
             },
+            guidanceOriginLabel = uiState.guidanceOriginLabel,
         )
 
         uiState.warningText?.let {
@@ -144,6 +170,15 @@ fun ActiveProtocolScreen(
             enabled = draft.isNotBlank(),
         ) {
             Text("Submit")
+        }
+
+        if (canRetryAiPreparation && !isAiPreparing) {
+            OutlinedButton(
+                onClick = { onAction(UiAction.RetryAiPreparation) },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("Retry AI model prep")
+            }
         }
 
         OutlinedButton(

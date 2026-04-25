@@ -3,10 +3,12 @@ package com.example.moasis.ai.melange
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.os.Build
 import android.util.Log
 import com.zeticai.mlange.core.model.ModelLoadingStatus
 import com.zeticai.mlange.core.model.llm.LLMModelMode
 import com.zeticai.mlange.core.model.llm.ZeticMLangeLLMModel
+import java.io.File
 
 class MelangeModelManager(
     context: Context,
@@ -21,9 +23,16 @@ class MelangeModelManager(
     @Volatile
     private var lastProgress: Float = 0f
 
+    private val cacheRoot: File
+        get() = File(appContext.filesDir, "mlange_cache")
+
     fun isConfigured(): Boolean = config.isConfigured
 
     fun isPreparedInMemory(): Boolean = cachedModel != null
+
+    fun isLikelySupportedAbi(): Boolean {
+        return Build.SUPPORTED_ABIS.any { abi -> abi.startsWith("arm64") || abi.startsWith("armeabi") }
+    }
 
     fun hasInternetConnection(): Boolean {
         val connectivityManager = appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
@@ -31,6 +40,29 @@ class MelangeModelManager(
         val network = connectivityManager.activeNetwork ?: return false
         val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
         return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    }
+
+    fun configuredModelLabel(): String {
+        val versionSuffix = config.modelVersion?.let { " v$it" }.orEmpty()
+        return "${config.modelName}$versionSuffix (${config.modelModeName})"
+    }
+
+    fun inspectCache(): AiCacheSnapshot {
+        val llmRoot = cacheRoot.resolve("llm")
+        val llmDirs = llmRoot.listFiles { file -> file.isDirectory }.orEmpty()
+        val projectFiles = llmRoot.walkTopDown()
+            .filter { it.isFile && it.name == "project.ztcl" }
+            .count()
+        val targetFiles = llmRoot.walkTopDown()
+            .filter { it.isFile && (it.extension == "gguf" || it.name.contains("LLAMA_CPP", ignoreCase = true)) }
+            .count()
+        return AiCacheSnapshot(
+            rootPath = cacheRoot.absolutePath,
+            exists = cacheRoot.exists(),
+            llmCacheDirectories = llmDirs.size,
+            projectFiles = projectFiles,
+            targetFiles = targetFiles,
+        )
     }
 
     fun getOrCreateModel(
@@ -65,7 +97,7 @@ class MelangeModelManager(
                     onProgress = { progress ->
                         lastProgress = progress
                         onProgress?.invoke(progress)
-                        // Log.d(TAG, "Melange init progress=${"%.2f".format(progress)}")
+                        Log.d(TAG, "Melange init progress=${"%.2f".format(progress)}")
                     },
                     onStatusChanged = { status ->
                         onStatusChanged?.invoke(status)
@@ -97,5 +129,21 @@ class MelangeModelManager(
 
     companion object {
         private const val TAG = "MelangeModelManager"
+    }
+}
+
+data class AiCacheSnapshot(
+    val rootPath: String,
+    val exists: Boolean,
+    val llmCacheDirectories: Int,
+    val projectFiles: Int,
+    val targetFiles: Int,
+) {
+    fun summaryText(): String {
+        return if (!exists) {
+            "Cache: missing"
+        } else {
+            "Cache: llm_dirs=$llmCacheDirectories, project=$projectFiles, targets=$targetFiles"
+        }
     }
 }

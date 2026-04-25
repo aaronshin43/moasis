@@ -4,8 +4,8 @@ Use this file as the compact handoff and restart context for implementation work
 
 ## Current Stage
 
-- Active stage: `S7-real`
-- Next gate: `manual Melange-enabled verification on a physical Android 12+ device`
+- Active stage: `S9-lite`
+- Next gate: `manual failure-mode and retry verification on a physical Android 12+ device`
 
 ## Frozen Contracts
 
@@ -76,25 +76,29 @@ Use this file as the compact handoff and restart context for implementation work
 - Melange adapter now uses the direct SDK path with `ZeticMLangeLLMModel(context, personalKey, name, version, modelMode, onProgress)`
 - Melange calls are now offloaded from the main thread in `EmergencyViewModel`; canonical guidance renders first and is updated when AI output returns
 - app startup now preloads the Melange model when AI is enabled and shows progress / readiness in the UI
+- AI prep failures are now classified into quota, ABI, Play Asset Delivery, and network-facing messages
+- retry controls added to both the home screen and active protocol screen for AI model preparation
+- deterministic vs AI-assisted guidance labels are now surfaced in the step UI
 - current resolved Melange runtime requires `minSdk 31`, so the app baseline was raised from 24 to 31
 - `:app:testDebugUnitTest --rerun-tasks` passed after S7-real wiring
 - `:app:assembleDebug` passed after S7-real wiring
+- `:app:testDebugUnitTest --rerun-tasks` passed after S9-lite hardening
+- `:app:assembleDebug` passed after S9-lite hardening
 
 ## Open Blockers
 
 - Room persistence is still deferred until after the S4 line
 - real Melange output still needs on-device verification with valid dashboard credentials and a physical Android 12+ device
-- exact runtime package layout is handled reflectively right now because the public docs do not publish stable Android import examples for `ZeticMLangeLLMModel`
+- direct-download fallback behavior after Play Asset Delivery failure still needs a clean manual confirmation path
 
 ## Next Unlock Condition
 
-To close `S7-real`, the repo needs:
+To close `S9-lite`, the repo needs:
 
-1. supply valid `MOASIS_MELANGE_PERSONAL_KEY` and `MOASIS_MELANGE_MODEL_NAME` values
-2. verify AI-enabled personalization path on a physical Android 12+ device
-3. confirm question answering resumes the step cleanly when Melange is enabled
-4. confirm invalid output or runtime failure still falls back to canonical text in the UI
-5. keep `AI_ENABLED=false` as the guaranteed demo fallback
+1. verify `Retry AI model prep` recovers from at least one transient failure mode
+2. verify quota, no-network, and unsupported-runtime messages are user-readable on device
+3. confirm AI-personalized wording and AI answer labels appear only when AI output is actually applied
+4. keep `AI_ENABLED=false` as the guaranteed demo fallback
 
 ## Rollback Point
 

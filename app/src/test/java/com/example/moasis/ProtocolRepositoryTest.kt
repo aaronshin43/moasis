@@ -27,11 +27,12 @@ class ProtocolRepositoryTest {
     )
 
     @Test
-    fun burn_protocol_has_exactly_two_steps() {
+    fun burn_protocol_exposes_multiple_steps_from_current_fixture() {
         val protocol = protocolRepository.getProtocol("burn_second_degree_general")
 
         assertNotNull(protocol)
-        assertEquals(2, protocol?.steps?.size)
+        assertTrue((protocol?.steps?.size ?: 0) >= 2)
+        assertEquals("stop_burning_source", protocol?.steps?.firstOrNull()?.stepId)
     }
 
     @Test

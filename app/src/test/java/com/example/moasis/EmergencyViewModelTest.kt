@@ -51,10 +51,13 @@ class EmergencyViewModelTest {
 
         val state = viewModel.viewState.value
         assertEquals("Second-degree burn basic care", state.uiState.title)
-        assertEquals("Cool the burn area under cool running water for at least 10 minutes.", state.uiState.primaryInstruction)
+        assertEquals(
+            "Move the person away from the heat source. If clothing is on fire, have them stop, drop, and roll, or smother the flames with a blanket.",
+            state.uiState.primaryInstruction,
+        )
         assertEquals(1, state.uiState.currentStep)
-        assertEquals(2, state.uiState.totalSteps)
-        assertFalse(state.uiState.visualAids.isEmpty())
+        assertEquals(6, state.uiState.totalSteps)
+        assertTrue(state.uiState.visualAids.isEmpty())
     }
 
     @Test

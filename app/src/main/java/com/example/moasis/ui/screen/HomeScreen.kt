@@ -29,7 +29,12 @@ fun HomeScreen(
     aiProgress: Float?,
     isAiPreparing: Boolean,
     isAiReady: Boolean,
+    canRetryAiPreparation: Boolean,
+    aiModelLabel: String?,
+    aiRouteText: String?,
+    aiCacheSummaryText: String?,
     onStart: (String) -> Unit,
+    onRetryAiPreparation: () -> Unit,
     onVoiceInput: () -> Unit,
     transcriptDraft: String,
     isListening: Boolean,
@@ -69,11 +74,40 @@ fun HomeScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+        aiModelLabel?.let {
+            Text(
+                text = "Model: $it",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        aiRouteText?.let {
+            Text(
+                text = "Route: $it",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        aiCacheSummaryText?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         if (isAiEnabled && (isAiPreparing || aiProgress != null)) {
             LinearProgressIndicator(
                 progress = { aiProgress ?: 0f },
                 modifier = Modifier.fillMaxWidth(),
             )
+        }
+        if (isAiEnabled && canRetryAiPreparation && !isAiPreparing && !isAiReady) {
+            OutlinedButton(
+                onClick = onRetryAiPreparation,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("Retry AI model prep")
+            }
         }
         if (transcriptDraft.isNotBlank()) {
             Text(

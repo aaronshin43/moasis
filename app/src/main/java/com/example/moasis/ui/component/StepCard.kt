@@ -17,6 +17,7 @@ fun StepCard(
     instruction: String,
     secondaryInstruction: String?,
     progressText: String?,
+    guidanceOriginLabel: String?,
     modifier: Modifier = Modifier,
 ) {
     Surface(
@@ -39,6 +40,13 @@ fun StepCard(
                     text = it,
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary,
+                )
+            }
+            guidanceOriginLabel?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             Text(

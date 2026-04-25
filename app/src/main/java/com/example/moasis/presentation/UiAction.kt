@@ -22,6 +22,10 @@ sealed class UiAction {
     data object CallEmergency : UiAction()
 
     @Serializable
+    @SerialName("retry_ai_preparation")
+    data object RetryAiPreparation : UiAction()
+
+    @Serializable
     @SerialName("submit_text")
     data class SubmitText(val text: String) : UiAction()
 }
