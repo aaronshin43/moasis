@@ -1,0 +1,17 @@
+{
+  "tree_id": "choking_tree",
+  "version": "1.0",
+  "start_node": "choking_protocol",
+  "nodes": [
+    {
+      "id": "choking_protocol",
+      "type": "instruction",
+      "instruction_id": "choking_general",
+      "next": "choking_terminal"
+    },
+    {
+      "id": "choking_terminal",
+      "type": "terminal"
+    }
+  ]
+}

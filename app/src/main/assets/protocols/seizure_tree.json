@@ -1,0 +1,17 @@
+{
+  "tree_id": "seizure_tree",
+  "version": "1.0",
+  "start_node": "seizure_protocol",
+  "nodes": [
+    {
+      "id": "seizure_protocol",
+      "type": "instruction",
+      "instruction_id": "seizure_general",
+      "next": "seizure_terminal"
+    },
+    {
+      "id": "seizure_terminal",
+      "type": "terminal"
+    }
+  ]
+}

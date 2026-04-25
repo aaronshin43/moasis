@@ -1,0 +1,146 @@
+package com.example.moasis.ui.screen
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.example.moasis.presentation.UiAction
+import com.example.moasis.presentation.UiState
+import com.example.moasis.ui.component.StepCard
+import com.example.moasis.ui.component.VisualAidStrip
+import com.example.moasis.ui.component.WarningBanner
+
+@Composable
+fun ActiveProtocolScreen(
+    uiState: UiState,
+    statusText: String?,
+    quickResponses: List<String>,
+    onSubmitText: (String) -> Unit,
+    onAction: (UiAction) -> Unit,
+    onQuickResponse: (String) -> Unit,
+) {
+    var draft by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        statusText?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
+
+        StepCard(
+            title = uiState.title,
+            instruction = uiState.primaryInstruction,
+            secondaryInstruction = uiState.secondaryInstruction,
+            progressText = if (uiState.totalSteps > 0) {
+                "Step ${uiState.currentStep} of ${uiState.totalSteps}"
+            } else {
+                null
+            },
+        )
+
+        uiState.warningText?.let {
+            WarningBanner(warningText = it)
+        }
+
+        VisualAidStrip(visualAids = uiState.visualAids)
+
+        if (quickResponses.isNotEmpty()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                quickResponses.forEach { response ->
+                    OutlinedButton(
+                        onClick = { onQuickResponse(response.lowercase()) },
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text(response)
+                    }
+                }
+            }
+        }
+
+        OutlinedTextField(
+            value = draft,
+            onValueChange = { draft = it },
+            modifier = Modifier.fillMaxWidth(),
+            minLines = 2,
+            maxLines = 4,
+            label = { Text("Update or answer") },
+        )
+
+        Button(
+            onClick = {
+                onSubmitText(draft)
+                draft = ""
+            },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = draft.isNotBlank(),
+        ) {
+            Text("Submit")
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            OutlinedButton(
+                onClick = { onAction(UiAction.Repeat) },
+                modifier = Modifier.weight(1f),
+            ) {
+                Text("Repeat")
+            }
+            OutlinedButton(
+                onClick = { onAction(UiAction.Next) },
+                modifier = Modifier.weight(1f),
+            ) {
+                Text("Next")
+            }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            OutlinedButton(
+                onClick = { onAction(UiAction.Back) },
+                modifier = Modifier.weight(1f),
+            ) {
+                Text("Back")
+            }
+            if (uiState.showCallEmergencyButton) {
+                Button(
+                    onClick = { onAction(UiAction.CallEmergency) },
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text("Emergency Call")
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,21 @@
+{
+  "protocol_id": "breathing_problem_general",
+  "title": "Breathing problem support",
+  "category": "breathing",
+  "required_slots": [],
+  "safety_flags": [
+    "show_emergency_call_now"
+  ],
+  "steps": [
+    {
+      "step_id": "assist_breathing",
+      "canonical_text": "Help them sit upright, loosen tight clothing, and call emergency services if breathing worsens.",
+      "must_keep_keywords": [
+        "sit upright",
+        "call emergency services"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

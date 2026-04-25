@@ -1,0 +1,17 @@
+{
+  "tree_id": "cardiac_arrest_tree",
+  "version": "1.0",
+  "start_node": "adult_cpr_protocol",
+  "nodes": [
+    {
+      "id": "adult_cpr_protocol",
+      "type": "instruction",
+      "instruction_id": "cardiac_arrest_general",
+      "next": "cardiac_arrest_terminal"
+    },
+    {
+      "id": "cardiac_arrest_terminal",
+      "type": "terminal"
+    }
+  ]
+}

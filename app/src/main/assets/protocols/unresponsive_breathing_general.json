@@ -1,0 +1,21 @@
+{
+  "protocol_id": "unresponsive_breathing_general",
+  "title": "Unresponsive but breathing care",
+  "category": "collapse",
+  "required_slots": [],
+  "safety_flags": [
+    "show_emergency_call_now"
+  ],
+  "steps": [
+    {
+      "step_id": "recovery_position",
+      "canonical_text": "Place the person on their side and monitor breathing until help arrives.",
+      "must_keep_keywords": [
+        "side",
+        "monitor breathing"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

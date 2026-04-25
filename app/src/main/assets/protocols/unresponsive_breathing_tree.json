@@ -1,0 +1,17 @@
+{
+  "tree_id": "unresponsive_breathing_tree",
+  "version": "1.0",
+  "start_node": "recovery_position_protocol",
+  "nodes": [
+    {
+      "id": "recovery_position_protocol",
+      "type": "instruction",
+      "instruction_id": "unresponsive_breathing_general",
+      "next": "unresponsive_terminal"
+    },
+    {
+      "id": "unresponsive_terminal",
+      "type": "terminal"
+    }
+  ]
+}

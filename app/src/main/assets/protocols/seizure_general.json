@@ -1,0 +1,21 @@
+{
+  "protocol_id": "seizure_general",
+  "title": "Seizure immediate safety",
+  "category": "seizure",
+  "required_slots": [],
+  "safety_flags": [
+    "show_emergency_call_if_first_or_long_seizure"
+  ],
+  "steps": [
+    {
+      "step_id": "protect_from_injury",
+      "canonical_text": "Protect the person from nearby hazards and do not restrain them during the seizure.",
+      "must_keep_keywords": [
+        "protect",
+        "do not restrain"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

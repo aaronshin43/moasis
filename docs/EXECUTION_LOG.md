@@ -5,7 +5,7 @@ Use this file as the compact handoff and restart context for implementation work
 ## Current Stage
 
 - Active stage: `S4`
-- Next gate: `end-to-end deterministic demo`
+- Next gate: `manual deterministic demo verification`
 
 ## Frozen Contracts
 
@@ -51,21 +51,23 @@ Use this file as the compact handoff and restart context for implementation work
 - deterministic NLU, interruption routing, vision task routing, observation merge stub, and response validator stub added
 - pure protocol state machine and dialogue state manager added
 - deterministic scenario tests passed with `:app:testDebugUnitTest`
+- deterministic Compose screens, `EmergencyViewModel`, and `AI_ENABLED=false` wiring added
+- debug build passed with S4 UI wiring
+- ViewModel flow tests cover burn start, collapse start, collapse branching, and re-triage UI transitions
 
 ## Open Blockers
 
-- ViewModel and Compose screens do not exist for the deterministic flow yet
-- deterministic UI has not been wired to burn and collapse scenarios
+- burn and collapse scenarios need manual emulator walkthrough confirmation in the new UI
 - Room persistence is still deferred until after the S4 line
 
 ## Next Unlock Condition
 
 To close `S4`, the repo needs:
 
-1. wire `EmergencyViewModel` to `DialogueStateManager`
-2. build minimal home and active protocol screens
-3. render current step, warning, and visual aids in a deterministic flow
-4. complete burn and collapse scenarios with `AI_ENABLED=false`
+1. confirm burn flow completes end-to-end in the emulator with `AI_ENABLED=false`
+2. confirm collapse flow branches correctly through yes/no input in the emulator
+3. confirm visual aids render on the burn step and the layout stays clean on steps without images
+4. confirm mid-step `they can't breathe` switches to the re-triage UI
 
 ## Rollback Point
 

@@ -1,5 +1,6 @@
 package com.example.moasis.data.protocol
 
+import android.content.res.AssetManager
 import java.io.File
 import java.nio.charset.StandardCharsets
 
@@ -26,5 +27,20 @@ class FileSystemAssetTextSource(
 
     override fun read(relativePath: String): String {
         return File(rootDirectory, relativePath).readText(StandardCharsets.UTF_8)
+    }
+}
+
+class AndroidAssetTextSource(
+    private val assetManager: AssetManager,
+) : AssetTextSource {
+    override fun list(relativeDirectory: String): List<String> {
+        return assetManager.list(relativeDirectory)
+            ?.map { entry -> relativeDirectory.trimEnd('/', '\\') + "/" + entry }
+            ?.sorted()
+            .orEmpty()
+    }
+
+    override fun read(relativePath: String): String {
+        return assetManager.open(relativePath).bufferedReader(StandardCharsets.UTF_8).use { it.readText() }
     }
 }

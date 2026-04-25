@@ -2,10 +2,13 @@ package com.example.moasis.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
-
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+val EmergencyRed = Color(0xFFB34032)
+val EmergencyRedSoft = Color(0xFFF4DDD9)
+val SandSurface = Color(0xFFF6F2EC)
+val SlateText = Color(0xFF1E2A32)
+val SlateMuted = Color(0xFF56636C)
+val PanelLight = Color(0xFFFFFFFF)
+val PanelMuted = Color(0xFFE8E3DB)
+val NightSurface = Color(0xFF141A1F)
+val NightPanel = Color(0xFF1C2329)
+val NightText = Color(0xFFE8EEF2)

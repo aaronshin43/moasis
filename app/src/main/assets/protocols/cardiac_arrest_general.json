@@ -1,0 +1,21 @@
+{
+  "protocol_id": "cardiac_arrest_general",
+  "title": "Cardiac arrest immediate action",
+  "category": "cardiac_arrest",
+  "required_slots": [],
+  "safety_flags": [
+    "show_emergency_call_now"
+  ],
+  "steps": [
+    {
+      "step_id": "call_and_compressions",
+      "canonical_text": "Call emergency services now and start hard, fast chest compressions in the center of the chest.",
+      "must_keep_keywords": [
+        "Call emergency services",
+        "chest compressions"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

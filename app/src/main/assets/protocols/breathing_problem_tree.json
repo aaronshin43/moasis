@@ -1,0 +1,17 @@
+{
+  "tree_id": "breathing_problem_tree",
+  "version": "1.0",
+  "start_node": "breathing_problem_protocol",
+  "nodes": [
+    {
+      "id": "breathing_problem_protocol",
+      "type": "instruction",
+      "instruction_id": "breathing_problem_general",
+      "next": "breathing_problem_terminal"
+    },
+    {
+      "id": "breathing_problem_terminal",
+      "type": "terminal"
+    }
+  ]
+}

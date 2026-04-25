@@ -29,6 +29,9 @@ class SlotExtractor {
         if ("blister" in normalized) {
             slots["burn_severity"] = "yes"
         }
+        if ("burn" in normalized || "burned" in normalized || "burnt" in normalized) {
+            slots["burn_severity"] = "yes"
+        }
         if ("bleeding" in normalized || "blood" in normalized) {
             slots["has_massive_bleeding"] = "yes"
         }

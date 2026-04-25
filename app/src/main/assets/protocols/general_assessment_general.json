@@ -1,0 +1,19 @@
+{
+  "protocol_id": "general_assessment_general",
+  "title": "General assessment",
+  "category": "general",
+  "required_slots": [],
+  "safety_flags": [],
+  "steps": [
+    {
+      "step_id": "observe_and_reassess",
+      "canonical_text": "Keep the person still, observe changes, and continue to reassess breathing and responsiveness.",
+      "must_keep_keywords": [
+        "observe",
+        "reassess"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

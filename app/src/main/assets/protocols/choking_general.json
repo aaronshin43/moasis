@@ -1,0 +1,21 @@
+{
+  "protocol_id": "choking_general",
+  "title": "Adult choking response",
+  "category": "choking",
+  "required_slots": [],
+  "safety_flags": [
+    "show_emergency_call_now"
+  ],
+  "steps": [
+    {
+      "step_id": "encourage_cough_or_back_blows",
+      "canonical_text": "If they can cough, encourage coughing. If not, give back blows and seek emergency help immediately.",
+      "must_keep_keywords": [
+        "cough",
+        "back blows"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

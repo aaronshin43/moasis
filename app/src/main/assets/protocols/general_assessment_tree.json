@@ -1,0 +1,17 @@
+{
+  "tree_id": "general_assessment_tree",
+  "version": "1.0",
+  "start_node": "general_assessment_protocol",
+  "nodes": [
+    {
+      "id": "general_assessment_protocol",
+      "type": "instruction",
+      "instruction_id": "general_assessment_general",
+      "next": "general_assessment_terminal"
+    },
+    {
+      "id": "general_assessment_terminal",
+      "type": "terminal"
+    }
+  ]
+}
