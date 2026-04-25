@@ -5,7 +5,7 @@ Use this file as the compact handoff and restart context for implementation work
 ## Current Stage
 
 - Active stage: `S5`
-- Next gate: `manual voice flow verification`
+- Next gate: `manual image attachment verification`
 
 ## Frozen Contracts
 
@@ -59,20 +59,24 @@ Use this file as the compact handoff and restart context for implementation work
 - `Repeat` now re-triggers step speech through a speech request key
 - `:app:assembleDebug` passed after S5 audio integration
 - `:app:testDebugUnitTest --rerun-tasks` passed after S5 audio integration
+- gallery picker, camera capture manager, image input controller, and attached image preview strip added
+- image-bearing `UserTurn` submission now carries cached internal image paths without analysis
+- camera `FileProvider` and cache-backed file paths configured
+- clean rebuild passed with `./gradlew.bat clean :app:testDebugUnitTest --rerun-tasks :app:assembleDebug`
 
 ## Open Blockers
 
-- voice scenarios need manual emulator walkthrough confirmation
+- image attachment scenarios need manual emulator walkthrough confirmation
 - Room persistence is still deferred until after the S4 line
 
 ## Next Unlock Condition
 
-To close `S5`, the repo needs:
+To close `S6`, the repo needs:
 
-1. confirm speaking `my friend collapsed` starts the same deterministic flow as text input
-2. confirm speaking `next` during TTS stops speech and advances
-3. confirm microphone denial falls back to text-only use without a crash
-4. confirm empty or failed STT leaves the current step visible and prompts retry
+1. confirm gallery image attachment appears as a thumbnail in the active screen
+2. confirm camera capture attaches and previews without a crash
+3. confirm submitting text plus image keeps deterministic progress and shows the safe image-disabled status
+4. confirm image-only submit leaves the current step intact and does not stall the flow
 
 ## Rollback Point
 

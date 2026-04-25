@@ -7,7 +7,10 @@ import com.example.moasis.data.protocol.ProtocolRepository
 import com.example.moasis.data.visual.VisualAssetRepository
 import com.example.moasis.domain.model.DialogueState
 import com.example.moasis.domain.model.ProtocolStep
+import com.example.moasis.domain.model.TurnContext
+import com.example.moasis.domain.model.UserTurn
 import com.example.moasis.domain.state.DialogueStateManager
+import com.example.moasis.domain.state.VisionTaskRouter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,6 +21,7 @@ class EmergencyViewModel(
     private val visualAssetRepository: VisualAssetRepository,
 ) : ViewModel() {
     private var speechRequestKeyCounter: Int = 0
+    private val visionTaskRouter = VisionTaskRouter()
     private val _viewState = MutableStateFlow(
         EmergencyViewState(
             uiState = UiState(
@@ -31,6 +35,8 @@ class EmergencyViewModel(
     val viewState: StateFlow<EmergencyViewState> = _viewState.asStateFlow()
 
     private var currentDialogueState: DialogueState? = null
+    private var pendingImagePaths: List<String> = emptyList()
+    private var recentSubmittedImagePaths: List<String> = emptyList()
 
     fun reduce(event: AppEvent) {
         when (event) {
@@ -48,7 +54,7 @@ class EmergencyViewModel(
     }
 
     fun startEmergency(text: String) {
-        submitText(text)
+        submitTurn(text = text)
     }
 
     fun updateListening(isListening: Boolean) {
@@ -67,25 +73,71 @@ class EmergencyViewModel(
         _viewState.value = _viewState.value.copy(statusText = statusText)
     }
 
+    fun attachImage(imagePath: String) {
+        pendingImagePaths = pendingImagePaths + imagePath
+        _viewState.value = _viewState.value.copy(
+            attachedImagePaths = pendingImagePaths.ifEmpty { recentSubmittedImagePaths },
+            statusText = "Image attached. Submit the turn when ready.",
+        )
+    }
+
+    fun clearPendingImages() {
+        pendingImagePaths = emptyList()
+        _viewState.value = _viewState.value.copy(
+            attachedImagePaths = recentSubmittedImagePaths,
+        )
+    }
+
     fun submitText(text: String) {
-        if (text.isBlank()) {
+        submitTurn(text = text)
+    }
+
+    fun submitTurn(text: String = "") {
+        if (text.isBlank() && pendingImagePaths.isEmpty()) {
             return
         }
 
-        val result = dialogueStateManager.handleText(
-            text = text,
+        val submittedImages = pendingImagePaths
+        val turn = UserTurn(
+            text = text.takeIf { it.isNotBlank() },
+            imageUris = submittedImages,
+            timestamp = System.currentTimeMillis(),
+        )
+        val nextStatus = if (submittedImages.isNotEmpty()) {
+            val taskType = visionTaskRouter.route(turn, buildTurnContext())
+            "Image attached. ${taskType.name} is recognized, but image analysis is not enabled yet."
+        } else {
+            null
+        }
+
+        if (text.isBlank()) {
+            pendingImagePaths = emptyList()
+            recentSubmittedImagePaths = submittedImages
+            _viewState.value = _viewState.value.copy(
+                statusText = nextStatus ?: "Image attached. Deterministic guidance continues.",
+                attachedImagePaths = recentSubmittedImagePaths,
+                transcriptDraft = "",
+            )
+            return
+        }
+
+        val result = dialogueStateManager.handleTurn(
+            turn = turn,
             currentState = currentDialogueState,
         )
         currentDialogueState = result.dialogueState
+        pendingImagePaths = emptyList()
+        recentSubmittedImagePaths = submittedImages
         _viewState.value = when (val dialogueState = result.dialogueState) {
-            is DialogueState.ProtocolMode -> buildProtocolViewState(dialogueState, null)
-            is DialogueState.EntryMode -> buildEntryViewState(dialogueState, null)
-            is DialogueState.QuestionMode -> buildQuestionViewState(dialogueState)
-            is DialogueState.ReTriageMode -> buildRetriageViewState(dialogueState)
-            DialogueState.Completed -> buildCompletedViewState()
+            is DialogueState.ProtocolMode -> buildProtocolViewState(dialogueState, nextStatus)
+            is DialogueState.EntryMode -> buildEntryViewState(dialogueState, nextStatus)
+            is DialogueState.QuestionMode -> buildQuestionViewState(dialogueState, nextStatus)
+            is DialogueState.ReTriageMode -> buildRetriageViewState(dialogueState, nextStatus)
+            DialogueState.Completed -> buildCompletedViewState(nextStatus)
         }.copy(
             transcriptDraft = "",
             speechRequestKey = nextSpeechRequestKey(),
+            attachedImagePaths = recentSubmittedImagePaths,
         )
     }
 
@@ -106,7 +158,10 @@ class EmergencyViewModel(
                         secondaryInstruction = "Describe what happened to begin.",
                     ),
                     isAiEnabled = BuildConfig.AI_ENABLED,
+                    attachedImagePaths = emptyList(),
                 )
+                pendingImagePaths = emptyList()
+                recentSubmittedImagePaths = emptyList()
             }
             UiAction.CallEmergency -> refreshCurrentState("Call emergency services now if the situation is immediately life-threatening.")
             is UiAction.SubmitText -> submitText(action.text)
@@ -171,6 +226,7 @@ class EmergencyViewModel(
             quickResponses = emptyList(),
             isAiEnabled = BuildConfig.AI_ENABLED,
             transcriptDraft = _viewState.value.transcriptDraft,
+            attachedImagePaths = pendingImagePaths.ifEmpty { recentSubmittedImagePaths },
         )
     }
 
@@ -199,10 +255,14 @@ class EmergencyViewModel(
             quickResponses = if (node.type == "question") listOf("Yes", "No") else emptyList(),
             isAiEnabled = BuildConfig.AI_ENABLED,
             transcriptDraft = _viewState.value.transcriptDraft,
+            attachedImagePaths = pendingImagePaths.ifEmpty { recentSubmittedImagePaths },
         )
     }
 
-    private fun buildQuestionViewState(dialogueState: DialogueState.QuestionMode): EmergencyViewState {
+    private fun buildQuestionViewState(
+        dialogueState: DialogueState.QuestionMode,
+        statusTextOverride: String? = null,
+    ): EmergencyViewState {
         val protocol = requireNotNull(protocolRepository.getProtocol(dialogueState.protocolId)) {
             "Missing protocol for ${dialogueState.protocolId}"
         }
@@ -222,14 +282,18 @@ class EmergencyViewModel(
                 totalSteps = protocol.steps.size,
                 showCallEmergencyButton = protocol.safetyFlags.any { it.contains("emergency_call") },
             ),
-            statusText = "Returning to the current deterministic step.",
+            statusText = statusTextOverride ?: "Returning to the current deterministic step.",
             quickResponses = emptyList(),
             isAiEnabled = BuildConfig.AI_ENABLED,
             transcriptDraft = _viewState.value.transcriptDraft,
+            attachedImagePaths = pendingImagePaths.ifEmpty { recentSubmittedImagePaths },
         )
     }
 
-    private fun buildRetriageViewState(dialogueState: DialogueState.ReTriageMode): EmergencyViewState {
+    private fun buildRetriageViewState(
+        dialogueState: DialogueState.ReTriageMode,
+        statusTextOverride: String? = null,
+    ): EmergencyViewState {
         return EmergencyViewState(
             screenMode = ScreenMode.ACTIVE,
             uiState = UiState(
@@ -239,14 +303,15 @@ class EmergencyViewModel(
                 warningText = "Leave the current step and reassess immediately.",
                 showCallEmergencyButton = true,
             ),
-            statusText = "Current step suspended by a higher-priority change.",
+            statusText = statusTextOverride ?: "Current step suspended by a higher-priority change.",
             quickResponses = emptyList(),
             isAiEnabled = BuildConfig.AI_ENABLED,
             transcriptDraft = _viewState.value.transcriptDraft,
+            attachedImagePaths = pendingImagePaths.ifEmpty { recentSubmittedImagePaths },
         )
     }
 
-    private fun buildCompletedViewState(): EmergencyViewState {
+    private fun buildCompletedViewState(statusTextOverride: String? = null): EmergencyViewState {
         return EmergencyViewState(
             screenMode = ScreenMode.ACTIVE,
             uiState = UiState(
@@ -254,10 +319,11 @@ class EmergencyViewModel(
                 primaryInstruction = "No further deterministic steps are pending.",
                 secondaryInstruction = "Start a new report if the situation changes.",
             ),
-            statusText = "Deterministic walkthrough finished.",
+            statusText = statusTextOverride ?: "Deterministic walkthrough finished.",
             quickResponses = emptyList(),
             isAiEnabled = BuildConfig.AI_ENABLED,
             transcriptDraft = _viewState.value.transcriptDraft,
+            attachedImagePaths = pendingImagePaths.ifEmpty { recentSubmittedImagePaths },
         )
     }
 
@@ -281,6 +347,36 @@ class EmergencyViewModel(
     private fun nextSpeechRequestKey(): Int {
         speechRequestKeyCounter += 1
         return speechRequestKeyCounter
+    }
+
+    private fun buildTurnContext(): TurnContext {
+        return when (val state = currentDialogueState) {
+            is DialogueState.EntryMode -> TurnContext(
+                dialogueState = state,
+                currentProtocolId = null,
+                currentStepId = null,
+            )
+            is DialogueState.ProtocolMode -> {
+                val protocol = protocolRepository.getProtocol(state.protocolId)
+                val stepId = protocol?.steps?.getOrNull(state.stepIndex)?.stepId
+                TurnContext(
+                    dialogueState = state,
+                    currentProtocolId = state.protocolId,
+                    currentStepId = stepId,
+                )
+            }
+            is DialogueState.QuestionMode -> TurnContext(
+                dialogueState = state,
+                currentProtocolId = state.protocolId,
+                currentStepId = protocolRepository.getProtocol(state.protocolId)
+                    ?.steps
+                    ?.getOrNull(state.stepIndex)
+                    ?.stepId,
+            )
+            is DialogueState.ReTriageMode,
+            DialogueState.Completed,
+            null -> TurnContext(dialogueState = state)
+        }
     }
 }
 

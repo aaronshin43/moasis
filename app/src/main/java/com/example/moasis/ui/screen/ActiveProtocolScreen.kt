@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.outlined.CameraAlt
+import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -25,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Mic
 import com.example.moasis.presentation.UiAction
 import com.example.moasis.presentation.UiState
+import com.example.moasis.ui.component.AttachedImageStrip
 import com.example.moasis.ui.component.StepCard
 import com.example.moasis.ui.component.VisualAidStrip
 import com.example.moasis.ui.component.VoiceStatusBar
@@ -40,6 +43,10 @@ fun ActiveProtocolScreen(
     onQuickResponse: (String) -> Unit,
     onVoiceInput: () -> Unit,
     transcriptDraft: String,
+    attachedImagePaths: List<String>,
+    onPickImage: () -> Unit,
+    onCaptureImage: () -> Unit,
+    onClearImages: () -> Unit,
 ) {
     var draft by remember { mutableStateOf("") }
 
@@ -80,6 +87,11 @@ fun ActiveProtocolScreen(
         }
 
         VisualAidStrip(visualAids = uiState.visualAids)
+
+        AttachedImageStrip(
+            imagePaths = attachedImagePaths,
+            onClearImages = onClearImages,
+        )
 
         if (quickResponses.isNotEmpty()) {
             Row(
@@ -126,6 +138,32 @@ fun ActiveProtocolScreen(
                 contentDescription = "Voice input",
             )
             Text(if (uiState.isListening) " Listening..." else " Start voice input")
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            OutlinedButton(
+                onClick = onPickImage,
+                modifier = Modifier.weight(1f),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.PhotoLibrary,
+                    contentDescription = "Pick image",
+                )
+                Text(" Gallery")
+            }
+            OutlinedButton(
+                onClick = onCaptureImage,
+                modifier = Modifier.weight(1f),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.CameraAlt,
+                    contentDescription = "Capture image",
+                )
+                Text(" Camera")
+            }
         }
 
         Row(

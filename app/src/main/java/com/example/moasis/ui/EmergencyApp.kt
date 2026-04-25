@@ -2,8 +2,10 @@ package com.example.moasis.ui
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -19,6 +21,9 @@ import com.example.moasis.audio.AndroidSpeechRecognizer
 import com.example.moasis.audio.AndroidTtsEngine
 import com.example.moasis.audio.AudioController
 import com.example.moasis.audio.VoiceEvent
+import com.example.moasis.imaging.CameraCaptureManager
+import com.example.moasis.imaging.GalleryPickerManager
+import com.example.moasis.imaging.ImageInputController
 import com.example.moasis.presentation.EmergencyViewModel
 import com.example.moasis.presentation.EmergencyViewModelFactory
 import com.example.moasis.presentation.ScreenMode
@@ -33,6 +38,9 @@ fun EmergencyApp(
     val viewModel: EmergencyViewModel = viewModel(factory = factory)
     val viewState by viewModel.viewState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val imageInputController = remember(context) { ImageInputController(context) }
+    val galleryPickerManager = remember { GalleryPickerManager() }
+    val cameraCaptureManager = remember(context) { CameraCaptureManager(context) }
     val audioController = remember(context, viewModel) {
         lateinit var controller: AudioController
         val speechRecognizer = AndroidSpeechRecognizer(context) { event ->
@@ -91,6 +99,52 @@ fun EmergencyApp(
             viewModel.updateStatus("Microphone permission denied. Text input is still available.")
         }
     }
+    var launchCameraCapture: ((Uri) -> Unit)? = null
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        if (granted) {
+            val captureUri = cameraCaptureManager.createCaptureUri()
+            launchCameraCapture?.invoke(captureUri)
+        } else {
+            viewModel.updateStatus("Camera permission denied. Gallery attachment is still available.")
+        }
+    }
+    val galleryPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+    ) { uri ->
+        val pickedUri = galleryPickerManager.handlePickedUri(uri)
+        if (pickedUri != null) {
+            attachImageFromUri(
+                sourceUri = pickedUri,
+                imageInputController = imageInputController,
+                onAttached = viewModel::attachImage,
+                onError = viewModel::updateStatus,
+            )
+        }
+    }
+    val cameraCaptureLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture(),
+    ) { success ->
+        if (!success) {
+            cameraCaptureManager.clearPendingCapture()
+            viewModel.updateStatus("Camera capture was cancelled.")
+        } else {
+            val pendingUri = cameraCaptureManager.getPendingCaptureUri()
+            if (pendingUri != null) {
+                attachImageFromUri(
+                    sourceUri = pendingUri,
+                    imageInputController = imageInputController,
+                    onAttached = viewModel::attachImage,
+                    onError = viewModel::updateStatus,
+                )
+            } else {
+                viewModel.updateStatus("Camera image was not available.")
+            }
+            cameraCaptureManager.clearPendingCapture()
+        }
+    }
+    launchCameraCapture = { uri -> cameraCaptureLauncher.launch(uri) }
 
     LaunchedEffect(viewState.screenMode, viewState.speechRequestKey) {
         if (viewState.screenMode == ScreenMode.ACTIVE && viewState.uiState.primaryInstruction.isNotBlank()) {
@@ -113,6 +167,22 @@ fun EmergencyApp(
         }
     }
 
+    fun openGalleryPicker() {
+        galleryPickerLauncher.launch(
+            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+        )
+    }
+
+    fun captureImage() {
+        val permissionState = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+        if (permissionState == PackageManager.PERMISSION_GRANTED) {
+            val captureUri = cameraCaptureManager.createCaptureUri()
+            cameraCaptureLauncher.launch(captureUri)
+        } else {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
     Surface(modifier = modifier) {
         when (viewState.screenMode) {
             ScreenMode.HOME -> HomeScreen(
@@ -132,7 +202,24 @@ fun EmergencyApp(
                 onQuickResponse = viewModel::submitText,
                 onVoiceInput = ::startListening,
                 transcriptDraft = viewState.transcriptDraft,
+                attachedImagePaths = viewState.attachedImagePaths,
+                onPickImage = ::openGalleryPicker,
+                onCaptureImage = ::captureImage,
+                onClearImages = viewModel::clearPendingImages,
             )
         }
     }
+}
+
+private fun attachImageFromUri(
+    sourceUri: Uri,
+    imageInputController: ImageInputController,
+    onAttached: (String) -> Unit,
+    onError: (String?) -> Unit,
+) {
+    imageInputController.copyToInternalCache(sourceUri)
+        .onSuccess(onAttached)
+        .onFailure { error ->
+            onError(error.message ?: "Image attachment failed.")
+        }
 }

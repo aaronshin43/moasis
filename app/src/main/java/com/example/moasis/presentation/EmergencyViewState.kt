@@ -8,6 +8,7 @@ data class EmergencyViewState(
     val isAiEnabled: Boolean = false,
     val transcriptDraft: String = "",
     val speechRequestKey: Int = 0,
+    val attachedImagePaths: List<String> = emptyList(),
 )
 
 enum class ScreenMode {

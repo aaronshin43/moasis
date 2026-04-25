@@ -69,6 +69,18 @@ class EmergencyViewModelTest {
         assertTrue((state.statusText ?: "").contains("higher-priority", ignoreCase = true))
     }
 
+    @Test
+    fun image_only_submission_keeps_current_flow_and_shows_attachment_status() {
+        viewModel.startEmergency("I burned my arm")
+        viewModel.attachImage("C:/tmp/example.jpg")
+        viewModel.submitTurn()
+
+        val state = viewModel.viewState.value
+        assertEquals("Second-degree burn basic care", state.uiState.title)
+        assertEquals(listOf("C:/tmp/example.jpg"), state.attachedImagePaths)
+        assertTrue((state.statusText ?: "").contains("Image attached", ignoreCase = true))
+    }
+
     private fun findAssetRoot(): File {
         var current = File(".").absoluteFile
         repeat(6) {
