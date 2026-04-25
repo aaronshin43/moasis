@@ -4,8 +4,8 @@ Use this file as the compact handoff and restart context for implementation work
 
 ## Current Stage
 
-- Active stage: `S3`
-- Next gate: `deterministic engine proven`
+- Active stage: `S4`
+- Next gate: `end-to-end deterministic demo`
 
 ## Frozen Contracts
 
@@ -48,19 +48,24 @@ Use this file as the compact handoff and restart context for implementation work
 - visual asset catalog JSON added
 - file-backed JSON data sources and repositories added for protocols and visual assets
 - repository lookup tests passed with `:app:testDebugUnitTest`
+- deterministic NLU, interruption routing, vision task routing, observation merge stub, and response validator stub added
+- pure protocol state machine and dialogue state manager added
+- deterministic scenario tests passed with `:app:testDebugUnitTest`
 
 ## Open Blockers
 
-- deterministic NLU and state logic do not exist yet
+- ViewModel and Compose screens do not exist for the deterministic flow yet
+- deterministic UI has not been wired to burn and collapse scenarios
 - Room persistence is still deferred until after the S4 line
 
 ## Next Unlock Condition
 
-To close `S3`, the repo needs:
+To close `S4`, the repo needs:
 
-1. implement `RegexIntentMatcher`, `SlotExtractor`, and `NluRouter`
-2. implement `EntryTreeRouter`, `ProtocolStateMachine`, `InterruptionRouter`, `DialogueStateManager`, and `VisionTaskRouter`
-3. add scenario tests for burn entry, collapse entry, clarification preservation, re-triage, and next-step control
+1. wire `EmergencyViewModel` to `DialogueStateManager`
+2. build minimal home and active protocol screens
+3. render current step, warning, and visual aids in a deterministic flow
+4. complete burn and collapse scenarios with `AI_ENABLED=false`
 
 ## Rollback Point
 
