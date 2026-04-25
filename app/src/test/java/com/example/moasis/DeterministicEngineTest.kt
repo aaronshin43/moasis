@@ -295,8 +295,6 @@ class DeterministicEngineTest {
         val cases = listOf(
             "his face is drooping and his speech is slurred" to "stroke_fast_general",
             "she has an allergic reaction and a swollen tongue" to "anaphylaxis_general",
-            "she got an electric shock from a wire" to "electric_shock_general",
-            "he may have a broken wrist fracture" to "fracture_suspected_general",
         )
 
         for ((input, expectedProtocolId) in cases) {
@@ -304,6 +302,125 @@ class DeterministicEngineTest {
             assertEquals("Input '$input' routed incorrectly", expectedProtocolId, result.protocolId)
             assertTrue("Input '$input' did not enter protocol mode", result.dialogueState is DialogueState.ProtocolMode)
         }
+    }
+
+    @Test
+    fun eye_injury_starts_with_chemical_question() {
+        val result = dialogueStateManager.handleText("something in my eye")
+
+        assertEquals("TRAUMA", result.entryIntent)
+        assertEquals("chemical_eye_check", result.currentNodeId)
+        assertTrue(result.dialogueState is DialogueState.EntryMode)
+    }
+
+    @Test
+    fun chemical_eye_injury_routes_to_eye_emergency_protocol() {
+        val result = dialogueStateManager.handleText("chemical in eye")
+
+        assertEquals("eye_injury_general", result.protocolId)
+        assertTrue(result.dialogueState is DialogueState.ProtocolMode)
+    }
+
+    @Test
+    fun head_injury_starts_with_red_flag_question() {
+        val result = dialogueStateManager.handleText("he hit their head")
+
+        assertEquals("TRAUMA", result.entryIntent)
+        assertEquals("head_red_flag_check", result.currentNodeId)
+        assertTrue(result.dialogueState is DialogueState.EntryMode)
+    }
+
+    @Test
+    fun repeated_vomiting_after_head_injury_routes_to_head_emergency_protocol() {
+        val result = dialogueStateManager.handleText("repeated vomiting after head injury")
+
+        assertEquals("head_injury_general", result.protocolId)
+        assertTrue(result.dialogueState is DialogueState.ProtocolMode)
+    }
+
+    @Test
+    fun electric_shock_starts_with_high_voltage_question() {
+        val result = dialogueStateManager.handleText("she got an electric shock from a wire")
+
+        assertEquals("INJURY_REPORT", result.entryIntent)
+        assertEquals("high_voltage_check", result.currentNodeId)
+        assertTrue(result.dialogueState is DialogueState.EntryMode)
+    }
+
+    @Test
+    fun high_voltage_shock_routes_to_emergency_shock_protocol() {
+        val result = dialogueStateManager.handleText("he touched a high voltage line")
+
+        assertEquals("electric_shock_general", result.protocolId)
+        assertTrue(result.dialogueState is DialogueState.ProtocolMode)
+    }
+
+    @Test
+    fun fracture_starts_with_red_flag_question() {
+        val result = dialogueStateManager.handleText("he may have a broken wrist fracture")
+
+        assertEquals("TRAUMA", result.entryIntent)
+        assertEquals("fracture_red_flag_check", result.currentNodeId)
+        assertTrue(result.dialogueState is DialogueState.EntryMode)
+    }
+
+    @Test
+    fun open_fracture_routes_to_emergency_fracture_protocol() {
+        val result = dialogueStateManager.handleText("bone sticking out from the leg")
+
+        assertEquals("fracture_emergency_general", result.protocolId)
+        assertTrue(result.dialogueState is DialogueState.ProtocolMode)
+    }
+
+    @Test
+    fun heat_stroke_starts_with_red_flag_question() {
+        val result = dialogueStateManager.handleText("they are overheated")
+
+        assertEquals("GENERAL_EMERGENCY", result.entryIntent)
+        assertEquals("heat_stroke_red_flag_check", result.currentNodeId)
+        assertTrue(result.dialogueState is DialogueState.EntryMode)
+    }
+
+    @Test
+    fun collapsed_from_heat_routes_to_heat_stroke_protocol() {
+        val result = dialogueStateManager.handleText("collapsed from heat and very hot skin")
+
+        assertEquals("heat_stroke_general", result.protocolId)
+        assertTrue(result.dialogueState is DialogueState.ProtocolMode)
+    }
+
+    @Test
+    fun hypothermia_starts_with_severity_question() {
+        val result = dialogueStateManager.handleText("hypothermia after cold exposure")
+
+        assertEquals("GENERAL_EMERGENCY", result.entryIntent)
+        assertEquals("hypothermia_severe_check", result.currentNodeId)
+        assertTrue(result.dialogueState is DialogueState.EntryMode)
+    }
+
+    @Test
+    fun mild_hypothermia_routes_to_mild_protocol() {
+        val result = dialogueStateManager.handleText("shivering but alert after cold exposure")
+
+        assertEquals("hypothermia_mild_general", result.protocolId)
+        assertTrue(result.dialogueState is DialogueState.ProtocolMode)
+    }
+
+    @Test
+    fun nosebleed_starts_with_red_flag_question() {
+        val result = dialogueStateManager.handleText("nosebleed")
+
+        assertEquals("BLEEDING", result.entryIntent)
+        assertEquals("nosebleed_red_flag_check", result.currentNodeId)
+        assertTrue(result.dialogueState is DialogueState.EntryMode)
+    }
+
+    @Test
+    fun heavy_nosebleed_routes_to_emergency_nosebleed_protocol() {
+        val result = dialogueStateManager.handleText("heavy nosebleed for 20 minutes")
+
+        assertEquals("nosebleed_emergency_general", result.protocolId)
+        assertTrue(result.dialogueState is DialogueState.ProtocolMode)
     }
 
     @Test

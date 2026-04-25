@@ -110,6 +110,11 @@ Use this file as the compact handoff and restart context for implementation work
 - slot extraction now distinguishes severe bleeding from generic bleeding, supports seizure recovery state, severe hypoglycemia swallowing checks, poison exposure type, and post-rescue breathing state
 - `:app:testDebugUnitTest --rerun-tasks` passed after secondary dispatcher-flow expansion
 - `:app:assembleDebug` passed after secondary dispatcher-flow expansion
+- dispatcher-style deterministic triage expanded to `eye injury`, `head injury`, `electric shock`, `fracture`, `heat stroke`, `hypothermia`, and `nosebleed`
+- new deterministic protocols added for `eye_surface_irritation_general`, `head_injury_observation_general`, `electric_shock_low_voltage_general`, `fracture_emergency_general`, `heat_exhaustion_general`, `hypothermia_mild_general`, and `nosebleed_emergency_general`
+- slot extraction now supports eye injury red flags, head injury red flags, high-voltage sources, fracture red flags, heat stroke severity, hypothermia severity, and nosebleed escalation features
+- `:app:testDebugUnitTest --rerun-tasks` passed after final dispatcher-flow expansion
+- `:app:assembleDebug` passed after final dispatcher-flow expansion
 
 ## Open Blockers
 

@@ -1,12 +1,34 @@
 {
   "tree_id": "head_injury_tree",
   "version": "1.0",
-  "start_node": "head_injury_protocol",
+  "start_node": "head_red_flag_check",
   "nodes": [
+    {
+      "id": "head_red_flag_check",
+      "type": "question",
+      "prompt": "Did they lose consciousness, vomit repeatedly, become confused, have unequal pupils, or leak blood or fluid from the ear or nose?",
+      "slot_key": "head_red_flags",
+      "transitions": [
+        {
+          "when": "yes",
+          "to": "head_injury_protocol"
+        },
+        {
+          "when": "no",
+          "to": "head_injury_observation_protocol"
+        }
+      ]
+    },
     {
       "id": "head_injury_protocol",
       "type": "instruction",
       "instruction_id": "head_injury_general",
+      "next": "head_injury_terminal"
+    },
+    {
+      "id": "head_injury_observation_protocol",
+      "type": "instruction",
+      "instruction_id": "head_injury_observation_general",
       "next": "head_injury_terminal"
     },
     {

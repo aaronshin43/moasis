@@ -1,12 +1,50 @@
 {
   "tree_id": "electric_shock_tree",
   "version": "1.0",
-  "start_node": "electric_shock_protocol",
+  "start_node": "high_voltage_check",
   "nodes": [
+    {
+      "id": "high_voltage_check",
+      "type": "question",
+      "prompt": "Was this from a power line, high-voltage source, or industrial equipment? Stay back if it was.",
+      "slot_key": "high_voltage_source",
+      "transitions": [
+        {
+          "when": "yes",
+          "to": "electric_shock_protocol"
+        },
+        {
+          "when": "no",
+          "to": "electric_breathing_check"
+        }
+      ]
+    },
+    {
+      "id": "electric_breathing_check",
+      "type": "question",
+      "prompt": "Once the power source is safe, are they breathing normally? Treat gasping as no.",
+      "slot_key": "breathing_normal",
+      "transitions": [
+        {
+          "when": "yes",
+          "to": "electric_low_voltage_protocol"
+        },
+        {
+          "when": "no",
+          "to_tree": "cardiac_arrest_tree"
+        }
+      ]
+    },
     {
       "id": "electric_shock_protocol",
       "type": "instruction",
       "instruction_id": "electric_shock_general",
+      "next": "electric_shock_terminal"
+    },
+    {
+      "id": "electric_low_voltage_protocol",
+      "type": "instruction",
+      "instruction_id": "electric_shock_low_voltage_general",
       "next": "electric_shock_terminal"
     },
     {

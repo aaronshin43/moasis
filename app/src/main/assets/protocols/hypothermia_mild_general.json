@@ -1,0 +1,50 @@
+{
+  "protocol_id": "hypothermia_mild_general",
+  "title": "Mild hypothermia warming",
+  "category": "environmental",
+  "required_slots": [],
+  "safety_flags": [],
+  "steps": [
+    {
+      "step_id": "move_out_of_cold",
+      "canonical_text": "Move them out of the cold, wind, and wet conditions and replace wet clothing with dry layers.",
+      "must_keep_keywords": [
+        "out of the cold",
+        "dry layers"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "warm_core_first",
+      "canonical_text": "Warm the chest, neck, and groin first with blankets or body heat, not the arms and legs first.",
+      "must_keep_keywords": [
+        "chest, neck, and groin",
+        "not the arms and legs first"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "warm_drink_if_alert",
+      "canonical_text": "If fully alert and able to swallow, give a warm sweet non-alcoholic drink.",
+      "must_keep_keywords": [
+        "warm sweet non-alcoholic drink"
+      ],
+      "forbidden_keywords": [
+        "give alcohol"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "escalate_if_worsening",
+      "canonical_text": "Call emergency services if shivering stops, confusion worsens, or they become drowsy.",
+      "must_keep_keywords": [
+        "Call emergency services",
+        "confusion worsens"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

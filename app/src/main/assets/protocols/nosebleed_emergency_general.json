@@ -1,0 +1,44 @@
+{
+  "protocol_id": "nosebleed_emergency_general",
+  "title": "Nosebleed emergency escalation",
+  "category": "bleeding",
+  "required_slots": [],
+  "safety_flags": [
+    "show_emergency_call_now"
+  ],
+  "steps": [
+    {
+      "step_id": "lean_forward_and_pinch",
+      "canonical_text": "Keep them sitting up and leaning forward while pinching the soft part of the nose firmly.",
+      "must_keep_keywords": [
+        "leaning forward",
+        "soft part of the nose"
+      ],
+      "forbidden_keywords": [
+        "tilt head back"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "call_or_seek_emergency_help",
+      "canonical_text": "Seek emergency help now if bleeding is heavy, lasts 20 minutes, follows head injury, or the person takes blood-thinning medication.",
+      "must_keep_keywords": [
+        "Seek emergency help",
+        "20 minutes",
+        "blood-thinning"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "collect_history_for_handoff",
+      "canonical_text": "Be ready to tell clinicians how long the bleeding has lasted, whether there was trauma, and what medications they take.",
+      "must_keep_keywords": [
+        "how long the bleeding has lasted",
+        "what medications they take"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

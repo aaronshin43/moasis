@@ -197,6 +197,60 @@ class SlotExtractorTest {
         assertEquals("yes", slots["poison_inhalation_exposure"])
     }
 
+    @Test
+    fun chemical_in_eye_marks_eye_chemical_exposure() {
+        val slots = extractor.extract("chemical in eye")
+        assertEquals("yes", slots["eye_chemical_exposure"])
+    }
+
+    @Test
+    fun embedded_object_marks_eye_red_flag() {
+        val slots = extractor.extract("glass in eye")
+        assertEquals("yes", slots["eye_embedded_or_vision_loss"])
+    }
+
+    @Test
+    fun head_injury_red_flags_are_extracted() {
+        val slots = extractor.extract("repeated vomiting after head injury")
+        assertEquals("yes", slots["head_red_flags"])
+    }
+
+    @Test
+    fun high_voltage_source_is_extracted() {
+        val slots = extractor.extract("he touched a high voltage line")
+        assertEquals("yes", slots["high_voltage_source"])
+    }
+
+    @Test
+    fun fracture_red_flags_are_extracted() {
+        val slots = extractor.extract("bone sticking out from the leg")
+        assertEquals("yes", slots["fracture_red_flags"])
+    }
+
+    @Test
+    fun heat_stroke_red_flags_are_extracted() {
+        val slots = extractor.extract("collapsed from heat and very hot skin")
+        assertEquals("yes", slots["heat_stroke_red_flags"])
+    }
+
+    @Test
+    fun mild_hypothermia_marks_non_severe() {
+        val slots = extractor.extract("shivering but alert")
+        assertEquals("no", slots["hypothermia_severe"])
+    }
+
+    @Test
+    fun severe_hypothermia_marks_severe() {
+        val slots = extractor.extract("drowsy and cold with slurred speech from cold")
+        assertEquals("yes", slots["hypothermia_severe"])
+    }
+
+    @Test
+    fun nosebleed_red_flags_are_extracted() {
+        val slots = extractor.extract("heavy nosebleed for 20 minutes")
+        assertEquals("yes", slots["nosebleed_red_flags"])
+    }
+
     // --- Multiple slots from one input ---
 
     @Test

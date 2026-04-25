@@ -1,0 +1,49 @@
+{
+  "protocol_id": "heat_exhaustion_general",
+  "title": "Heat exhaustion care",
+  "category": "environmental",
+  "required_slots": [],
+  "safety_flags": [],
+  "steps": [
+    {
+      "step_id": "move_to_cool_place_and_rest",
+      "canonical_text": "Move them to a shaded or cool place, have them lie down, and raise the legs slightly if they feel faint.",
+      "must_keep_keywords": [
+        "shaded or cool place",
+        "raise the legs"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "cool_and_loosen_clothing",
+      "canonical_text": "Loosen clothing, fan them, and use cool wet cloths on the skin.",
+      "must_keep_keywords": [
+        "Loosen clothing",
+        "cool wet cloths"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "oral_fluids_if_alert",
+      "canonical_text": "If fully alert, give cool water or an oral rehydration drink in small sips.",
+      "must_keep_keywords": [
+        "cool water",
+        "small sips"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "seek_help_if_not_improving",
+      "canonical_text": "Get urgent medical help if they do not improve quickly or become confused, vomit, or collapse.",
+      "must_keep_keywords": [
+        "urgent medical help",
+        "become confused"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

@@ -1,12 +1,50 @@
 {
   "tree_id": "eye_injury_tree",
   "version": "1.0",
-  "start_node": "eye_injury_protocol",
+  "start_node": "chemical_eye_check",
   "nodes": [
+    {
+      "id": "chemical_eye_check",
+      "type": "question",
+      "prompt": "Was there a chemical splash to the eye? Start rinsing with running water now if there was.",
+      "slot_key": "eye_chemical_exposure",
+      "transitions": [
+        {
+          "when": "yes",
+          "to": "eye_injury_protocol"
+        },
+        {
+          "when": "no",
+          "to": "embedded_or_vision_loss_check"
+        }
+      ]
+    },
+    {
+      "id": "embedded_or_vision_loss_check",
+      "type": "question",
+      "prompt": "Is something stuck in the eye, has the eye been cut, or is vision suddenly worse? Do not press on the eye.",
+      "slot_key": "eye_embedded_or_vision_loss",
+      "transitions": [
+        {
+          "when": "yes",
+          "to": "eye_injury_protocol"
+        },
+        {
+          "when": "no",
+          "to": "eye_surface_protocol"
+        }
+      ]
+    },
     {
       "id": "eye_injury_protocol",
       "type": "instruction",
       "instruction_id": "eye_injury_general",
+      "next": "eye_injury_terminal"
+    },
+    {
+      "id": "eye_surface_protocol",
+      "type": "instruction",
+      "instruction_id": "eye_surface_irritation_general",
       "next": "eye_injury_terminal"
     },
     {

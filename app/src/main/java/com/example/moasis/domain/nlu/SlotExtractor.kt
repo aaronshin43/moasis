@@ -15,6 +15,9 @@ class SlotExtractor {
         if ("face" in normalized) {
             slots["location"] = "face"
         }
+        if ("eye" in normalized || "eyes" in normalized) {
+            slots["location"] = "eye"
+        }
         if ("adult" in normalized) {
             slots["patient_type"] = "adult"
         }
@@ -183,6 +186,80 @@ class SlotExtractor {
             "chemical fumes" in normalized
         ) {
             slots["poison_inhalation_exposure"] = "yes"
+        }
+        if ("chemical in eye" in normalized || "chemical splash" in normalized || "bleach in the eye" in normalized || "acid in eye" in normalized) {
+            slots["eye_chemical_exposure"] = "yes"
+        }
+        if (
+            "something stuck in eye" in normalized ||
+            "object in eye" in normalized ||
+            "metal in eye" in normalized ||
+            "glass in eye" in normalized ||
+            "embedded in eye" in normalized ||
+            "vision loss" in normalized
+        ) {
+            slots["eye_embedded_or_vision_loss"] = "yes"
+        }
+        if (
+            "lost consciousness" in normalized ||
+            "passed out after hitting head" in normalized ||
+            "vomiting after head injury" in normalized ||
+            "repeated vomiting" in normalized ||
+            "unequal pupils" in normalized ||
+            "confused after hitting head" in normalized ||
+            "fluid from ear" in normalized ||
+            "blood from ear" in normalized
+        ) {
+            slots["head_red_flags"] = "yes"
+        }
+        if (
+            "power line" in normalized ||
+            "high voltage" in normalized ||
+            "fallen wire" in normalized ||
+            "industrial machine" in normalized
+        ) {
+            slots["high_voltage_source"] = "yes"
+        }
+        if (
+            "bone sticking out" in normalized ||
+            "open fracture" in normalized ||
+            "neck injury" in normalized ||
+            "back injury" in normalized ||
+            "spine injury" in normalized
+        ) {
+            slots["fracture_red_flags"] = "yes"
+        }
+        if (
+            "very hot skin" in normalized ||
+            "hot and confused" in normalized ||
+            "confused in the heat" in normalized ||
+            "passed out from heat" in normalized ||
+            "collapsed from heat" in normalized
+        ) {
+            slots["heat_stroke_red_flags"] = "yes"
+        }
+        if (
+            "mild hypothermia" in normalized ||
+            "shivering but alert" in normalized
+        ) {
+            slots["hypothermia_severe"] = "no"
+        }
+        if (
+            "confused from cold" in normalized ||
+            "drowsy and cold" in normalized ||
+            "slow breathing from cold" in normalized ||
+            "slurred speech from cold" in normalized
+        ) {
+            slots["hypothermia_severe"] = "yes"
+        }
+        if (
+            "20 minutes" in normalized ||
+            "won't stop nosebleed" in normalized ||
+            "heavy nosebleed" in normalized ||
+            "nosebleed after head injury" in normalized ||
+            "blood thinners" in normalized
+        ) {
+            slots["nosebleed_red_flags"] = "yes"
         }
 
         return slots

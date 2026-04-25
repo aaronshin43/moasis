@@ -52,6 +52,12 @@ class RegexIntentMatcherTest {
         assertEquals(EntryIntent.BREATHING_PROBLEM, result.entryIntent)
     }
 
+    @Test
+    fun cant_catch_breath_matches_breathing_problem() {
+        val result = matcher.match("she can't catch her breath")
+        assertEquals(EntryIntent.BREATHING_PROBLEM, result.entryIntent)
+    }
+
     // --- BURN ---
 
     @Test
@@ -121,6 +127,12 @@ class RegexIntentMatcherTest {
     }
 
     @Test
+    fun chest_pressure_matches_chest_pain() {
+        val result = matcher.match("he has chest pressure and sweating")
+        assertEquals(EntryIntent.CHEST_PAIN, result.entryIntent)
+    }
+
+    @Test
     fun seizure_matches_seizure_domain() {
         val result = matcher.match("my brother is having a seizure")
         assertEquals(EntryIntent.SEIZURE, result.entryIntent)
@@ -130,6 +142,13 @@ class RegexIntentMatcherTest {
     @Test
     fun stroke_fast_signs_match_stroke_domain() {
         val result = matcher.match("his face droop and slurred speech started suddenly")
+        assertEquals(EntryIntent.GENERAL_EMERGENCY, result.entryIntent)
+        assertTrue(DomainIntent.STROKE in result.domainHints)
+    }
+
+    @Test
+    fun one_sided_weakness_matches_stroke_domain() {
+        val result = matcher.match("she has one-sided weakness and speech is slurred")
         assertEquals(EntryIntent.GENERAL_EMERGENCY, result.entryIntent)
         assertTrue(DomainIntent.STROKE in result.domainHints)
     }
@@ -146,6 +165,55 @@ class RegexIntentMatcherTest {
         val result = matcher.match("he took too many pills and may be overdosing")
         assertEquals(EntryIntent.POISONING, result.entryIntent)
         assertTrue(DomainIntent.POISONING in result.domainHints)
+    }
+
+    @Test
+    fun swallowed_bleach_matches_poisoning_domain() {
+        val result = matcher.match("my child swallowed bleach")
+        assertEquals(EntryIntent.POISONING, result.entryIntent)
+        assertTrue(DomainIntent.POISONING in result.domainHints)
+    }
+
+    @Test
+    fun power_line_matches_electric_shock_domain() {
+        val result = matcher.match("he touched a power line")
+        assertEquals(EntryIntent.INJURY_REPORT, result.entryIntent)
+        assertTrue(DomainIntent.ELECTRIC_SHOCK in result.domainHints)
+    }
+
+    @Test
+    fun something_in_my_eye_matches_eye_injury_domain() {
+        val result = matcher.match("there is something in my eye")
+        assertEquals(EntryIntent.TRAUMA, result.entryIntent)
+        assertTrue(DomainIntent.EYE_INJURY in result.domainHints)
+    }
+
+    @Test
+    fun bone_sticking_out_matches_fracture_domain() {
+        val result = matcher.match("there is bone sticking out from the leg")
+        assertEquals(EntryIntent.TRAUMA, result.entryIntent)
+        assertTrue(DomainIntent.FRACTURE in result.domainHints)
+    }
+
+    @Test
+    fun collapsed_from_heat_matches_heat_stroke_before_collapse() {
+        val result = matcher.match("he collapsed from heat")
+        assertEquals(EntryIntent.GENERAL_EMERGENCY, result.entryIntent)
+        assertTrue(DomainIntent.HEAT_STROKE in result.domainHints)
+    }
+
+    @Test
+    fun shivering_but_alert_matches_hypothermia() {
+        val result = matcher.match("she is shivering but alert after cold exposure")
+        assertEquals(EntryIntent.GENERAL_EMERGENCY, result.entryIntent)
+        assertTrue(DomainIntent.HYPOTHERMIA in result.domainHints)
+    }
+
+    @Test
+    fun bleeding_from_nose_matches_nosebleed() {
+        val result = matcher.match("he has bleeding from the nose")
+        assertEquals(EntryIntent.BLEEDING, result.entryIntent)
+        assertTrue(DomainIntent.NOSEBLEED in result.domainHints)
     }
 
     // --- GENERAL_EMERGENCY (fallback) ---
@@ -185,6 +253,13 @@ class RegexIntentMatcherTest {
         // even if both keywords could be present
         val result = matcher.match("collapsed and can't breathe")
         assertEquals(EntryIntent.PERSON_COLLAPSED, result.entryIntent)
+    }
+
+    @Test
+    fun cardiac_arrest_has_higher_priority_than_generic_collapse() {
+        val result = matcher.match("collapsed and has no pulse")
+        assertEquals(EntryIntent.PERSON_COLLAPSED, result.entryIntent)
+        assertTrue(DomainIntent.CARDIAC_ARREST in result.domainHints)
     }
 
     @Test
