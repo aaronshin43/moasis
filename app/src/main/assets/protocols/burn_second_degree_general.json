@@ -1,0 +1,44 @@
+{
+  "protocol_id": "burn_second_degree_general",
+  "title": "Second-degree burn basic care",
+  "category": "burn",
+  "required_slots": [
+    "location"
+  ],
+  "safety_flags": [
+    "show_emergency_call_if_face_or_airway"
+  ],
+  "steps": [
+    {
+      "step_id": "cool_water",
+      "canonical_text": "Cool the burn area under cool running water for at least 10 minutes.",
+      "must_keep_keywords": [
+        "running water",
+        "10 minutes"
+      ],
+      "forbidden_keywords": [
+        "direct ice",
+        "pop blisters"
+      ],
+      "asset_refs": [
+        {
+          "asset_id": "burn_cool_water_arm_01",
+          "type": "image",
+          "caption": "Example of cooling the burn under running water",
+          "content_description": "An arm burn being held under cool running water",
+          "priority": 10
+        }
+      ]
+    },
+    {
+      "step_id": "cover_clean",
+      "canonical_text": "Loosely cover the area with a clean cloth or gauze.",
+      "must_keep_keywords": [
+        "clean cloth",
+        "loosely cover"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

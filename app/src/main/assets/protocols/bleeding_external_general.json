@@ -1,0 +1,29 @@
+{
+  "protocol_id": "bleeding_external_general",
+  "title": "External bleeding basic care",
+  "category": "bleeding",
+  "required_slots": [],
+  "safety_flags": [
+    "show_emergency_call_if_bleeding_not_controlled"
+  ],
+  "steps": [
+    {
+      "step_id": "apply_direct_pressure",
+      "canonical_text": "Apply firm direct pressure with a clean cloth or bandage.",
+      "must_keep_keywords": [
+        "direct pressure",
+        "clean cloth"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": [
+        {
+          "asset_id": "bandage_wrap_arm_01",
+          "type": "image",
+          "caption": "Applying pressure with a clean bandage",
+          "content_description": "A clean bandage being pressed firmly on an arm wound",
+          "priority": 10
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "tree_id": "entry_general_emergency",
+  "version": "1.0",
+  "start_node": "assess_life_threat",
+  "nodes": [
+    {
+      "id": "assess_life_threat",
+      "type": "question",
+      "prompt": "Is the person responsive and breathing normally?",
+      "slot_key": "life_threat_status",
+      "transitions": [
+        {
+          "when": "no",
+          "to_tree": "collapsed_person_entry"
+        },
+        {
+          "when": "yes",
+          "to": "identify_visible_problem"
+        }
+      ]
+    },
+    {
+      "id": "identify_visible_problem",
+      "type": "router",
+      "routes": [
+        {
+          "if": "has_burn_signs",
+          "to_tree": "burn_tree"
+        },
+        {
+          "if": "has_bleeding_signs",
+          "to_tree": "bleeding_tree"
+        }
+      ],
+      "fallback_to": "identify_visible_problem"
+    }
+  ]
+}

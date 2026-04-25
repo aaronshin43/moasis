@@ -1,0 +1,84 @@
+{
+  "tree_id": "collapsed_person_entry",
+  "version": "1.0",
+  "start_node": "scene_safe",
+  "nodes": [
+    {
+      "id": "scene_safe",
+      "type": "question",
+      "prompt": "Is the area safe?",
+      "slot_key": "scene_safe",
+      "transitions": [
+        {
+          "when": "yes",
+          "to": "responsive_check"
+        },
+        {
+          "when": "no",
+          "to": "safety_instruction"
+        }
+      ]
+    },
+    {
+      "id": "safety_instruction",
+      "type": "instruction",
+      "instruction_id": "ensure_scene_safety",
+      "next": "responsive_check"
+    },
+    {
+      "id": "responsive_check",
+      "type": "question",
+      "prompt": "Is the person responsive?",
+      "slot_key": "responsive",
+      "transitions": [
+        {
+          "when": "no",
+          "to": "breathing_check"
+        },
+        {
+          "when": "yes",
+          "to": "major_symptom_router"
+        }
+      ]
+    },
+    {
+      "id": "breathing_check",
+      "type": "question",
+      "prompt": "Are they breathing normally? Treat gasping as no.",
+      "slot_key": "breathing_normal",
+      "transitions": [
+        {
+          "when": "no",
+          "to_tree": "cardiac_arrest_tree"
+        },
+        {
+          "when": "yes",
+          "to_tree": "unresponsive_breathing_tree"
+        }
+      ]
+    },
+    {
+      "id": "major_symptom_router",
+      "type": "router",
+      "routes": [
+        {
+          "if": "has_massive_bleeding",
+          "to_tree": "bleeding_tree"
+        },
+        {
+          "if": "has_choking_signs",
+          "to_tree": "choking_tree"
+        },
+        {
+          "if": "has_seizure_signs",
+          "to_tree": "seizure_tree"
+        },
+        {
+          "if": "has_breathing_problem",
+          "to_tree": "breathing_problem_tree"
+        }
+      ],
+      "fallback_to": "general_assessment_tree"
+    }
+  ]
+}

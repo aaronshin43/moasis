@@ -1,0 +1,17 @@
+{
+  "tree_id": "bleeding_tree",
+  "version": "1.0",
+  "start_node": "apply_pressure",
+  "nodes": [
+    {
+      "id": "apply_pressure",
+      "type": "instruction",
+      "instruction_id": "bleeding_external_general",
+      "next": "bleeding_terminal"
+    },
+    {
+      "id": "bleeding_terminal",
+      "type": "terminal"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "tree_id": "burn_tree",
+  "version": "1.0",
+  "start_node": "burn_severity",
+  "nodes": [
+    {
+      "id": "burn_severity",
+      "type": "question",
+      "prompt": "Are there blisters or deeper skin damage?",
+      "slot_key": "burn_severity",
+      "transitions": [
+        {
+          "when": "yes",
+          "to": "second_degree_protocol"
+        },
+        {
+          "when": "no",
+          "to": "second_degree_protocol"
+        }
+      ]
+    },
+    {
+      "id": "second_degree_protocol",
+      "type": "instruction",
+      "instruction_id": "burn_second_degree_general",
+      "next": "burn_terminal"
+    },
+    {
+      "id": "burn_terminal",
+      "type": "terminal"
+    }
+  ]
+}
