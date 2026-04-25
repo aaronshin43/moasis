@@ -57,8 +57,6 @@ class EmergencyViewModel(
     private var personalizationJob: Job? = null
     private var questionAnswerJob: Job? = null
     private var aiPreparationJob: Job? = null
-    private var activePersonalizationKey: String? = null
-    private var activeQuestionAnswerKey: String? = null
     private val personalizedInstructions = mutableMapOf<String, String>()
     private val questionAnswers = mutableMapOf<String, QuestionAnswerResult>()
 
@@ -85,6 +83,34 @@ class EmergencyViewModel(
 
     fun startEmergency(text: String) {
         submitTurn(text = text)
+    }
+
+    fun resetSession() {
+        cancelResponseJobs()
+        personalizedInstructions.clear()
+        questionAnswers.clear()
+        currentDialogueState = null
+        pendingImagePaths = emptyList()
+        recentSubmittedImagePaths = emptyList()
+        _viewState.value = EmergencyViewState(
+            screenMode = ScreenMode.HOME,
+            uiState = UiState(
+                title = "MOASIS",
+                primaryInstruction = "Offline emergency guidance",
+                secondaryInstruction = "Describe what happened to begin.",
+            ),
+            isAiEnabled = aiEnabled,
+            aiStatusText = _viewState.value.aiStatusText,
+            aiProgress = _viewState.value.aiProgress,
+            isAiPreparing = _viewState.value.isAiPreparing,
+            isAiReady = _viewState.value.isAiReady,
+            canRetryAiPreparation = _viewState.value.canRetryAiPreparation,
+            aiModelLabel = _viewState.value.aiModelLabel,
+            aiRouteText = _viewState.value.aiRouteText,
+            aiCacheSummaryText = _viewState.value.aiCacheSummaryText,
+            aiDiagnosticDetail = _viewState.value.aiDiagnosticDetail,
+            chatHistory = emptyList(),
+        )
     }
 
     fun retryAiPreparation() {
@@ -122,6 +148,30 @@ class EmergencyViewModel(
         )
     }
 
+    fun removeAttachedImage(imagePath: String) {
+        pendingImagePaths = pendingImagePaths.filterNot { it == imagePath }
+        recentSubmittedImagePaths = recentSubmittedImagePaths.filterNot { it == imagePath }
+        _viewState.value = _viewState.value.copy(
+            attachedImagePaths = pendingImagePaths.ifEmpty { recentSubmittedImagePaths },
+            statusText = if (pendingImagePaths.isEmpty() && recentSubmittedImagePaths.isEmpty()) {
+                null
+            } else {
+                _viewState.value.statusText
+            },
+        )
+    }
+
+    fun clearSessionArtifacts() {
+        pendingImagePaths = emptyList()
+        recentSubmittedImagePaths = emptyList()
+        _viewState.value = _viewState.value.copy(
+            transcriptDraft = "",
+            attachedImagePaths = emptyList(),
+            chatHistory = emptyList(),
+            statusText = "Photos and transcripts cleared from this session.",
+        )
+    }
+
     fun submitText(text: String) {
         submitTurn(text = text)
     }
@@ -155,6 +205,10 @@ class EmergencyViewModel(
             return
         }
 
+        // Archive the current assistant response (if active) + user message into history.
+        val prevHistory = _viewState.value.chatHistory
+        val updatedHistory = buildUpdatedHistory(prevHistory, text)
+
         val result = dialogueStateManager.handleTurn(
             turn = turn,
             currentState = currentDialogueState,
@@ -173,7 +227,32 @@ class EmergencyViewModel(
             transcriptDraft = "",
             speechRequestKey = nextSpeechRequestKey(),
             attachedImagePaths = recentSubmittedImagePaths,
+            chatHistory = updatedHistory,
         )
+    }
+
+    private fun buildUpdatedHistory(prevHistory: List<ChatMessage>, userText: String): List<ChatMessage> {
+        val current = _viewState.value
+        val archivedAssistant: List<ChatMessage> = if (
+            current.screenMode == ScreenMode.ACTIVE &&
+            current.uiState.primaryInstruction.isNotBlank()
+        ) {
+            val us = current.uiState
+            listOf(
+                ChatMessage.Assistant(
+                    title = us.title,
+                    primaryInstruction = us.primaryInstruction,
+                    secondaryInstruction = us.secondaryInstruction,
+                    warningText = us.warningText,
+                    visualAids = us.visualAids,
+                    currentStep = us.currentStep,
+                    totalSteps = us.totalSteps,
+                )
+            )
+        } else {
+            emptyList()
+        }
+        return prevHistory + archivedAssistant + ChatMessage.User(userText)
     }
 
     private fun handleAction(action: UiAction) {
@@ -184,42 +263,14 @@ class EmergencyViewModel(
                 forceSpeak = true,
             )
             UiAction.RetryAiPreparation -> retryAiPreparation()
-            UiAction.Back -> {
-                cancelResponseJobs()
-                personalizedInstructions.clear()
-                questionAnswers.clear()
-                currentDialogueState = null
-                val aiHomeState = snapshotAiHomeState()
-                _viewState.value = EmergencyViewState(
-                    screenMode = ScreenMode.HOME,
-                    uiState = UiState(
-                        title = "MOASIS",
-                        primaryInstruction = "Offline emergency guidance",
-                        secondaryInstruction = "Describe what happened to begin.",
-                    ),
-                    isAiEnabled = aiEnabled,
-                    aiStatusText = aiHomeState.statusText,
-                    aiProgress = aiHomeState.progress,
-                    aiDownloadedBytes = aiHomeState.downloadedBytes,
-                    isAiPreparing = aiHomeState.isPreparing,
-                    isAiReady = aiHomeState.isReady,
-                    canRetryAiPreparation = aiHomeState.canRetry,
-                    aiModelLabel = aiHomeState.modelLabel,
-                    aiRouteText = aiHomeState.routeText,
-                    aiCacheSummaryText = aiHomeState.cacheSummaryText,
-                    aiDiagnosticDetail = aiHomeState.diagnosticDetail,
-                    aiGenerationStatusText = null,
-                    attachedImagePaths = emptyList(),
-                )
-                pendingImagePaths = emptyList()
-                recentSubmittedImagePaths = emptyList()
-            }
+            UiAction.Back -> resetSession()
             UiAction.CallEmergency -> refreshCurrentState("Call emergency services now if the situation is immediately life-threatening.")
             is UiAction.SubmitText -> submitText(action.text)
         }
     }
 
     private fun refreshCurrentState(statusText: String, forceSpeak: Boolean = false) {
+        val preservedHistory = _viewState.value.chatHistory
         _viewState.value = when (val dialogueState = currentDialogueState) {
             is DialogueState.ProtocolMode -> buildProtocolViewState(dialogueState, statusText)
             is DialogueState.EntryMode -> buildEntryViewState(dialogueState, statusText)
@@ -228,11 +279,8 @@ class EmergencyViewModel(
             DialogueState.Completed -> buildCompletedViewState()
             null -> _viewState.value.copy(statusText = statusText)
         }.let {
-            if (forceSpeak) {
-                it.copy(speechRequestKey = nextSpeechRequestKey())
-            } else {
-                it
-            }
+            val base = it.copy(chatHistory = preservedHistory)
+            if (forceSpeak) base.copy(speechRequestKey = nextSpeechRequestKey()) else base
         }
     }
 
@@ -257,18 +305,8 @@ class EmergencyViewModel(
         val warningText = buildWarningText(step)
         val personalizationKey = protocolPersonalizationKey(dialogueState)
         val personalizedInstruction = personalizedInstructions[personalizationKey] ?: step.canonicalText
-        val isPersonalizationPending = aiEnabled && personalizedInstructions[personalizationKey] == null
-        val generationStatusText = if (isPersonalizationPending) {
-            "Generating AI wording for this step."
-        } else {
-            null
-        }
 
-        if (
-            aiEnabled &&
-            personalizedInstructions[personalizationKey] == null &&
-            activePersonalizationKey != personalizationKey
-        ) {
+        if (aiEnabled && personalizedInstructions[personalizationKey] == null) {
             requestProtocolPersonalization(
                 dialogueState = dialogueState,
                 protocol = protocol,
@@ -298,12 +336,10 @@ class EmergencyViewModel(
                 showCallEmergencyButton = protocol.safetyFlags.any { it.contains("emergency_call") },
             ),
             statusText = statusText,
-            aiGenerationStatusText = generationStatusText,
             quickResponses = emptyList(),
             isAiEnabled = aiEnabled,
             aiStatusText = _viewState.value.aiStatusText,
             aiProgress = _viewState.value.aiProgress,
-            aiDownloadedBytes = _viewState.value.aiDownloadedBytes,
             isAiPreparing = _viewState.value.isAiPreparing,
             isAiReady = _viewState.value.isAiReady,
             canRetryAiPreparation = _viewState.value.canRetryAiPreparation,
@@ -339,12 +375,10 @@ class EmergencyViewModel(
                 showCallEmergencyButton = dialogueState.treeId == "collapsed_person_entry",
             ),
             statusText = statusText,
-            aiGenerationStatusText = null,
             quickResponses = if (node.type == "question") listOf("Yes", "No") else emptyList(),
             isAiEnabled = aiEnabled,
             aiStatusText = _viewState.value.aiStatusText,
             aiProgress = _viewState.value.aiProgress,
-            aiDownloadedBytes = _viewState.value.aiDownloadedBytes,
             isAiPreparing = _viewState.value.isAiPreparing,
             isAiReady = _viewState.value.isAiReady,
             canRetryAiPreparation = _viewState.value.canRetryAiPreparation,
@@ -369,14 +403,8 @@ class EmergencyViewModel(
         }
         val answerKey = questionAnswerKey(dialogueState)
         val answerResult = questionAnswers[answerKey]
-        val isAnswerPending = aiEnabled && answerResult == null
-        val generationStatusText = if (isAnswerPending) {
-            "Generating AI answer for the current question."
-        } else {
-            null
-        }
 
-        if (aiEnabled && answerResult == null && activeQuestionAnswerKey != answerKey) {
+        if (aiEnabled && answerResult == null) {
             requestQuestionAnswer(dialogueState, answerKey)
         }
 
@@ -407,12 +435,10 @@ class EmergencyViewModel(
             } else {
                 "Returning to the current step."
             },
-            aiGenerationStatusText = generationStatusText,
             quickResponses = emptyList(),
             isAiEnabled = aiEnabled,
             aiStatusText = _viewState.value.aiStatusText,
             aiProgress = _viewState.value.aiProgress,
-            aiDownloadedBytes = _viewState.value.aiDownloadedBytes,
             isAiPreparing = _viewState.value.isAiPreparing,
             isAiReady = _viewState.value.isAiReady,
             canRetryAiPreparation = _viewState.value.canRetryAiPreparation,
@@ -440,12 +466,10 @@ class EmergencyViewModel(
                 showCallEmergencyButton = true,
             ),
             statusText = statusTextOverride ?: "Current step suspended by a higher-priority change.",
-            aiGenerationStatusText = null,
             quickResponses = emptyList(),
             isAiEnabled = aiEnabled,
             aiStatusText = _viewState.value.aiStatusText,
             aiProgress = _viewState.value.aiProgress,
-            aiDownloadedBytes = _viewState.value.aiDownloadedBytes,
             isAiPreparing = _viewState.value.isAiPreparing,
             isAiReady = _viewState.value.isAiReady,
             canRetryAiPreparation = _viewState.value.canRetryAiPreparation,
@@ -468,12 +492,10 @@ class EmergencyViewModel(
                 guidanceOriginLabel = "Deterministic completion state",
             ),
             statusText = statusTextOverride ?: "Deterministic walkthrough finished.",
-            aiGenerationStatusText = null,
             quickResponses = emptyList(),
             isAiEnabled = aiEnabled,
             aiStatusText = _viewState.value.aiStatusText,
             aiProgress = _viewState.value.aiProgress,
-            aiDownloadedBytes = _viewState.value.aiDownloadedBytes,
             isAiPreparing = _viewState.value.isAiPreparing,
             isAiReady = _viewState.value.isAiReady,
             canRetryAiPreparation = _viewState.value.canRetryAiPreparation,
@@ -520,7 +542,6 @@ class EmergencyViewModel(
             publishAiState(
                 statusText = "This device ABI is not supported for Melange local runtime.",
                 progress = null,
-                downloadedBytes = null,
                 isPreparing = false,
                 isReady = false,
                 canRetry = false,
@@ -538,7 +559,6 @@ class EmergencyViewModel(
                 publishAiState(
                     statusText = "AI model ready on device.",
                     progress = 1f,
-                    downloadedBytes = null,
                     isPreparing = false,
                     isReady = true,
                     canRetry = false,
@@ -557,7 +577,6 @@ class EmergencyViewModel(
         publishAiState(
             statusText = initialStatus,
             progress = null,
-            downloadedBytes = null,
             isPreparing = true,
             isReady = false,
             canRetry = false,
@@ -572,7 +591,6 @@ class EmergencyViewModel(
                         publishAiState(
                             statusText = "Downloading AI model: ${(progress * 100).toInt()}%",
                             progress = progress.coerceIn(0f, 1f),
-                            downloadedBytes = _viewState.value.aiDownloadedBytes,
                             isPreparing = true,
                             isReady = false,
                             canRetry = false,
@@ -600,33 +618,11 @@ class EmergencyViewModel(
                         publishAiState(
                             statusText = statusText,
                             progress = if (status == ModelLoadingStatus.COMPLETED) 1f else _viewState.value.aiProgress,
-                            downloadedBytes = if (status == ModelLoadingStatus.COMPLETED) null else _viewState.value.aiDownloadedBytes,
                             isPreparing = status != ModelLoadingStatus.COMPLETED,
                             isReady = status == ModelLoadingStatus.COMPLETED,
                             canRetry = status == ModelLoadingStatus.FAILED || status == ModelLoadingStatus.CANCELED || status == ModelLoadingStatus.WAITING_FOR_WIFI,
                             routeText = statusToRouteText(status),
                             diagnosticDetail = _viewState.value.aiDiagnosticDetail,
-                        )
-                    },
-                    onDownloadedBytes = { downloadedBytes ->
-                        val progressText = if (_viewState.value.aiProgress != null) {
-                            "Downloading AI model: ${(_viewState.value.aiProgress!! * 100).toInt()}%"
-                        } else {
-                            "Downloading AI model: ${formatDownloadedBytes(downloadedBytes)}"
-                        }
-                        publishAiState(
-                            statusText = progressText,
-                            progress = _viewState.value.aiProgress,
-                            downloadedBytes = downloadedBytes,
-                            isPreparing = true,
-                            isReady = false,
-                            canRetry = false,
-                            routeText = if (_viewState.value.aiRouteText == "Play Asset Delivery lookup") {
-                                "Play Asset Delivery download"
-                            } else {
-                                "Direct Melange metadata or model download"
-                            },
-                            diagnosticDetail = null,
                         )
                     },
                 )
@@ -636,7 +632,6 @@ class EmergencyViewModel(
                 publishAiState(
                     statusText = "AI model ready on device.",
                     progress = 1f,
-                    downloadedBytes = null,
                     isPreparing = false,
                     isReady = true,
                     canRetry = false,
@@ -651,7 +646,6 @@ class EmergencyViewModel(
                 publishAiState(
                     statusText = failure.userMessage,
                     progress = null,
-                    downloadedBytes = null,
                     isPreparing = false,
                     isReady = false,
                     canRetry = failure.canRetry,
@@ -666,7 +660,6 @@ class EmergencyViewModel(
     private fun publishAiState(
         statusText: String?,
         progress: Float?,
-        downloadedBytes: Long? = _viewState.value.aiDownloadedBytes,
         isPreparing: Boolean,
         isReady: Boolean,
         canRetry: Boolean,
@@ -677,7 +670,6 @@ class EmergencyViewModel(
         _viewState.value = _viewState.value.copy(
             aiStatusText = statusText,
             aiProgress = progress,
-            aiDownloadedBytes = downloadedBytes,
             isAiPreparing = isPreparing,
             isAiReady = isReady,
             canRetryAiPreparation = canRetry,
@@ -688,73 +680,6 @@ class EmergencyViewModel(
         )
     }
 
-    private fun snapshotAiHomeState(): AiHomeSnapshot {
-        val modelManager = melangeModelManager
-        val cacheSummary = modelManager?.inspectCache()?.summaryText()
-        return when {
-            !aiEnabled || modelManager == null -> AiHomeSnapshot(
-                statusText = _viewState.value.aiStatusText,
-                progress = null,
-                downloadedBytes = null,
-                isPreparing = false,
-                isReady = false,
-                canRetry = false,
-                modelLabel = _viewState.value.aiModelLabel,
-                routeText = _viewState.value.aiRouteText,
-                cacheSummaryText = cacheSummary,
-                diagnosticDetail = _viewState.value.aiDiagnosticDetail,
-            )
-            modelManager.isPreparedInMemory() -> AiHomeSnapshot(
-                statusText = "AI model ready on device.",
-                progress = 1f,
-                downloadedBytes = null,
-                isPreparing = false,
-                isReady = true,
-                canRetry = false,
-                modelLabel = modelManager.configuredModelLabel(),
-                routeText = "In-memory model reuse",
-                cacheSummaryText = cacheSummary,
-                diagnosticDetail = null,
-            )
-            aiPreparationJob != null -> AiHomeSnapshot(
-                statusText = _viewState.value.aiStatusText,
-                progress = _viewState.value.aiProgress,
-                downloadedBytes = _viewState.value.aiDownloadedBytes,
-                isPreparing = true,
-                isReady = false,
-                canRetry = false,
-                modelLabel = modelManager.configuredModelLabel(),
-                routeText = _viewState.value.aiRouteText,
-                cacheSummaryText = cacheSummary,
-                diagnosticDetail = _viewState.value.aiDiagnosticDetail,
-            )
-            else -> AiHomeSnapshot(
-                statusText = _viewState.value.aiStatusText,
-                progress = _viewState.value.aiProgress,
-                downloadedBytes = null,
-                isPreparing = false,
-                isReady = _viewState.value.isAiReady,
-                canRetry = _viewState.value.canRetryAiPreparation,
-                modelLabel = modelManager.configuredModelLabel(),
-                routeText = _viewState.value.aiRouteText,
-                cacheSummaryText = cacheSummary,
-                diagnosticDetail = _viewState.value.aiDiagnosticDetail,
-            )
-        }
-    }
-
-    private fun formatDownloadedBytes(bytes: Long): String {
-        val kb = 1024L
-        val mb = kb * 1024L
-        val gb = mb * 1024L
-        return when {
-            bytes >= gb -> String.format("%.2f GB", bytes.toDouble() / gb)
-            bytes >= mb -> String.format("%.1f MB", bytes.toDouble() / mb)
-            bytes >= kb -> String.format("%.1f KB", bytes.toDouble() / kb)
-            else -> "$bytes B"
-        }
-    }
-
     private fun requestProtocolPersonalization(
         dialogueState: DialogueState.ProtocolMode,
         protocol: com.example.moasis.domain.model.Protocol,
@@ -762,47 +687,31 @@ class EmergencyViewModel(
         cacheKey: String,
     ) {
         personalizationJob?.cancel()
-        activePersonalizationKey = cacheKey
         personalizationJob = viewModelScope.launch {
-            try {
-                val response = withContext(Dispatchers.IO) {
-                    inferenceOrchestrator.personalizeStep(
-                        scenarioId = dialogueState.scenarioId,
-                        protocol = protocol,
-                        step = step,
-                        slots = dialogueState.slots,
-                        targetListener = dialogueState.slots["patient_type"] ?: "caregiver",
-                    )
-                }
-                personalizedInstructions[cacheKey] = response.spokenText
+            val response = withContext(Dispatchers.IO) {
+                inferenceOrchestrator.personalizeStep(
+                    scenarioId = dialogueState.scenarioId,
+                    protocol = protocol,
+                    step = step,
+                    slots = dialogueState.slots,
+                    targetListener = dialogueState.slots["patient_type"] ?: "caregiver",
+                )
+            }
+            personalizedInstructions[cacheKey] = response.spokenText
 
-                val currentState = currentDialogueState
-                if (currentState is DialogueState.ProtocolMode && protocolPersonalizationKey(currentState) == cacheKey) {
-                    _viewState.value = _viewState.value.copy(
-                        uiState = _viewState.value.uiState.copy(
-                            primaryInstruction = response.spokenText,
-                            guidanceOriginLabel = if (response.usedFallback) {
-                                "Canonical step retained after AI validation"
-                            } else {
-                                "AI-personalized step wording"
-                            },
-                        ),
-                        aiGenerationStatusText = null,
-                        statusText = response.fallbackReason ?: _viewState.value.statusText,
-                    )
-                }
-            } finally {
-                val currentState = currentDialogueState
-                if (
-                    activePersonalizationKey == cacheKey &&
-                    currentState is DialogueState.ProtocolMode &&
-                    protocolPersonalizationKey(currentState) == cacheKey
-                ) {
-                    _viewState.value = _viewState.value.copy(aiGenerationStatusText = null)
-                }
-                if (activePersonalizationKey == cacheKey) {
-                    activePersonalizationKey = null
-                }
+            val currentState = currentDialogueState
+            if (currentState is DialogueState.ProtocolMode && protocolPersonalizationKey(currentState) == cacheKey) {
+                _viewState.value = _viewState.value.copy(
+                    uiState = _viewState.value.uiState.copy(
+                        primaryInstruction = response.spokenText,
+                        guidanceOriginLabel = if (response.usedFallback) {
+                            "Canonical step retained after AI validation"
+                        } else {
+                            "AI-personalized step wording"
+                        },
+                    ),
+                    statusText = response.fallbackReason ?: _viewState.value.statusText,
+                )
             }
         }
     }
@@ -812,47 +721,31 @@ class EmergencyViewModel(
         cacheKey: String,
     ) {
         questionAnswerJob?.cancel()
-        activeQuestionAnswerKey = cacheKey
         questionAnswerJob = viewModelScope.launch {
-            try {
-                val answerResult = withContext(Dispatchers.IO) {
-                    answerQuestionUseCase.answer(
-                        scenarioId = dialogueState.scenarioId,
-                        protocolId = dialogueState.protocolId,
-                        stepIndex = dialogueState.stepIndex,
-                        userQuestion = dialogueState.userQuestion,
-                    )
-                }
-                questionAnswers[cacheKey] = answerResult
+            val answerResult = withContext(Dispatchers.IO) {
+                answerQuestionUseCase.answer(
+                    scenarioId = dialogueState.scenarioId,
+                    protocolId = dialogueState.protocolId,
+                    stepIndex = dialogueState.stepIndex,
+                    userQuestion = dialogueState.userQuestion,
+                )
+            }
+            questionAnswers[cacheKey] = answerResult
 
-                val currentState = currentDialogueState
-                if (currentState is DialogueState.QuestionMode && questionAnswerKey(currentState) == cacheKey) {
-                    _viewState.value = _viewState.value.copy(
-                        uiState = _viewState.value.uiState.copy(
-                            primaryInstruction = answerResult.resumeText,
-                            secondaryInstruction = answerResult.answerText,
-                            guidanceOriginLabel = if (answerResult.usedFallback) {
-                                "Deterministic resume after AI fallback"
-                            } else {
-                                "AI answer with deterministic step resume"
-                            },
-                        ),
-                        aiGenerationStatusText = null,
-                        statusText = answerResult.fallbackReason ?: "Returning to the current step.",
-                    )
-                }
-            } finally {
-                val currentState = currentDialogueState
-                if (
-                    activeQuestionAnswerKey == cacheKey &&
-                    currentState is DialogueState.QuestionMode &&
-                    questionAnswerKey(currentState) == cacheKey
-                ) {
-                    _viewState.value = _viewState.value.copy(aiGenerationStatusText = null)
-                }
-                if (activeQuestionAnswerKey == cacheKey) {
-                    activeQuestionAnswerKey = null
-                }
+            val currentState = currentDialogueState
+            if (currentState is DialogueState.QuestionMode && questionAnswerKey(currentState) == cacheKey) {
+                _viewState.value = _viewState.value.copy(
+                    uiState = _viewState.value.uiState.copy(
+                        primaryInstruction = answerResult.resumeText,
+                        secondaryInstruction = answerResult.answerText,
+                        guidanceOriginLabel = if (answerResult.usedFallback) {
+                            "Deterministic resume after AI fallback"
+                        } else {
+                            "AI answer with deterministic step resume"
+                        },
+                    ),
+                    statusText = answerResult.fallbackReason ?: "Returning to the current step.",
+                )
             }
         }
     }
@@ -908,8 +801,6 @@ class EmergencyViewModel(
         questionAnswerJob?.cancel()
         personalizationJob = null
         questionAnswerJob = null
-        activePersonalizationKey = null
-        activeQuestionAnswerKey = null
     }
 
     private fun buildTurnContext(): TurnContext {
@@ -949,19 +840,6 @@ class EmergencyViewModel(
         super.onCleared()
     }
 }
-
-private data class AiHomeSnapshot(
-    val statusText: String?,
-    val progress: Float?,
-    val downloadedBytes: Long?,
-    val isPreparing: Boolean,
-    val isReady: Boolean,
-    val canRetry: Boolean,
-    val modelLabel: String?,
-    val routeText: String?,
-    val cacheSummaryText: String?,
-    val diagnosticDetail: String?,
-)
 
 class EmergencyViewModelFactory(
     private val dialogueStateManager: DialogueStateManager,

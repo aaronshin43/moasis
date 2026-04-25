@@ -149,6 +149,7 @@ fun ActiveProtocolScreen(
         AttachedImageStrip(
             imagePaths = attachedImagePaths,
             onClearImages = onClearImages,
+            onRemoveImage = {},
         )
 
         if (quickResponses.isNotEmpty()) {

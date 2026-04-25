@@ -1,0 +1,9 @@
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:insetLeft="22dp"
+    android:insetTop="40dp"
+    android:insetRight="22dp"
+    android:insetBottom="40dp">
+    <bitmap
+        android:gravity="center"
+        android:src="@drawable/oasis_wordmark_white" />
+</inset>

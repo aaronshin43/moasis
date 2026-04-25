@@ -39,6 +39,7 @@ class MainActivity : ComponentActivity() {
     private var melangeEmbeddingModelManager: MelangeEmbeddingModelManager? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(R.style.Theme_Moasis)
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val assetTextSource = AndroidAssetTextSource(assets)

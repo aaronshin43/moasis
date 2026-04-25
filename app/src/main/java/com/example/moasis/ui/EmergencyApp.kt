@@ -27,8 +27,7 @@ import com.example.moasis.imaging.ImageInputController
 import com.example.moasis.presentation.EmergencyViewModel
 import com.example.moasis.presentation.EmergencyViewModelFactory
 import com.example.moasis.presentation.ScreenMode
-import com.example.moasis.ui.screen.ActiveProtocolScreen
-import com.example.moasis.ui.screen.HomeScreen
+import com.example.moasis.ui.screen.ChatScreen
 
 @Composable
 fun EmergencyApp(
@@ -183,51 +182,20 @@ fun EmergencyApp(
         }
     }
 
-    Surface(modifier = modifier) {
-        when (viewState.screenMode) {
-            ScreenMode.HOME -> HomeScreen(
-                isAiEnabled = viewState.isAiEnabled,
-                aiStatusText = viewState.aiStatusText,
-                aiProgress = viewState.aiProgress,
-                aiDownloadedBytes = viewState.aiDownloadedBytes,
-                isAiPreparing = viewState.isAiPreparing,
-                isAiReady = viewState.isAiReady,
-                canRetryAiPreparation = viewState.canRetryAiPreparation,
-                aiModelLabel = viewState.aiModelLabel,
-                aiRouteText = viewState.aiRouteText,
-                aiCacheSummaryText = viewState.aiCacheSummaryText,
-                onStart = viewModel::startEmergency,
-                onRetryAiPreparation = viewModel::retryAiPreparation,
-                onVoiceInput = ::startListening,
-                transcriptDraft = viewState.transcriptDraft,
-                isListening = viewState.uiState.isListening,
-            )
-
-            ScreenMode.ACTIVE -> ActiveProtocolScreen(
-                uiState = viewState.uiState,
-                statusText = viewState.statusText,
-                aiGenerationStatusText = viewState.aiGenerationStatusText,
-                aiStatusText = viewState.aiStatusText,
-                aiProgress = viewState.aiProgress,
-                aiDownloadedBytes = viewState.aiDownloadedBytes,
-                isAiPreparing = viewState.isAiPreparing,
-                canRetryAiPreparation = viewState.canRetryAiPreparation,
-                aiModelLabel = viewState.aiModelLabel,
-                aiRouteText = viewState.aiRouteText,
-                aiCacheSummaryText = viewState.aiCacheSummaryText,
-                quickResponses = viewState.quickResponses,
-                onSubmitText = viewModel::submitText,
-                onAction = { action -> viewModel.reduce(com.example.moasis.presentation.AppEvent.UserTappedAction(action)) },
-                onQuickResponse = viewModel::submitText,
-                onVoiceInput = ::startListening,
-                transcriptDraft = viewState.transcriptDraft,
-                attachedImagePaths = viewState.attachedImagePaths,
-                onPickImage = ::openGalleryPicker,
-                onCaptureImage = ::captureImage,
-                onClearImages = viewModel::clearPendingImages,
-            )
-        }
-    }
+    ChatScreen(
+        viewState = viewState,
+        onSubmitText = viewModel::submitText,
+        onResetSession = viewModel::resetSession,
+        onClearSessionArtifacts = viewModel::clearSessionArtifacts,
+        onVoiceInput = ::startListening,
+        onPickImage = ::openGalleryPicker,
+        onCaptureImage = ::captureImage,
+        onClearImages = viewModel::clearPendingImages,
+        onRemoveImage = viewModel::removeAttachedImage,
+        onAction = { action -> viewModel.reduce(com.example.moasis.presentation.AppEvent.UserTappedAction(action)) },
+        onRetryAiPreparation = viewModel::retryAiPreparation,
+        modifier = modifier,
+    )
 }
 
 private fun attachImageFromUri(

@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Mic
+import com.example.moasis.ui.component.OasisWordmark
 
 @Composable
 fun HomeScreen(
@@ -47,10 +48,12 @@ fun HomeScreen(
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text(
-            text = "MOASIS",
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.onBackground,
+        OasisWordmark(
+            textStyle = MaterialTheme.typography.headlineSmall,
+            textColor = MaterialTheme.colorScheme.onBackground,
+            dotSize = 8.dp,
+            spacing = 3.dp,
+            dotYOffset = 2.dp,
         )
         Text(
             text = "Describe the emergency in one short sentence.",
