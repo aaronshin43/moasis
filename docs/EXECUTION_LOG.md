@@ -113,6 +113,13 @@ Use this file as the compact handoff and restart context for implementation work
 - dispatcher-style deterministic triage expanded to `eye injury`, `head injury`, `electric shock`, `fracture`, `heat stroke`, `hypothermia`, and `nosebleed`
 - new deterministic protocols added for `eye_surface_irritation_general`, `head_injury_observation_general`, `electric_shock_low_voltage_general`, `fracture_emergency_general`, `heat_exhaustion_general`, `hypothermia_mild_general`, and `nosebleed_emergency_general`
 - slot extraction now supports eye injury red flags, head injury red flags, high-voltage sources, fracture red flags, heat stroke severity, hypothermia severity, and nosebleed escalation features
+- optional embedding-based intent classification added with nearest-label routing on top of Melange general-model inference
+- `EmbeddingNearestLabelClassifier` now averages label prototype embeddings and falls back to `RegexIntentMatcher` for hard overrides and low-similarity cases
+- `SlotExtractor` remains a separate deterministic pass and is still composed in `NluRouter`
+- `MelangeSentenceEmbedder` now tokenizes text with a bundled WordPiece vocab asset for `all-MiniLM-L6-v2` and mean-pools token embeddings when needed
+- new Gradle/BuildConfig flags added for embedding model runtime selection and configuration
+- `:app:testDebugUnitTest --rerun-tasks` passed after embedding nearest-label integration
+- `:app:assembleDebug` passed after embedding nearest-label integration
 - `:app:testDebugUnitTest --rerun-tasks` passed after final dispatcher-flow expansion
 - `:app:assembleDebug` passed after final dispatcher-flow expansion
 

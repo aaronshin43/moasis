@@ -1,11 +1,11 @@
 package com.example.moasis.domain.nlu
 
 class NluRouter(
-    private val regexIntentMatcher: RegexIntentMatcher = RegexIntentMatcher(),
+    private val intentClassifier: IntentClassifier = RegexIntentMatcher(),
     private val slotExtractor: SlotExtractor = SlotExtractor(),
 ) {
     fun route(text: String): NluResult {
-        val match = regexIntentMatcher.match(text)
+        val match = intentClassifier.match(text)
         val slots = slotExtractor.extract(text)
 
         return NluResult(

@@ -3,7 +3,8 @@ package com.example.moasis.domain.nlu
 import com.example.moasis.domain.model.DomainIntent
 import com.example.moasis.domain.model.EntryIntent
 
-class RegexIntentMatcher {
+class RegexIntentMatcher : IntentClassifier {
+    override
     fun match(text: String): IntentMatch {
         val normalized = text.lowercase().trim()
 

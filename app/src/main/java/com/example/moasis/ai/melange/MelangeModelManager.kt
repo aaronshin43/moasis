@@ -5,8 +5,10 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.util.Log
+import com.zeticai.mlange.core.model.APType
 import com.zeticai.mlange.core.model.ModelLoadingStatus
-import com.zeticai.mlange.core.model.llm.LLMModelMode
+import com.zeticai.mlange.core.model.llm.LLMQuantType
+import com.zeticai.mlange.core.model.llm.LLMTarget
 import com.zeticai.mlange.core.model.llm.ZeticMLangeLLMModel
 import java.io.File
 
@@ -44,7 +46,7 @@ class MelangeModelManager(
 
     fun configuredModelLabel(): String {
         val versionSuffix = config.modelVersion?.let { " v$it" }.orEmpty()
-        return "${config.modelName}$versionSuffix (${config.modelModeName})"
+        return "${config.modelName}$versionSuffix (${config.targetName}/${config.quantTypeName}/${config.apTypeName})"
     }
 
     fun inspectCache(): AiCacheSnapshot {
@@ -93,7 +95,9 @@ class MelangeModelManager(
                     personalKey = config.personalKey,
                     name = config.modelName,
                     version = config.modelVersion,
-                    modelMode = resolveModelMode(config.modelModeName),
+                    target = resolveTarget(config.targetName),
+                    quantType = resolveQuantType(config.quantTypeName),
+                    apType = resolveApType(config.apTypeName),
                     onProgress = { progress ->
                         lastProgress = progress
                         onProgress?.invoke(progress)
@@ -122,9 +126,19 @@ class MelangeModelManager(
         }
     }
 
-    private fun resolveModelMode(modeName: String): LLMModelMode {
-        return runCatching { LLMModelMode.valueOf(modeName) }
-            .getOrDefault(LLMModelMode.RUN_AUTO)
+    private fun resolveTarget(targetName: String): LLMTarget {
+        return runCatching { LLMTarget.valueOf(targetName) }
+            .getOrDefault(LLMTarget.LLAMA_CPP)
+    }
+
+    private fun resolveQuantType(quantTypeName: String): LLMQuantType {
+        return runCatching { LLMQuantType.valueOf(quantTypeName) }
+            .getOrDefault(LLMQuantType.GGUF_QUANT_Q4_K_M)
+    }
+
+    private fun resolveApType(apTypeName: String): APType {
+        return runCatching { APType.valueOf(apTypeName) }
+            .getOrDefault(APType.CPU)
     }
 
     companion object {
