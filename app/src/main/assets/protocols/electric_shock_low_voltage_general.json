@@ -1,0 +1,41 @@
+{
+  "protocol_id": "electric_shock_low_voltage_general",
+  "title": "Low-voltage shock care",
+  "category": "trauma",
+  "required_slots": [],
+  "safety_flags": [
+    "show_emergency_call_if_condition_worsens"
+  ],
+  "steps": [
+    {
+      "step_id": "confirm_power_off",
+      "canonical_text": "Make sure the power source is off and keep the person away from it.",
+      "must_keep_keywords": [
+        "power source is off",
+        "away from it"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "cool_contact_burns",
+      "canonical_text": "Cool any contact burns under cool running water and cover them loosely with a clean cloth.",
+      "must_keep_keywords": [
+        "cool running water",
+        "clean cloth"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "medical_evaluation_for_hidden_injury",
+      "canonical_text": "Arrange urgent medical evaluation even if they feel well, because electric shock can cause hidden internal injury or heart rhythm problems.",
+      "must_keep_keywords": [
+        "urgent medical evaluation",
+        "heart rhythm problems"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

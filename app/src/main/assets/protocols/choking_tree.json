@@ -1,8 +1,30 @@
 {
   "tree_id": "choking_tree",
   "version": "1.0",
-  "start_node": "choking_protocol",
+  "start_node": "cough_or_speak_check",
   "nodes": [
+    {
+      "id": "cough_or_speak_check",
+      "type": "question",
+      "prompt": "Can they cough or speak right now? If yes, tell them to keep coughing and stay with them.",
+      "slot_key": "can_cough_or_speak",
+      "transitions": [
+        {
+          "when": "yes",
+          "to": "partial_choking_protocol"
+        },
+        {
+          "when": "no",
+          "to": "choking_protocol"
+        }
+      ]
+    },
+    {
+      "id": "partial_choking_protocol",
+      "type": "instruction",
+      "instruction_id": "choking_partial_general",
+      "next": "choking_terminal"
+    },
     {
       "id": "choking_protocol",
       "type": "instruction",

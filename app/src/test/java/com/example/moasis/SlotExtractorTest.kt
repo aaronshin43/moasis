@@ -3,7 +3,6 @@ package com.example.moasis
 import com.example.moasis.domain.nlu.SlotExtractor
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -71,6 +70,14 @@ class SlotExtractorTest {
     }
 
     @Test
+    fun cardiac_arrest_phrases_mark_confirmed_arrest() {
+        val slots = extractor.extract("he is not breathing and has no pulse")
+        assertEquals("yes", slots["cardiac_arrest_confirmed"])
+        assertEquals("no", slots["breathing_normal"])
+        assertEquals("no", slots["responsive"])
+    }
+
+    @Test
     fun extracts_yes_response_with_trailing_text() {
         val slots = extractor.extract("yes it is")
         assertEquals("yes", slots["response"])
@@ -103,23 +110,35 @@ class SlotExtractorTest {
     }
 
     @Test
-    fun burn_indicates_burn_severity() {
+    fun plain_burn_does_not_assume_second_degree() {
         val slots = extractor.extract("I have a burn on my arm")
-        assertEquals("yes", slots["burn_severity"])
+        assertFalse(slots.containsKey("burn_severity"))
+    }
+
+    @Test
+    fun facial_burn_sets_high_risk_flag() {
+        val slots = extractor.extract("burn on face")
+        assertEquals("yes", slots["burn_emergency_red_flags"])
     }
 
     // --- Bleeding ---
 
     @Test
-    fun bleeding_sets_has_massive_bleeding() {
-        val slots = extractor.extract("the wound is bleeding")
+    fun severe_bleeding_phrase_sets_has_massive_bleeding() {
+        val slots = extractor.extract("the wound is bleeding a lot")
         assertEquals("yes", slots["has_massive_bleeding"])
     }
 
     @Test
-    fun blood_sets_has_massive_bleeding() {
+    fun blood_everywhere_sets_has_massive_bleeding() {
         val slots = extractor.extract("there is blood everywhere")
         assertEquals("yes", slots["has_massive_bleeding"])
+    }
+
+    @Test
+    fun generic_bleeding_does_not_auto_mark_massive() {
+        val slots = extractor.extract("the wound is bleeding")
+        assertFalse(slots.containsKey("has_massive_bleeding"))
     }
 
     // --- Breathing ---
@@ -136,6 +155,102 @@ class SlotExtractorTest {
         assertEquals("yes", slots["has_breathing_problem"])
     }
 
+    @Test
+    fun blue_lips_sets_breathing_red_flags() {
+        val slots = extractor.extract("they have blue lips and cannot speak full sentences")
+        assertEquals("yes", slots["breathing_red_flags"])
+    }
+
+    @Test
+    fun can_cough_phrase_marks_partial_choking() {
+        val slots = extractor.extract("he is choking but can cough")
+        assertEquals("yes", slots["can_cough_or_speak"])
+    }
+
+    @Test
+    fun cannot_speak_phrase_marks_complete_choking() {
+        val slots = extractor.extract("she is choking and can't speak")
+        assertEquals("no", slots["can_cough_or_speak"])
+    }
+
+    @Test
+    fun seizure_stopped_phrase_marks_recovery_state() {
+        val slots = extractor.extract("the seizure stopped and now he is breathing")
+        assertEquals("no", slots["seizure_active_now"])
+    }
+
+    @Test
+    fun unresponsive_diabetic_marks_cannot_swallow() {
+        val slots = extractor.extract("unresponsive diabetic with low blood sugar")
+        assertEquals("no", slots["can_swallow_safely"])
+    }
+
+    @Test
+    fun chemical_in_eye_marks_contact_exposure() {
+        val slots = extractor.extract("bleach in the eye")
+        assertEquals("yes", slots["poison_contact_exposure"])
+    }
+
+    @Test
+    fun inhaled_fumes_marks_poison_inhalation() {
+        val slots = extractor.extract("she inhaled chemical fumes")
+        assertEquals("yes", slots["poison_inhalation_exposure"])
+    }
+
+    @Test
+    fun chemical_in_eye_marks_eye_chemical_exposure() {
+        val slots = extractor.extract("chemical in eye")
+        assertEquals("yes", slots["eye_chemical_exposure"])
+    }
+
+    @Test
+    fun embedded_object_marks_eye_red_flag() {
+        val slots = extractor.extract("glass in eye")
+        assertEquals("yes", slots["eye_embedded_or_vision_loss"])
+    }
+
+    @Test
+    fun head_injury_red_flags_are_extracted() {
+        val slots = extractor.extract("repeated vomiting after head injury")
+        assertEquals("yes", slots["head_red_flags"])
+    }
+
+    @Test
+    fun high_voltage_source_is_extracted() {
+        val slots = extractor.extract("he touched a high voltage line")
+        assertEquals("yes", slots["high_voltage_source"])
+    }
+
+    @Test
+    fun fracture_red_flags_are_extracted() {
+        val slots = extractor.extract("bone sticking out from the leg")
+        assertEquals("yes", slots["fracture_red_flags"])
+    }
+
+    @Test
+    fun heat_stroke_red_flags_are_extracted() {
+        val slots = extractor.extract("collapsed from heat and very hot skin")
+        assertEquals("yes", slots["heat_stroke_red_flags"])
+    }
+
+    @Test
+    fun mild_hypothermia_marks_non_severe() {
+        val slots = extractor.extract("shivering but alert")
+        assertEquals("no", slots["hypothermia_severe"])
+    }
+
+    @Test
+    fun severe_hypothermia_marks_severe() {
+        val slots = extractor.extract("drowsy and cold with slurred speech from cold")
+        assertEquals("yes", slots["hypothermia_severe"])
+    }
+
+    @Test
+    fun nosebleed_red_flags_are_extracted() {
+        val slots = extractor.extract("heavy nosebleed for 20 minutes")
+        assertEquals("yes", slots["nosebleed_red_flags"])
+    }
+
     // --- Multiple slots from one input ---
 
     @Test
@@ -146,11 +261,11 @@ class SlotExtractorTest {
     }
 
     @Test
-    fun extracts_patient_type_and_domain_slots_together() {
-        val slots = extractor.extract("the child is bleeding from the arm")
+    fun extracts_patient_type_and_location_without_overcalling_massive_bleeding() {
+        val slots = extractor.extract("the child has a cut on the arm")
         assertEquals("child", slots["patient_type"])
         assertEquals("arm", slots["location"])
-        assertEquals("yes", slots["has_massive_bleeding"])
+        assertFalse(slots.containsKey("has_massive_bleeding"))
     }
 
     // --- Case insensitivity ---
@@ -159,7 +274,7 @@ class SlotExtractorTest {
     fun extraction_is_case_insensitive() {
         val slots = extractor.extract("BURNED MY ARM")
         assertEquals("arm", slots["location"])
-        assertEquals("yes", slots["burn_severity"])
+        assertFalse(slots.containsKey("burn_severity"))
     }
 
     // --- Empty / no match ---

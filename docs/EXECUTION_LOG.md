@@ -79,11 +79,42 @@ Use this file as the compact handoff and restart context for implementation work
 - AI prep failures are now classified into quota, ABI, Play Asset Delivery, and network-facing messages
 - retry controls added to both the home screen and active protocol screen for AI model preparation
 - deterministic vs AI-assisted guidance labels are now surfaced in the step UI
+- release Gradle properties now support configurable `applicationId`, versioning, and upload signing for Play internal testing
+- Play internal testing handoff doc added at `docs/PLAY_INTERNAL_TESTING.md`
 - current resolved Melange runtime requires `minSdk 31`, so the app baseline was raised from 24 to 31
 - `:app:testDebugUnitTest --rerun-tasks` passed after S7-real wiring
 - `:app:assembleDebug` passed after S7-real wiring
 - `:app:testDebugUnitTest --rerun-tasks` passed after S9-lite hardening
 - `:app:assembleDebug` passed after S9-lite hardening
+- deterministic tree coverage expanded for stroke, anaphylaxis, hypoglycemia, electric shock, fracture, poisoning, and drowning entry routing
+- tree JSON validation now checks node, tree, protocol, transition, route, and fallback references for all protocol assets
+- collapsed-person triage prompt now inlines the scene-safety instruction instead of relying on a silent intermediate node
+- entry-mode slot handling no longer leaks a previous yes/no response into the next triage question
+- inconsistent `required_slots` metadata removed from burn and fracture protocols where the deterministic engine does not collect that field
+- `:app:testDebugUnitTest --rerun-tasks` passed after deterministic tree quality fixes
+- `:app:assembleDebug` passed after deterministic tree quality fixes
+- dispatcher-style deterministic triage now asks confirming yes/no questions before selecting actions for burn, choking, breathing trouble, collapsed person, and general assessment flows
+- new deterministic protocols added for `breathing_distress_general`, `choking_partial_general`, `burn_high_risk_general`, and `burn_minor_general`
+- entry-mode slot mapping now derives from each tree node's `slot_key`, removing hardcoded node ID handling and allowing richer question trees
+- slot extraction now supports partial-vs-complete choking, breathing red flags, and high-risk burn features
+- `:app:testDebugUnitTest --rerun-tasks` passed after dispatcher-style triage expansion
+- `:app:assembleDebug` passed after dispatcher-style triage expansion
+- time-critical direct-entry trees now ask confirming questions before protocol selection for cardiac arrest, stroke, anaphylaxis, chest pain, and infant choking
+- new deterministic protocol added for `infant_choking_partial_general`
+- `cardiac_arrest` now routes ahead of generic collapsed-person triage in the deterministic entry router
+- time-critical canonical steps were tightened to be more dispatcher-like in `cardiac_arrest_general`, `stroke_fast_general`, `anaphylaxis_general`, `chest_pain_general`, and `infant_choking_general`
+- `:app:testDebugUnitTest --rerun-tasks` passed after time-critical dispatcher-content pass
+- `:app:assembleDebug` passed after time-critical dispatcher-content pass
+- dispatcher-style deterministic triage expanded to `bleeding`, `seizure`, `hypoglycemia`, `poisoning`, and `drowning`
+- new deterministic protocols added for `bleeding_minor_general`, `seizure_recovery_general`, `hypoglycemia_unresponsive_general`, `poisoning_contact_general`, `poisoning_inhaled_general`, `drowning_breathing_general`, and `drowning_cpr_general`
+- slot extraction now distinguishes severe bleeding from generic bleeding, supports seizure recovery state, severe hypoglycemia swallowing checks, poison exposure type, and post-rescue breathing state
+- `:app:testDebugUnitTest --rerun-tasks` passed after secondary dispatcher-flow expansion
+- `:app:assembleDebug` passed after secondary dispatcher-flow expansion
+- dispatcher-style deterministic triage expanded to `eye injury`, `head injury`, `electric shock`, `fracture`, `heat stroke`, `hypothermia`, and `nosebleed`
+- new deterministic protocols added for `eye_surface_irritation_general`, `head_injury_observation_general`, `electric_shock_low_voltage_general`, `fracture_emergency_general`, `heat_exhaustion_general`, `hypothermia_mild_general`, and `nosebleed_emergency_general`
+- slot extraction now supports eye injury red flags, head injury red flags, high-voltage sources, fracture red flags, heat stroke severity, hypothermia severity, and nosebleed escalation features
+- `:app:testDebugUnitTest --rerun-tasks` passed after final dispatcher-flow expansion
+- `:app:assembleDebug` passed after final dispatcher-flow expansion
 
 ## Open Blockers
 

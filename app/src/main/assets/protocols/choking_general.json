@@ -28,10 +28,11 @@
     },
     {
       "step_id": "five_abdominal_thrusts",
-      "canonical_text": "If the object is not out, stand behind them, place a fist just above the navel, and give up to 5 abdominal thrusts inward and upward.",
+      "canonical_text": "If the object is not out, stand behind them, place a fist just above the navel, and give up to 5 abdominal thrusts inward and upward. If they are pregnant or markedly obese, use chest thrusts instead of abdominal thrusts.",
       "must_keep_keywords": [
         "5 abdominal thrusts",
-        "above the navel"
+        "above the navel",
+        "chest thrusts"
       ],
       "forbidden_keywords": [],
       "asset_refs": []

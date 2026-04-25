@@ -1,0 +1,53 @@
+{
+  "protocol_id": "hypoglycemia_unresponsive_general",
+  "title": "Severe low blood sugar",
+  "category": "diabetes",
+  "required_slots": [],
+  "safety_flags": [
+    "show_emergency_call_now"
+  ],
+  "steps": [
+    {
+      "step_id": "call_emergency_now",
+      "canonical_text": "Call emergency services now for severe low blood sugar.",
+      "must_keep_keywords": [
+        "Call emergency services",
+        "severe low blood sugar"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "nothing_by_mouth",
+      "canonical_text": "Do not give food or drink by mouth if they are drowsy, unresponsive, or cannot swallow safely.",
+      "must_keep_keywords": [
+        "Do not give food or drink",
+        "cannot swallow safely"
+      ],
+      "forbidden_keywords": [
+        "force them to drink"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "glucagon_if_available",
+      "canonical_text": "If prescribed glucagon is available and you know how to use it, give it as directed.",
+      "must_keep_keywords": [
+        "glucagon",
+        "as directed"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "side_position_and_breathing",
+      "canonical_text": "Place them on their side and keep checking breathing until emergency help arrives.",
+      "must_keep_keywords": [
+        "on their side",
+        "checking breathing"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

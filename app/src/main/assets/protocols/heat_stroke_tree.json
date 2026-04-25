@@ -1,0 +1,39 @@
+{
+  "tree_id": "heat_stroke_tree",
+  "version": "1.0",
+  "start_node": "heat_stroke_red_flag_check",
+  "nodes": [
+    {
+      "id": "heat_stroke_red_flag_check",
+      "type": "question",
+      "prompt": "Are they confused, collapsed, vomiting, or very hot to touch? Start cooling right away if they are.",
+      "slot_key": "heat_stroke_red_flags",
+      "transitions": [
+        {
+          "when": "yes",
+          "to": "heat_stroke_protocol"
+        },
+        {
+          "when": "no",
+          "to": "heat_exhaustion_protocol"
+        }
+      ]
+    },
+    {
+      "id": "heat_stroke_protocol",
+      "type": "instruction",
+      "instruction_id": "heat_stroke_general",
+      "next": "heat_stroke_terminal"
+    },
+    {
+      "id": "heat_exhaustion_protocol",
+      "type": "instruction",
+      "instruction_id": "heat_exhaustion_general",
+      "next": "heat_stroke_terminal"
+    },
+    {
+      "id": "heat_stroke_terminal",
+      "type": "terminal"
+    }
+  ]
+}

@@ -2,9 +2,7 @@
   "protocol_id": "burn_second_degree_general",
   "title": "Second-degree burn basic care",
   "category": "burn",
-  "required_slots": [
-    "location"
-  ],
+  "required_slots": [],
   "safety_flags": [
     "show_emergency_call_if_face_or_airway",
     "show_emergency_call_if_large_area_or_deep"

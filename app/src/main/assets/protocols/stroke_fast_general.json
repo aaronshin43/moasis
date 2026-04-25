@@ -10,7 +10,7 @@
   "steps": [
     {
       "step_id": "check_fast_signs",
-      "canonical_text": "Check FAST: ask them to smile (face droop), raise both arms (one drifts down), and repeat a short sentence (slurred or wrong words).",
+      "canonical_text": "Check FAST right now: ask them to smile for face droop, raise both arms for arm weakness, and repeat a short sentence for slurred or wrong words.",
       "must_keep_keywords": [
         "FAST",
         "face droop",
@@ -21,7 +21,7 @@
     },
     {
       "step_id": "note_time_symptoms_started",
-      "canonical_text": "Note the exact time the symptoms started, or the last time they were seen normal. This time decides treatment options.",
+      "canonical_text": "Note the exact time symptoms started, or the last time they were seen normal, and keep that time ready for emergency services.",
       "must_keep_keywords": [
         "exact time",
         "last time they were seen normal"
@@ -31,7 +31,7 @@
     },
     {
       "step_id": "call_emergency_immediately",
-      "canonical_text": "Call emergency services now even if symptoms seem to improve. Every minute matters in stroke.",
+      "canonical_text": "Call emergency services now even if symptoms seem to improve. Say you suspect a stroke and give the symptom start time. Every minute matters in stroke.",
       "must_keep_keywords": [
         "Call emergency services",
         "Every minute matters"
@@ -43,7 +43,7 @@
     },
     {
       "step_id": "comfortable_position",
-      "canonical_text": "Help them rest. If they are alert, sit them up with head and shoulders supported. If drowsy, lay them on their side.",
+      "canonical_text": "Help them rest and keep them still. If alert, sit them up with the head and shoulders supported. If drowsy or vomiting, lay them on their side.",
       "must_keep_keywords": [
         "head and shoulders supported",
         "on their side"
@@ -65,7 +65,7 @@
     },
     {
       "step_id": "monitor_until_help_arrives",
-      "canonical_text": "Stay with them. Watch breathing and alertness. Be ready to start chest compressions if they stop breathing.",
+      "canonical_text": "Stay with them and keep checking breathing and alertness. If they become unresponsive and stop breathing normally, start chest compressions.",
       "must_keep_keywords": [
         "Stay with them",
         "chest compressions"

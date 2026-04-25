@@ -1,0 +1,39 @@
+{
+  "tree_id": "hypothermia_tree",
+  "version": "1.0",
+  "start_node": "hypothermia_severe_check",
+  "nodes": [
+    {
+      "id": "hypothermia_severe_check",
+      "type": "question",
+      "prompt": "Are they confused, drowsy, or breathing slowly from the cold? Handle them gently if they are.",
+      "slot_key": "hypothermia_severe",
+      "transitions": [
+        {
+          "when": "yes",
+          "to": "hypothermia_protocol"
+        },
+        {
+          "when": "no",
+          "to": "mild_hypothermia_protocol"
+        }
+      ]
+    },
+    {
+      "id": "hypothermia_protocol",
+      "type": "instruction",
+      "instruction_id": "hypothermia_general",
+      "next": "hypothermia_terminal"
+    },
+    {
+      "id": "mild_hypothermia_protocol",
+      "type": "instruction",
+      "instruction_id": "hypothermia_mild_general",
+      "next": "hypothermia_terminal"
+    },
+    {
+      "id": "hypothermia_terminal",
+      "type": "terminal"
+    }
+  ]
+}

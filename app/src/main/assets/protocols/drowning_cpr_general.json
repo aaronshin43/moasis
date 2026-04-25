@@ -1,0 +1,41 @@
+{
+  "protocol_id": "drowning_cpr_general",
+  "title": "Drowning CPR response",
+  "category": "drowning",
+  "required_slots": [],
+  "safety_flags": [
+    "show_emergency_call_now"
+  ],
+  "steps": [
+    {
+      "step_id": "call_and_start_cpr",
+      "canonical_text": "Call emergency services now and start chest compressions on a firm flat surface.",
+      "must_keep_keywords": [
+        "Call emergency services",
+        "chest compressions"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "initial_rescue_breaths_if_trained",
+      "canonical_text": "If you are trained, give 5 initial rescue breaths, then continue with 30 compressions and 2 breaths.",
+      "must_keep_keywords": [
+        "5 initial rescue breaths",
+        "30 compressions and 2 breaths"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "do_not_try_to_drain_water",
+      "canonical_text": "Do not press on the abdomen and do not try to drain water from the lungs.",
+      "must_keep_keywords": [
+        "Do not press on the abdomen",
+        "drain water"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

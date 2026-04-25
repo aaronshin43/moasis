@@ -1,0 +1,41 @@
+{
+  "protocol_id": "poisoning_contact_general",
+  "title": "Poison on skin or in eyes",
+  "category": "poisoning",
+  "required_slots": [],
+  "safety_flags": [
+    "show_emergency_call_now"
+  ],
+  "steps": [
+    {
+      "step_id": "flush_with_running_water",
+      "canonical_text": "Flush the skin or eyes with running water for at least 15 minutes right away.",
+      "must_keep_keywords": [
+        "running water",
+        "15 minutes"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "remove_contaminated_clothing",
+      "canonical_text": "Remove contaminated clothing, jewelry, or contact lenses while flushing if you can do it safely.",
+      "must_keep_keywords": [
+        "Remove contaminated clothing",
+        "contact lenses"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "call_poison_help",
+      "canonical_text": "Call emergency services or poison control and tell them what substance touched the skin or eyes.",
+      "must_keep_keywords": [
+        "Call emergency services",
+        "poison control"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

@@ -1,8 +1,152 @@
 {
   "tree_id": "general_assessment_tree",
   "version": "1.0",
-  "start_node": "general_assessment_protocol",
+  "start_node": "responsive_check",
   "nodes": [
+    {
+      "id": "responsive_check",
+      "type": "question",
+      "prompt": "Is the person awake and responding? If not, leave them where they are, open the airway, and be ready to check breathing.",
+      "slot_key": "responsive",
+      "transitions": [
+        {
+          "when": "no",
+          "to": "breathing_check"
+        },
+        {
+          "when": "yes",
+          "to": "bleeding_check"
+        }
+      ]
+    },
+    {
+      "id": "breathing_check",
+      "type": "question",
+      "prompt": "Are they breathing normally? Treat gasping as no.",
+      "slot_key": "breathing_normal",
+      "transitions": [
+        {
+          "when": "no",
+          "to_tree": "cardiac_arrest_tree"
+        },
+        {
+          "when": "yes",
+          "to_tree": "unresponsive_breathing_tree"
+        }
+      ]
+    },
+    {
+      "id": "bleeding_check",
+      "type": "question",
+      "prompt": "Is there heavy bleeding that is spurting, pooling, or soaking cloth quickly? Apply firm direct pressure now.",
+      "slot_key": "has_massive_bleeding",
+      "transitions": [
+        {
+          "when": "yes",
+          "to_tree": "bleeding_tree"
+        },
+        {
+          "when": "no",
+          "to": "chest_pain_check"
+        }
+      ]
+    },
+    {
+      "id": "chest_pain_check",
+      "type": "question",
+      "prompt": "Do they have chest pressure or pain, or pain spreading to the arm, jaw, neck, or back? Keep them resting.",
+      "slot_key": "has_chest_pain",
+      "transitions": [
+        {
+          "when": "yes",
+          "to_tree": "chest_pain_tree"
+        },
+        {
+          "when": "no",
+          "to": "stroke_check"
+        }
+      ]
+    },
+    {
+      "id": "stroke_check",
+      "type": "question",
+      "prompt": "Is there face drooping, arm weakness, or slurred speech? Note the time symptoms started.",
+      "slot_key": "has_stroke_signs",
+      "transitions": [
+        {
+          "when": "yes",
+          "to_tree": "stroke_fast_tree"
+        },
+        {
+          "when": "no",
+          "to": "breathing_problem_check"
+        }
+      ]
+    },
+    {
+      "id": "breathing_problem_check",
+      "type": "question",
+      "prompt": "Are they struggling to breathe, turning blue, or too breathless to speak? Sit them upright now.",
+      "slot_key": "has_breathing_problem",
+      "transitions": [
+        {
+          "when": "yes",
+          "to_tree": "breathing_problem_tree"
+        },
+        {
+          "when": "no",
+          "to": "seizure_check"
+        }
+      ]
+    },
+    {
+      "id": "seizure_check",
+      "type": "question",
+      "prompt": "Are they having a seizure or were they shaking and unresponsive? Move nearby objects away and protect their head.",
+      "slot_key": "has_seizure_signs",
+      "transitions": [
+        {
+          "when": "yes",
+          "to_tree": "seizure_tree"
+        },
+        {
+          "when": "no",
+          "to": "allergy_check"
+        }
+      ]
+    },
+    {
+      "id": "allergy_check",
+      "type": "question",
+      "prompt": "Is there a severe allergic reaction with swelling of the lips or tongue, widespread hives, or breathing trouble? Use prescribed epinephrine if available.",
+      "slot_key": "has_anaphylaxis_signs",
+      "transitions": [
+        {
+          "when": "yes",
+          "to_tree": "anaphylaxis_tree"
+        },
+        {
+          "when": "no",
+          "to": "low_sugar_check"
+        }
+      ]
+    },
+    {
+      "id": "low_sugar_check",
+      "type": "question",
+      "prompt": "Are they diabetic, shaky, sweaty, or confused as if blood sugar may be low?",
+      "slot_key": "has_hypoglycemia_signs",
+      "transitions": [
+        {
+          "when": "yes",
+          "to_tree": "hypoglycemia_tree"
+        },
+        {
+          "when": "no",
+          "to": "general_assessment_protocol"
+        }
+      ]
+    },
     {
       "id": "general_assessment_protocol",
       "type": "instruction",

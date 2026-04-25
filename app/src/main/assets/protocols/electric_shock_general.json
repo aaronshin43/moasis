@@ -67,10 +67,11 @@
     },
     {
       "step_id": "treat_burns_at_contact_points",
-      "canonical_text": "Cool any burns at entry or exit points under cool running water and cover loosely with a clean cloth. Do not move them if a fall may have hurt their neck or back.",
+      "canonical_text": "Cool any burns at entry or exit points under cool running water and cover loosely with a clean cloth. Do not move them if a fall may have hurt their neck or back. Arrange urgent medical evaluation even if they seem well, because electric shock can cause hidden internal injury or heart rhythm problems.",
       "must_keep_keywords": [
         "cool running water",
-        "Do not move them"
+        "Do not move them",
+        "urgent medical evaluation"
       ],
       "forbidden_keywords": [],
       "asset_refs": []

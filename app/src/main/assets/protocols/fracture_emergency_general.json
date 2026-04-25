@@ -1,0 +1,43 @@
+{
+  "protocol_id": "fracture_emergency_general",
+  "title": "Fracture emergency response",
+  "category": "trauma",
+  "required_slots": [],
+  "safety_flags": [
+    "show_emergency_call_now"
+  ],
+  "steps": [
+    {
+      "step_id": "call_emergency_for_open_or_spinal_injury",
+      "canonical_text": "Call emergency services now for an open fracture or suspected neck, back, or spinal injury.",
+      "must_keep_keywords": [
+        "Call emergency services",
+        "neck, back, or spinal injury"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "cover_and_control_bleeding",
+      "canonical_text": "Cover the wound loosely with a clean cloth and control bleeding with pressure around the wound, not on exposed bone.",
+      "must_keep_keywords": [
+        "clean cloth",
+        "around the wound"
+      ],
+      "forbidden_keywords": [
+        "push the bone back"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "keep_still_until_help_arrives",
+      "canonical_text": "Keep the injured area and the whole person still until help arrives.",
+      "must_keep_keywords": [
+        "Keep the injured area",
+        "still until help arrives"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

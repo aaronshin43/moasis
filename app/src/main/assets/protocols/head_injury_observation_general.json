@@ -1,0 +1,39 @@
+{
+  "protocol_id": "head_injury_observation_general",
+  "title": "Head injury observation",
+  "category": "trauma",
+  "required_slots": [],
+  "safety_flags": [],
+  "steps": [
+    {
+      "step_id": "rest_and_cold_pack",
+      "canonical_text": "Keep them resting quietly and use a cold pack wrapped in cloth on swelling for short periods.",
+      "must_keep_keywords": [
+        "resting quietly",
+        "cold pack"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "avoid_sports_and_alcohol",
+      "canonical_text": "Do not let them return to sports, cycling, climbing, alcohol, or sedating medication until medically cleared.",
+      "must_keep_keywords": [
+        "Do not let them return to sports",
+        "medically cleared"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "watch_for_delayed_red_flags",
+      "canonical_text": "Seek emergency care if vomiting, worsening headache, confusion, unusual sleepiness, seizure, or weakness appears later.",
+      "must_keep_keywords": [
+        "Seek emergency care",
+        "worsening headache"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

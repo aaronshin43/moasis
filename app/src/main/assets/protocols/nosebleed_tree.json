@@ -1,0 +1,39 @@
+{
+  "tree_id": "nosebleed_tree",
+  "version": "1.0",
+  "start_node": "nosebleed_red_flag_check",
+  "nodes": [
+    {
+      "id": "nosebleed_red_flag_check",
+      "type": "question",
+      "prompt": "Has the nosebleed lasted 20 minutes, is it very heavy, after a head injury, or is the person on blood thinners?",
+      "slot_key": "nosebleed_red_flags",
+      "transitions": [
+        {
+          "when": "yes",
+          "to": "nosebleed_emergency_protocol"
+        },
+        {
+          "when": "no",
+          "to": "nosebleed_protocol"
+        }
+      ]
+    },
+    {
+      "id": "nosebleed_emergency_protocol",
+      "type": "instruction",
+      "instruction_id": "nosebleed_emergency_general",
+      "next": "nosebleed_terminal"
+    },
+    {
+      "id": "nosebleed_protocol",
+      "type": "instruction",
+      "instruction_id": "nosebleed_general",
+      "next": "nosebleed_terminal"
+    },
+    {
+      "id": "nosebleed_terminal",
+      "type": "terminal"
+    }
+  ]
+}

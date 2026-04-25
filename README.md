@@ -54,3 +54,9 @@ Procurement and model note:
 1. confirm the exact Gemma4 E2B model identifier provisioned in the Melange dashboard for the demo device
 2. verify first-run download and warmup on the physical target device before the demo
 3. keep the app functional with `AI_ENABLED=false` as the rollback path until on-device inference is verified end to end
+
+## Play Testing
+
+If you need Melange paths that depend on Google Play delivery, use Play internal testing instead of a locally installed debug APK.
+
+- guide: [docs/PLAY_INTERNAL_TESTING.md](D:/03_Coding/moasis/docs/PLAY_INTERNAL_TESTING.md)

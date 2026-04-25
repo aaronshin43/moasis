@@ -1,0 +1,39 @@
+{
+  "tree_id": "fracture_suspected_tree",
+  "version": "1.0",
+  "start_node": "fracture_red_flag_check",
+  "nodes": [
+    {
+      "id": "fracture_red_flag_check",
+      "type": "question",
+      "prompt": "Is there a bone sticking out, heavy bleeding, or a suspected neck, back, or spinal injury? Keep them still if there is.",
+      "slot_key": "fracture_red_flags",
+      "transitions": [
+        {
+          "when": "yes",
+          "to": "fracture_emergency_protocol"
+        },
+        {
+          "when": "no",
+          "to": "fracture_suspected_protocol"
+        }
+      ]
+    },
+    {
+      "id": "fracture_emergency_protocol",
+      "type": "instruction",
+      "instruction_id": "fracture_emergency_general",
+      "next": "fracture_suspected_terminal"
+    },
+    {
+      "id": "fracture_suspected_protocol",
+      "type": "instruction",
+      "instruction_id": "fracture_suspected_general",
+      "next": "fracture_suspected_terminal"
+    },
+    {
+      "id": "fracture_suspected_terminal",
+      "type": "terminal"
+    }
+  ]
+}

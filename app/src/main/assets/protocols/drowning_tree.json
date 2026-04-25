@@ -1,0 +1,45 @@
+{
+  "tree_id": "drowning_tree",
+  "version": "1.0",
+  "start_node": "breathing_after_rescue_check",
+  "nodes": [
+    {
+      "id": "breathing_after_rescue_check",
+      "type": "question",
+      "prompt": "Once they are out of the water, are they breathing normally? Treat gasping as no.",
+      "slot_key": "breathing_normal",
+      "transitions": [
+        {
+          "when": "yes",
+          "to": "drowning_breathing_protocol"
+        },
+        {
+          "when": "no",
+          "to": "drowning_cpr_protocol"
+        }
+      ]
+    },
+    {
+      "id": "drowning_breathing_protocol",
+      "type": "instruction",
+      "instruction_id": "drowning_breathing_general",
+      "next": "drowning_terminal"
+    },
+    {
+      "id": "drowning_cpr_protocol",
+      "type": "instruction",
+      "instruction_id": "drowning_cpr_general",
+      "next": "drowning_terminal"
+    },
+    {
+      "id": "drowning_protocol",
+      "type": "instruction",
+      "instruction_id": "drowning_general",
+      "next": "drowning_terminal"
+    },
+    {
+      "id": "drowning_terminal",
+      "type": "terminal"
+    }
+  ]
+}

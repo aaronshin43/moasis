@@ -2,9 +2,7 @@
   "protocol_id": "fracture_suspected_general",
   "title": "Suspected fracture or sprain",
   "category": "trauma",
-  "required_slots": [
-    "location"
-  ],
+  "required_slots": [],
   "safety_flags": [
     "show_emergency_call_if_open_fracture",
     "show_emergency_call_if_spine_or_neck"

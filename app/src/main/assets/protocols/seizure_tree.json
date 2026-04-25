@@ -1,12 +1,50 @@
 {
   "tree_id": "seizure_tree",
   "version": "1.0",
-  "start_node": "seizure_protocol",
+  "start_node": "seizure_happening_now_check",
   "nodes": [
+    {
+      "id": "seizure_happening_now_check",
+      "type": "question",
+      "prompt": "Is the seizure happening right now? Clear hazards away and protect the head.",
+      "slot_key": "seizure_active_now",
+      "transitions": [
+        {
+          "when": "yes",
+          "to": "seizure_protocol"
+        },
+        {
+          "when": "no",
+          "to": "recovery_breathing_check"
+        }
+      ]
+    },
     {
       "id": "seizure_protocol",
       "type": "instruction",
       "instruction_id": "seizure_general",
+      "next": "seizure_terminal"
+    },
+    {
+      "id": "recovery_breathing_check",
+      "type": "question",
+      "prompt": "Are they breathing normally now? If not, be ready to start chest compressions.",
+      "slot_key": "breathing_normal",
+      "transitions": [
+        {
+          "when": "yes",
+          "to": "seizure_recovery_protocol"
+        },
+        {
+          "when": "no",
+          "to_tree": "cardiac_arrest_tree"
+        }
+      ]
+    },
+    {
+      "id": "seizure_recovery_protocol",
+      "type": "instruction",
+      "instruction_id": "seizure_recovery_general",
       "next": "seizure_terminal"
     },
     {

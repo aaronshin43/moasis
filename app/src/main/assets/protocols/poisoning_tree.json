@@ -1,0 +1,61 @@
+{
+  "tree_id": "poisoning_tree",
+  "version": "1.0",
+  "start_node": "skin_or_eye_contact_check",
+  "nodes": [
+    {
+      "id": "skin_or_eye_contact_check",
+      "type": "question",
+      "prompt": "Is the substance on the skin or in the eyes? Start flushing with running water if it is.",
+      "slot_key": "poison_contact_exposure",
+      "transitions": [
+        {
+          "when": "yes",
+          "to": "poison_contact_protocol"
+        },
+        {
+          "when": "no",
+          "to": "inhalation_check"
+        }
+      ]
+    },
+    {
+      "id": "poison_contact_protocol",
+      "type": "instruction",
+      "instruction_id": "poisoning_contact_general",
+      "next": "poisoning_terminal"
+    },
+    {
+      "id": "inhalation_check",
+      "type": "question",
+      "prompt": "Did they breathe fumes or gas? Move to fresh air only if you can do it safely.",
+      "slot_key": "poison_inhalation_exposure",
+      "transitions": [
+        {
+          "when": "yes",
+          "to": "poison_inhaled_protocol"
+        },
+        {
+          "when": "no",
+          "to": "poisoning_protocol"
+        }
+      ]
+    },
+    {
+      "id": "poison_inhaled_protocol",
+      "type": "instruction",
+      "instruction_id": "poisoning_inhaled_general",
+      "next": "poisoning_terminal"
+    },
+    {
+      "id": "poisoning_protocol",
+      "type": "instruction",
+      "instruction_id": "poisoning_general",
+      "next": "poisoning_terminal"
+    },
+    {
+      "id": "poisoning_terminal",
+      "type": "terminal"
+    }
+  ]
+}

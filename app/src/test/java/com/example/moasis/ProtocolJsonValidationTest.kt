@@ -31,6 +31,39 @@ class ProtocolJsonValidationTest {
     }
 
     private val expectedProtocols = assetIds.filterNot { id -> id in expectedTrees }
+    private val supportedSlotKeys = setOf(
+        "location",
+        "patient_type",
+        "response",
+        "cardiac_arrest_confirmed",
+        "burn_severity",
+        "burn_emergency_red_flags",
+        "can_cough_or_speak",
+        "breathing_red_flags",
+        "seizure_active_now",
+        "can_swallow_safely",
+        "poison_contact_exposure",
+        "poison_inhalation_exposure",
+        "eye_chemical_exposure",
+        "eye_embedded_or_vision_loss",
+        "head_red_flags",
+        "high_voltage_source",
+        "fracture_red_flags",
+        "heat_stroke_red_flags",
+        "hypothermia_severe",
+        "nosebleed_red_flags",
+        "has_massive_bleeding",
+        "has_choking_signs",
+        "has_seizure_signs",
+        "has_chest_pain",
+        "has_stroke_signs",
+        "has_anaphylaxis_signs",
+        "has_hypoglycemia_signs",
+        "has_breathing_problem",
+        "scene_safe",
+        "responsive",
+        "breathing_normal",
+    )
 
     @Test
     fun all_expected_trees_load_successfully() {
@@ -45,6 +78,21 @@ class ProtocolJsonValidationTest {
         for (protocolId in expectedProtocols) {
             val protocol = protocolRepository.getProtocol(protocolId)
             assertNotNull("Protocol '$protocolId' failed to load", protocol)
+        }
+    }
+
+    @Test
+    fun every_protocol_is_referenced_by_at_least_one_tree_instruction() {
+        val referencedProtocolIds = expectedTrees
+            .mapNotNull { protocolRepository.getTree(it) }
+            .flatMap { tree -> tree.nodes.mapNotNull { it.instructionId } }
+            .toSet()
+
+        for (protocolId in expectedProtocols) {
+            assertTrue(
+                "Protocol '$protocolId' is not referenced by any tree instruction node",
+                protocolId in referencedProtocolIds,
+            )
         }
     }
 
@@ -116,6 +164,85 @@ class ProtocolJsonValidationTest {
         }
     }
 
+    @Test
+    fun question_nodes_use_supported_slot_keys() {
+        for (treeId in expectedTrees) {
+            val tree = protocolRepository.getTree(treeId) ?: continue
+            for (node in tree.nodes) {
+                if (node.type == "question") {
+                    assertTrue(
+                        "Tree '$treeId', question node '${node.id}' uses unsupported slot key '${node.slotKey}'",
+                        !node.slotKey.isNullOrBlank() && node.slotKey in supportedSlotKeys,
+                    )
+                }
+            }
+        }
+    }
+
+    @Test
+    fun in_tree_node_references_resolve_to_existing_nodes_or_trees() {
+        val knownTrees = expectedTrees.toSet()
+        val knownProtocols = expectedProtocols.toSet()
+
+        for (treeId in expectedTrees) {
+            val tree = protocolRepository.getTree(treeId) ?: continue
+            val nodeIds = tree.nodes.map { it.id }.toSet()
+
+            for (node in tree.nodes) {
+                node.next?.let { nextNodeId ->
+                    assertTrue(
+                        "Tree '$treeId', node '${node.id}' has next='$nextNodeId' which does not exist",
+                        nextNodeId in nodeIds,
+                    )
+                }
+
+                node.instructionId?.let { protocolId ->
+                    assertTrue(
+                        "Tree '$treeId', node '${node.id}' references missing protocol '$protocolId'",
+                        protocolId in knownProtocols,
+                    )
+                }
+
+                node.fallbackTo?.let { fallback ->
+                    assertTrue(
+                        "Tree '$treeId', node '${node.id}' has fallback_to='$fallback' which is neither a node nor a tree",
+                        fallback in nodeIds || fallback in knownTrees,
+                    )
+                }
+
+                for (transition in node.transitions) {
+                    transition.to?.let { nextNodeId ->
+                        assertTrue(
+                            "Tree '$treeId', node '${node.id}' has transition to missing node '$nextNodeId'",
+                            nextNodeId in nodeIds,
+                        )
+                    }
+                    transition.toTree?.let { nextTreeId ->
+                        assertTrue(
+                            "Tree '$treeId', node '${node.id}' has transition to missing tree '$nextTreeId'",
+                            nextTreeId in knownTrees,
+                        )
+                    }
+                }
+
+                for (route in node.routes) {
+                    route.to?.let { nextNodeId ->
+                        assertTrue(
+                            "Tree '$treeId', node '${node.id}' has route to missing node '$nextNodeId'",
+                            nextNodeId in nodeIds,
+                        )
+                    }
+                    route.toTree?.let { nextTreeId ->
+                        assertTrue(
+                            "Tree '$treeId', node '${node.id}' has route to missing tree '$nextTreeId'",
+                            nextTreeId in knownTrees,
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     // --- Protocol structural integrity ---
 
     @Test
@@ -163,6 +290,19 @@ class ProtocolJsonValidationTest {
                 "Protocol '$protocolId' has empty title",
                 protocol.title.isNotBlank(),
             )
+        }
+    }
+
+    @Test
+    fun required_slots_use_known_supported_slot_keys() {
+        for (protocolId in expectedProtocols) {
+            val protocol = protocolRepository.getProtocol(protocolId) ?: continue
+            for (requiredSlot in protocol.requiredSlots) {
+                assertTrue(
+                    "Protocol '$protocolId' requires unsupported slot '$requiredSlot'",
+                    requiredSlot in supportedSlotKeys,
+                )
+            }
         }
     }
 

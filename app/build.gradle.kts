@@ -7,6 +7,16 @@ plugins {
 
 fun String.toBuildConfigString(): String = "\"${replace("\\", "\\\\").replace("\"", "\\\"")}\""
 
+val appId = providers.gradleProperty("MOASIS_APPLICATION_ID")
+    .orElse("com.example.moasis")
+    .get()
+val appVersionCode = providers.gradleProperty("MOASIS_VERSION_CODE")
+    .orElse("1")
+    .get()
+    .toInt()
+val appVersionName = providers.gradleProperty("MOASIS_VERSION_NAME")
+    .orElse("1.0")
+    .get()
 val aiEnabled = providers.gradleProperty("MOASIS_AI_ENABLED")
     .orElse("false")
     .get()
@@ -24,6 +34,10 @@ val melangeModelVersion = providers.gradleProperty("MOASIS_MELANGE_MODEL_VERSION
 val melangeModelMode = providers.gradleProperty("MOASIS_MELANGE_MODEL_MODE")
     .orElse("RUN_AUTO")
     .get()
+val uploadStoreFile = providers.gradleProperty("MOASIS_UPLOAD_STORE_FILE").orNull
+val uploadStorePassword = providers.gradleProperty("MOASIS_UPLOAD_STORE_PASSWORD").orNull
+val uploadKeyAlias = providers.gradleProperty("MOASIS_UPLOAD_KEY_ALIAS").orNull
+val uploadKeyPassword = providers.gradleProperty("MOASIS_UPLOAD_KEY_PASSWORD").orNull
 
 android {
     namespace = "com.example.moasis"
@@ -32,11 +46,11 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.moasis"
+        applicationId = appId
         minSdk = 31
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = appVersionCode
+        versionName = appVersionName
         buildConfigField("boolean", "AI_ENABLED", aiEnabled.toString())
         buildConfigField("String", "MELANGE_PERSONAL_KEY", melangePersonalKey.toBuildConfigString())
         buildConfigField("String", "MELANGE_MODEL_NAME", melangeModelName.toBuildConfigString())
@@ -46,9 +60,26 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        if (
+            !uploadStoreFile.isNullOrBlank() &&
+            !uploadStorePassword.isNullOrBlank() &&
+            !uploadKeyAlias.isNullOrBlank() &&
+            !uploadKeyPassword.isNullOrBlank()
+        ) {
+            create("upload") {
+                storeFile = file(uploadStoreFile)
+                storePassword = uploadStorePassword
+                keyAlias = uploadKeyAlias
+                keyPassword = uploadKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.findByName("upload")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

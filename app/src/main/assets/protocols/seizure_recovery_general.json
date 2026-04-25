@@ -1,0 +1,41 @@
+{
+  "protocol_id": "seizure_recovery_general",
+  "title": "Post-seizure recovery",
+  "category": "seizure",
+  "required_slots": [],
+  "safety_flags": [
+    "show_emergency_call_if_repeats_or_no_recovery"
+  ],
+  "steps": [
+    {
+      "step_id": "side_position_and_airway",
+      "canonical_text": "Turn them onto their side, keep the airway clear, and loosen tight clothing around the neck.",
+      "must_keep_keywords": [
+        "onto their side",
+        "airway clear"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "reassure_during_confusion",
+      "canonical_text": "Stay with them, speak calmly, and expect confusion or sleepiness for a while after the seizure.",
+      "must_keep_keywords": [
+        "Stay with them",
+        "confusion"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "call_if_not_recovering",
+      "canonical_text": "Call emergency services if they do not start recovering, another seizure begins, or breathing worsens.",
+      "must_keep_keywords": [
+        "Call emergency services",
+        "another seizure"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

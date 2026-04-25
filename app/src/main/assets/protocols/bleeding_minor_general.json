@@ -1,0 +1,49 @@
+{
+  "protocol_id": "bleeding_minor_general",
+  "title": "Minor bleeding care",
+  "category": "bleeding",
+  "required_slots": [],
+  "safety_flags": [],
+  "steps": [
+    {
+      "step_id": "rinse_and_check",
+      "canonical_text": "Rinse the wound gently with clean water and check for dirt or debris.",
+      "must_keep_keywords": [
+        "clean water",
+        "debris"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "direct_pressure_for_minor_bleeding",
+      "canonical_text": "Apply direct pressure with clean gauze or cloth until the bleeding stops.",
+      "must_keep_keywords": [
+        "direct pressure",
+        "clean gauze"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "cover_lightly",
+      "canonical_text": "Once bleeding stops, cover the wound with a clean dressing or bandage.",
+      "must_keep_keywords": [
+        "cover the wound",
+        "clean dressing"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "watch_for_infection_or_rebleeding",
+      "canonical_text": "Watch for rebleeding, increasing pain, redness, swelling, or pus, and seek medical care if those happen.",
+      "must_keep_keywords": [
+        "rebleeding",
+        "seek medical care"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

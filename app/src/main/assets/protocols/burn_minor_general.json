@@ -1,0 +1,53 @@
+{
+  "protocol_id": "burn_minor_general",
+  "title": "Minor burn care",
+  "category": "burn",
+  "required_slots": [],
+  "safety_flags": [],
+  "steps": [
+    {
+      "step_id": "cool_under_running_water",
+      "canonical_text": "Cool the burn under cool running water for at least 20 minutes.",
+      "must_keep_keywords": [
+        "cool running water",
+        "20 minutes"
+      ],
+      "forbidden_keywords": [
+        "ice directly"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "remove_jewelry_if_needed",
+      "canonical_text": "Remove rings, watches, or tight items near the burn before swelling starts.",
+      "must_keep_keywords": [
+        "Remove rings",
+        "before swelling starts"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "cover_lightly",
+      "canonical_text": "After cooling, loosely cover the burn with clean cling film or a clean non-fluffy dressing.",
+      "must_keep_keywords": [
+        "loosely cover",
+        "clean"
+      ],
+      "forbidden_keywords": [
+        "wrap tightly"
+      ],
+      "asset_refs": []
+    },
+    {
+      "step_id": "avoid_home_remedies",
+      "canonical_text": "Do not put butter, oil, toothpaste, or ice directly on the burn.",
+      "must_keep_keywords": [
+        "Do not put",
+        "ice"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}

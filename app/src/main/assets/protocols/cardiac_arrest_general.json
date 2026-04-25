@@ -9,7 +9,7 @@
   "steps": [
     {
       "step_id": "call_and_request_aed",
-      "canonical_text": "Call emergency services now. Ask any bystander to bring an AED if one is nearby.",
+      "canonical_text": "Tell one person to call emergency services now and another to bring an AED if one is nearby. If you are alone with an adult, call on speaker and start compressions immediately.",
       "must_keep_keywords": [
         "Call emergency services",
         "AED"
@@ -19,7 +19,7 @@
     },
     {
       "step_id": "hand_position",
-      "canonical_text": "Place the heel of one hand on the center of the chest, on the lower half of the breastbone. Place the other hand on top and interlock the fingers.",
+      "canonical_text": "Kneel beside the chest. Place the heel of one hand on the center of the chest on the lower half of the breastbone, then place your other hand on top and lock your elbows.",
       "must_keep_keywords": [
         "center of the chest",
         "heel of one hand"
@@ -29,7 +29,7 @@
     },
     {
       "step_id": "compressions_depth_rate",
-      "canonical_text": "Push hard and fast: about 5 centimeters deep at a rate of 100 to 120 per minute. Let the chest fully rise between pushes.",
+      "canonical_text": "Push hard and fast about 5 centimeters deep at a rate of 100 to 120 per minute. Count out loud and let the chest fully rise between pushes.",
       "must_keep_keywords": [
         "5 centimeters",
         "100 to 120 per minute"
@@ -39,7 +39,7 @@
     },
     {
       "step_id": "use_aed_when_available",
-      "canonical_text": "When an AED arrives, turn it on and follow the voice prompts. Keep doing compressions while pads are attached.",
+      "canonical_text": "When the AED arrives, turn it on and follow the voice prompts. Expose the chest, attach the pads, and keep doing compressions whenever the AED is not analyzing or shocking.",
       "must_keep_keywords": [
         "AED",
         "follow the voice prompts"
@@ -49,7 +49,7 @@
     },
     {
       "step_id": "continue_and_switch",
-      "canonical_text": "Do not stop compressions. If another helper is available, switch every two minutes to avoid fatigue. Continue until emergency services arrive or the person starts breathing normally.",
+      "canonical_text": "Do not stop compressions except for AED analysis or shock. If another helper is available, switch every two minutes to avoid fatigue. Continue until emergency services take over or the person starts breathing normally.",
       "must_keep_keywords": [
         "Do not stop",
         "switch"

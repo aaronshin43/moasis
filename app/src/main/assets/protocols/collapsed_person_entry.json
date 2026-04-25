@@ -6,7 +6,7 @@
     {
       "id": "scene_safe",
       "type": "question",
-      "prompt": "Is the area safe?",
+      "prompt": "Is the area safe? If not, move away from immediate danger and make the area as safe as you can before helping.",
       "slot_key": "scene_safe",
       "transitions": [
         {
@@ -15,20 +15,14 @@
         },
         {
           "when": "no",
-          "to": "safety_instruction"
+          "to": "responsive_check"
         }
       ]
     },
     {
-      "id": "safety_instruction",
-      "type": "instruction",
-      "instruction_id": "ensure_scene_safety",
-      "next": "responsive_check"
-    },
-    {
       "id": "responsive_check",
       "type": "question",
-      "prompt": "Is the person responsive?",
+      "prompt": "Is the person awake and responding? If not, leave them where they are, open the airway, and be ready to check breathing.",
       "slot_key": "responsive",
       "transitions": [
         {
@@ -37,7 +31,7 @@
         },
         {
           "when": "yes",
-          "to": "major_symptom_router"
+          "to": "bleeding_check"
         }
       ]
     },
@@ -58,27 +52,143 @@
       ]
     },
     {
-      "id": "major_symptom_router",
-      "type": "router",
-      "routes": [
+      "id": "bleeding_check",
+      "type": "question",
+      "prompt": "Is there heavy bleeding that is spurting, pooling, or soaking cloth quickly? Apply firm direct pressure now.",
+      "slot_key": "has_massive_bleeding",
+      "transitions": [
         {
-          "if": "has_massive_bleeding",
+          "when": "yes",
           "to_tree": "bleeding_tree"
         },
         {
-          "if": "has_choking_signs",
-          "to_tree": "choking_tree"
+          "when": "no",
+          "to": "choking_check"
+        }
+      ]
+    },
+    {
+      "id": "choking_check",
+      "type": "question",
+      "prompt": "Are they choking or unable to cough or speak? If they can cough, tell them to keep coughing.",
+      "slot_key": "has_choking_signs",
+      "transitions": [
+        {
+          "when": "yes",
+          "to": "choking_router"
         },
         {
-          "if": "has_seizure_signs",
+          "when": "no",
+          "to": "breathing_problem_check"
+        }
+      ]
+    },
+    {
+      "id": "choking_router",
+      "type": "router",
+      "routes": [
+        {
+          "if": "patient_type=infant",
+          "to_tree": "infant_choking_tree"
+        }
+      ],
+      "fallback_to": "choking_tree"
+    },
+    {
+      "id": "breathing_problem_check",
+      "type": "question",
+      "prompt": "Are they struggling to breathe, turning blue, or too breathless to speak? Sit them upright now.",
+      "slot_key": "has_breathing_problem",
+      "transitions": [
+        {
+          "when": "yes",
+          "to_tree": "breathing_problem_tree"
+        },
+        {
+          "when": "no",
+          "to": "seizure_check"
+        }
+      ]
+    },
+    {
+      "id": "seizure_check",
+      "type": "question",
+      "prompt": "Are they having a seizure or were they shaking and unresponsive? Move nearby objects away and protect their head.",
+      "slot_key": "has_seizure_signs",
+      "transitions": [
+        {
+          "when": "yes",
           "to_tree": "seizure_tree"
         },
         {
-          "if": "has_breathing_problem",
-          "to_tree": "breathing_problem_tree"
+          "when": "no",
+          "to": "chest_pain_check"
         }
-      ],
-      "fallback_to": "general_assessment_tree"
+      ]
+    },
+    {
+      "id": "chest_pain_check",
+      "type": "question",
+      "prompt": "Do they have chest pressure or pain, or pain spreading to the arm, jaw, neck, or back? Keep them resting.",
+      "slot_key": "has_chest_pain",
+      "transitions": [
+        {
+          "when": "yes",
+          "to_tree": "chest_pain_tree"
+        },
+        {
+          "when": "no",
+          "to": "stroke_check"
+        }
+      ]
+    },
+    {
+      "id": "stroke_check",
+      "type": "question",
+      "prompt": "Is there face drooping, arm weakness, or slurred speech? Note the time symptoms started.",
+      "slot_key": "has_stroke_signs",
+      "transitions": [
+        {
+          "when": "yes",
+          "to_tree": "stroke_fast_tree"
+        },
+        {
+          "when": "no",
+          "to": "allergy_check"
+        }
+      ]
+    },
+    {
+      "id": "allergy_check",
+      "type": "question",
+      "prompt": "Is there a severe allergic reaction with swelling of the lips or tongue, widespread hives, or breathing trouble? Use prescribed epinephrine if available.",
+      "slot_key": "has_anaphylaxis_signs",
+      "transitions": [
+        {
+          "when": "yes",
+          "to_tree": "anaphylaxis_tree"
+        },
+        {
+          "when": "no",
+          "to": "low_sugar_check"
+        }
+      ]
+    },
+    {
+      "id": "low_sugar_check",
+      "type": "question",
+      "prompt": "Are they diabetic, shaky, sweaty, or confused as if blood sugar may be low?",
+      "slot_key": "has_hypoglycemia_signs",
+      "transitions": [
+        {
+          "when": "yes",
+          "to_tree": "hypoglycemia_tree"
+        },
+        {
+          "when": "no",
+          "to_tree": "general_assessment_tree"
+        }
+      ]
     }
   ]
 }

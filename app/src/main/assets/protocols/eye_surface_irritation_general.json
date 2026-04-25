@@ -1,0 +1,39 @@
+{
+  "protocol_id": "eye_surface_irritation_general",
+  "title": "Surface eye irritation care",
+  "category": "trauma",
+  "required_slots": [],
+  "safety_flags": [],
+  "steps": [
+    {
+      "step_id": "blink_and_rinse",
+      "canonical_text": "Blink gently and rinse the eye with clean water or saline to flush out loose debris.",
+      "must_keep_keywords": [
+        "Blink gently",
+        "clean water"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "do_not_rub_surface_injury",
+      "canonical_text": "Do not rub the eye and do not touch the surface with tissues or cotton buds.",
+      "must_keep_keywords": [
+        "Do not rub",
+        "Do not touch the surface"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    },
+    {
+      "step_id": "seek_care_if_pain_or_vision_change",
+      "canonical_text": "Get urgent eye care if pain continues, light bothers the eye, or vision changes after rinsing.",
+      "must_keep_keywords": [
+        "urgent eye care",
+        "vision changes"
+      ],
+      "forbidden_keywords": [],
+      "asset_refs": []
+    }
+  ]
+}
