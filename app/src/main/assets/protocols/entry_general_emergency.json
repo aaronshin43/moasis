@@ -1,0 +1,60 @@
+{
+  "tree_id": "entry_general_emergency",
+  "version": "1.0",
+  "start_node": "scene_safe",
+  "nodes": [
+    {
+      "id": "scene_safe",
+      "type": "question",
+      "prompt": "Is the area safe?",
+      "slot_key": "scene_safe",
+      "transitions": [
+        {
+          "when": "yes",
+          "to": "major_symptom_router"
+        },
+        {
+          "when": "no",
+          "to": "safety_instruction"
+        }
+      ]
+    },
+    {
+      "id": "safety_instruction",
+      "type": "instruction",
+      "instruction_id": "ensure_scene_safety",
+      "next": "major_symptom_router"
+    },
+    {
+      "id": "major_symptom_router",
+      "type": "router",
+      "routes": [
+        {
+          "if": "collapse",
+          "to_tree": "collapsed_person_entry"
+        },
+        {
+          "if": "burn",
+          "to_tree": "burn_tree"
+        },
+        {
+          "if": "bleeding",
+          "to_tree": "bleeding_tree"
+        },
+        {
+          "if": "choking",
+          "to_tree": "choking_tree"
+        },
+        {
+          "if": "breathing_problem",
+          "to_tree": "breathing_problem_tree"
+        },
+        {
+          "if": "seizure",
+          "to_tree": "seizure_tree"
+        }
+      ],
+      "fallback_to": "general_assessment_tree"
+    }
+  ]
+}

@@ -18,6 +18,7 @@ data class EmergencyViewState(
     val transcriptDraft: String = "",
     val speechRequestKey: Int = 0,
     val attachedImagePaths: List<String> = emptyList(),
+    val chatHistory: List<ChatMessage> = emptyList(),
 )
 
 enum class ScreenMode {

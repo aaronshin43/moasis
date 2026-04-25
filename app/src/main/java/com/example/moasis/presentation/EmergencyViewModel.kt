@@ -85,6 +85,34 @@ class EmergencyViewModel(
         submitTurn(text = text)
     }
 
+    fun resetSession() {
+        cancelResponseJobs()
+        personalizedInstructions.clear()
+        questionAnswers.clear()
+        currentDialogueState = null
+        pendingImagePaths = emptyList()
+        recentSubmittedImagePaths = emptyList()
+        _viewState.value = EmergencyViewState(
+            screenMode = ScreenMode.HOME,
+            uiState = UiState(
+                title = "MOASIS",
+                primaryInstruction = "Offline emergency guidance",
+                secondaryInstruction = "Describe what happened to begin.",
+            ),
+            isAiEnabled = aiEnabled,
+            aiStatusText = _viewState.value.aiStatusText,
+            aiProgress = _viewState.value.aiProgress,
+            isAiPreparing = _viewState.value.isAiPreparing,
+            isAiReady = _viewState.value.isAiReady,
+            canRetryAiPreparation = _viewState.value.canRetryAiPreparation,
+            aiModelLabel = _viewState.value.aiModelLabel,
+            aiRouteText = _viewState.value.aiRouteText,
+            aiCacheSummaryText = _viewState.value.aiCacheSummaryText,
+            aiDiagnosticDetail = _viewState.value.aiDiagnosticDetail,
+            chatHistory = emptyList(),
+        )
+    }
+
     fun retryAiPreparation() {
         prepareAiModelIfNeeded(force = true)
     }
@@ -117,6 +145,17 @@ class EmergencyViewModel(
         pendingImagePaths = emptyList()
         _viewState.value = _viewState.value.copy(
             attachedImagePaths = recentSubmittedImagePaths,
+        )
+    }
+
+    fun clearSessionArtifacts() {
+        pendingImagePaths = emptyList()
+        recentSubmittedImagePaths = emptyList()
+        _viewState.value = _viewState.value.copy(
+            transcriptDraft = "",
+            attachedImagePaths = emptyList(),
+            chatHistory = emptyList(),
+            statusText = "Photos and transcripts cleared from this session.",
         )
     }
 
@@ -153,6 +192,10 @@ class EmergencyViewModel(
             return
         }
 
+        // Archive the current assistant response (if active) + user message into history.
+        val prevHistory = _viewState.value.chatHistory
+        val updatedHistory = buildUpdatedHistory(prevHistory, text)
+
         val result = dialogueStateManager.handleTurn(
             turn = turn,
             currentState = currentDialogueState,
@@ -171,7 +214,32 @@ class EmergencyViewModel(
             transcriptDraft = "",
             speechRequestKey = nextSpeechRequestKey(),
             attachedImagePaths = recentSubmittedImagePaths,
+            chatHistory = updatedHistory,
         )
+    }
+
+    private fun buildUpdatedHistory(prevHistory: List<ChatMessage>, userText: String): List<ChatMessage> {
+        val current = _viewState.value
+        val archivedAssistant: List<ChatMessage> = if (
+            current.screenMode == ScreenMode.ACTIVE &&
+            current.uiState.primaryInstruction.isNotBlank()
+        ) {
+            val us = current.uiState
+            listOf(
+                ChatMessage.Assistant(
+                    title = us.title,
+                    primaryInstruction = us.primaryInstruction,
+                    secondaryInstruction = us.secondaryInstruction,
+                    warningText = us.warningText,
+                    visualAids = us.visualAids,
+                    currentStep = us.currentStep,
+                    totalSteps = us.totalSteps,
+                )
+            )
+        } else {
+            emptyList()
+        }
+        return prevHistory + archivedAssistant + ChatMessage.User(userText)
     }
 
     private fun handleAction(action: UiAction) {
@@ -182,39 +250,14 @@ class EmergencyViewModel(
                 forceSpeak = true,
             )
             UiAction.RetryAiPreparation -> retryAiPreparation()
-            UiAction.Back -> {
-                cancelResponseJobs()
-                personalizedInstructions.clear()
-                questionAnswers.clear()
-                currentDialogueState = null
-                _viewState.value = EmergencyViewState(
-                    screenMode = ScreenMode.HOME,
-                    uiState = UiState(
-                        title = "MOASIS",
-                        primaryInstruction = "Offline emergency guidance",
-                        secondaryInstruction = "Describe what happened to begin.",
-                    ),
-                    isAiEnabled = aiEnabled,
-                    aiStatusText = _viewState.value.aiStatusText,
-                    aiProgress = _viewState.value.aiProgress,
-                    isAiPreparing = _viewState.value.isAiPreparing,
-                    isAiReady = _viewState.value.isAiReady,
-                    canRetryAiPreparation = _viewState.value.canRetryAiPreparation,
-                    aiModelLabel = _viewState.value.aiModelLabel,
-                    aiRouteText = _viewState.value.aiRouteText,
-                    aiCacheSummaryText = _viewState.value.aiCacheSummaryText,
-                    aiDiagnosticDetail = _viewState.value.aiDiagnosticDetail,
-                    attachedImagePaths = emptyList(),
-                )
-                pendingImagePaths = emptyList()
-                recentSubmittedImagePaths = emptyList()
-            }
+            UiAction.Back -> resetSession()
             UiAction.CallEmergency -> refreshCurrentState("Call emergency services now if the situation is immediately life-threatening.")
             is UiAction.SubmitText -> submitText(action.text)
         }
     }
 
     private fun refreshCurrentState(statusText: String, forceSpeak: Boolean = false) {
+        val preservedHistory = _viewState.value.chatHistory
         _viewState.value = when (val dialogueState = currentDialogueState) {
             is DialogueState.ProtocolMode -> buildProtocolViewState(dialogueState, statusText)
             is DialogueState.EntryMode -> buildEntryViewState(dialogueState, statusText)
@@ -223,11 +266,8 @@ class EmergencyViewModel(
             DialogueState.Completed -> buildCompletedViewState()
             null -> _viewState.value.copy(statusText = statusText)
         }.let {
-            if (forceSpeak) {
-                it.copy(speechRequestKey = nextSpeechRequestKey())
-            } else {
-                it
-            }
+            val base = it.copy(chatHistory = preservedHistory)
+            if (forceSpeak) base.copy(speechRequestKey = nextSpeechRequestKey()) else base
         }
     }
 
