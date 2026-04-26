@@ -19,9 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -66,7 +64,9 @@ fun ChatScreen(
     var isSettingsSheetOpen by remember { mutableStateOf(false) }
     var isNewSessionMenuOpen by remember { mutableStateOf(false) }
     var composerText by remember { mutableStateOf("") }
-    val isInputLockedForAi = viewState.isAiEnabled && !viewState.isAiReady
+    val isInputLockedForAi =
+        (viewState.isAiEnabled && !viewState.isAiReady) ||
+            (viewState.isEmbeddingEnabled && !viewState.isEmbeddingReady)
 
     val listState = rememberLazyListState()
     val historySize = viewState.chatHistory.size
@@ -84,23 +84,6 @@ fun ChatScreen(
                 onMenuClick = { isSessionsDrawerOpen = true },
                 onNewSessionClick = { isNewSessionMenuOpen = true },
             )
-
-            // AI preparation progress
-            if (viewState.isAiPreparing || viewState.aiProgress != null) {
-                LinearProgressIndicator(
-                    progress = { viewState.aiProgress ?: 0f },
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
-            if (isInputLockedForAi) {
-                Text(
-                    text = viewState.aiStatusText ?: "Preparing AI model. Input is temporarily locked.",
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
 
             // Chat list
             LazyColumn(
@@ -136,7 +119,6 @@ fun ChatScreen(
                                 CurrentStepBlock(
                                     uiState = viewState.uiState,
                                     quickReplies = viewState.quickResponses,
-                                    statusText = viewState.statusText,
                                     isInputEnabled = !isInputLockedForAi,
                                     onQuickReply = onSubmitText,
                                     onAction = onAction,

@@ -589,9 +589,10 @@ class EmergencyViewModel(
         }
         val warningText = buildWarningText(step)
         val personalizationKey = protocolPersonalizationKey(dialogueState)
+        val hasPersonalizedInstruction = personalizedInstructions[personalizationKey] != null
         val personalizedInstruction = personalizedInstructions[personalizationKey] ?: step.canonicalText
 
-        if (aiEnabled && personalizedInstructions[personalizationKey] == null) {
+        if (aiEnabled && !hasPersonalizedInstruction) {
             requestProtocolPersonalization(
                 dialogueState = dialogueState,
                 protocol = protocol,
@@ -603,22 +604,22 @@ class EmergencyViewModel(
         return EmergencyViewState(
             screenMode = ScreenMode.ACTIVE,
             uiState = UiState(
-                title = protocol.title,
-                primaryInstruction = personalizedInstruction,
-                secondaryInstruction = if (aiEnabled) {
-                    "Melange on-device phrasing"
-                } else {
-                    "Deterministic guidance mode"
-                },
+                title = if (aiEnabled && !hasPersonalizedInstruction) "" else protocol.title,
+                primaryInstruction = if (aiEnabled && !hasPersonalizedInstruction) "" else personalizedInstruction,
+                secondaryInstruction = null,
                 guidanceOriginLabel = protocolGuidanceOriginLabel(
-                    hasPersonalizedInstruction = personalizedInstructions[personalizationKey] != null,
+                    hasPersonalizedInstruction = hasPersonalizedInstruction,
                 ),
-                warningText = warningText,
-                visualAids = visualAssetRepository.getAssetsForStep(protocol.protocolId, step.stepId),
-                currentStep = dialogueState.stepIndex + 1,
-                totalSteps = protocol.steps.size,
+                warningText = if (aiEnabled && !hasPersonalizedInstruction) null else warningText,
+                visualAids = if (aiEnabled && !hasPersonalizedInstruction) {
+                    emptyList()
+                } else {
+                    visualAssetRepository.getAssetsForStep(protocol.protocolId, step.stepId)
+                },
+                currentStep = if (aiEnabled && !hasPersonalizedInstruction) 0 else dialogueState.stepIndex + 1,
+                totalSteps = if (aiEnabled && !hasPersonalizedInstruction) 0 else protocol.steps.size,
                 isSpeaking = dialogueState.isSpeaking,
-                showCallEmergencyButton = protocol.safetyFlags.any { it.contains("emergency_call") },
+                isAiAnswerPending = aiEnabled && !hasPersonalizedInstruction,
             ),
             statusText = statusText,
             quickResponses = emptyList(),
@@ -656,13 +657,12 @@ class EmergencyViewModel(
         return EmergencyViewState(
             screenMode = ScreenMode.ACTIVE,
             uiState = UiState(
-                title = treeTitle(dialogueState.treeId),
+                title = "",
                 primaryInstruction = node.prompt ?: "Answer the next question.",
-                secondaryInstruction = "Use the quickest accurate answer you can.",
-                guidanceOriginLabel = "Deterministic entry triage",
+                secondaryInstruction = null,
+                guidanceOriginLabel = null,
                 currentStep = 0,
                 totalSteps = 0,
-                showCallEmergencyButton = dialogueState.treeId == "collapsed_person_entry",
             ),
             statusText = statusText,
             quickResponses = if (node.type == "question") listOf("Yes", "No") else emptyList(),
@@ -707,24 +707,17 @@ class EmergencyViewModel(
         return EmergencyViewState(
             screenMode = ScreenMode.ACTIVE,
             uiState = UiState(
-                title = protocol.title,
-                primaryInstruction = answerResult?.resumeText ?: step.canonicalText,
-                secondaryInstruction = answerResult?.answerText
-                    ?: if (aiEnabled) {
-                        "Generating an on-device answer for the current step."
-                    } else {
-                        "Clarification captured. AI responses are disabled in this stage, so the app stays on the current step."
-                    },
-                guidanceOriginLabel = when {
-                    answerResult != null -> "AI answer with deterministic step resume"
-                    aiEnabled -> "Deterministic step while AI answer is pending"
-                    else -> "Deterministic canonical step"
+                title = "",
+                primaryInstruction = answerResult?.answerText.orEmpty(),
+                secondaryInstruction = answerResult?.resumeText?.takeIf { it.isNotBlank() }?.let {
+                    "Continue with the current step."
                 },
-                warningText = buildWarningText(step),
-                visualAids = visualAssetRepository.getAssetsForStep(protocol.protocolId, step.stepId),
-                currentStep = dialogueState.stepIndex + 1,
-                totalSteps = protocol.steps.size,
-                showCallEmergencyButton = protocol.safetyFlags.any { it.contains("emergency_call") },
+                guidanceOriginLabel = null,
+                warningText = null,
+                visualAids = emptyList(),
+                currentStep = 0,
+                totalSteps = 0,
+                isAiAnswerPending = aiEnabled && answerResult == null,
             ),
             statusText = statusTextOverride ?: answerResult?.fallbackReason ?: if (aiEnabled) {
                 "Question received. Melange is preparing a short answer on-device."
@@ -764,7 +757,6 @@ class EmergencyViewModel(
                 secondaryInstruction = "A higher-priority report interrupted the current step. Continue with the new report from here.",
                 guidanceOriginLabel = "Deterministic re-triage",
                 warningText = "Leave the current step and reassess immediately.",
-                showCallEmergencyButton = true,
             ),
             statusText = statusTextOverride ?: "Current step suspended by a higher-priority change.",
             quickResponses = emptyList(),
@@ -1184,17 +1176,25 @@ class EmergencyViewModel(
                 )
             }
             personalizedInstructions[cacheKey] = response.spokenText
+            val stepWarningText = buildWarningText(step)
 
             val currentState = currentDialogueState
             if (currentState is DialogueState.ProtocolMode && protocolPersonalizationKey(currentState) == cacheKey) {
                 _viewState.value = _viewState.value.copy(
                     uiState = _viewState.value.uiState.copy(
+                        title = protocol.title,
                         primaryInstruction = response.spokenText,
+                        secondaryInstruction = null,
                         guidanceOriginLabel = if (response.usedFallback) {
                             "Canonical step retained after AI validation"
                         } else {
                             "AI-personalized step wording"
                         },
+                        warningText = stepWarningText,
+                        visualAids = visualAssetRepository.getAssetsForStep(protocol.protocolId, step.stepId),
+                        currentStep = dialogueState.stepIndex + 1,
+                        totalSteps = protocol.steps.size,
+                        isAiAnswerPending = false,
                     ),
                     statusText = response.fallbackReason ?: _viewState.value.statusText,
                 )
@@ -1222,13 +1222,15 @@ class EmergencyViewModel(
             if (currentState is DialogueState.QuestionMode && questionAnswerKey(currentState) == cacheKey) {
                 _viewState.value = _viewState.value.copy(
                     uiState = _viewState.value.uiState.copy(
-                        primaryInstruction = answerResult.resumeText,
-                        secondaryInstruction = answerResult.answerText,
-                        guidanceOriginLabel = if (answerResult.usedFallback) {
-                            "Deterministic resume after AI fallback"
-                        } else {
-                            "AI answer with deterministic step resume"
-                        },
+                        title = "",
+                        primaryInstruction = answerResult.answerText,
+                        secondaryInstruction = "Continue with the current step.",
+                        guidanceOriginLabel = null,
+                        warningText = null,
+                        visualAids = emptyList(),
+                        currentStep = 0,
+                        totalSteps = 0,
+                        isAiAnswerPending = false,
                     ),
                     statusText = answerResult.fallbackReason ?: "Returning to the current step.",
                 )

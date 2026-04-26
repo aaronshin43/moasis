@@ -17,6 +17,7 @@ data class UiState(
     val isListening: Boolean = false,
     val isSpeaking: Boolean = false,
     val showCallEmergencyButton: Boolean = false,
+    val isAiAnswerPending: Boolean = false,
 )
 
 @Serializable
