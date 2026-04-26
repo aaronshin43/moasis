@@ -30,6 +30,9 @@ enum class LlmRequestMode {
     @SerialName("personalize_step")
     PERSONALIZE_STEP,
 
+    @SerialName("personalize_question")
+    PERSONALIZE_QUESTION,
+
     @SerialName("answer_question")
     ANSWER_QUESTION,
 }

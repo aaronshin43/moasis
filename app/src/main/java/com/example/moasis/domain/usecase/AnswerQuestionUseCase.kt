@@ -12,6 +12,7 @@ class AnswerQuestionUseCase(
         protocolId: String,
         stepIndex: Int,
         userQuestion: String,
+        slots: Map<String, String> = emptyMap(),
     ): QuestionAnswerResult {
         val protocol = requireNotNull(protocolRepository.getProtocol(protocolId)) {
             "Missing protocol for $protocolId"
@@ -24,6 +25,7 @@ class AnswerQuestionUseCase(
             protocol = protocol,
             step = step,
             userQuestion = userQuestion,
+            slots = slots,
         )
         val resumeText = buildResumeText(step.canonicalText)
         return QuestionAnswerResult(

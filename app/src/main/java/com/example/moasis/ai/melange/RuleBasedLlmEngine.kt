@@ -25,6 +25,14 @@ class RuleBasedLlmEngine(
                     resumePolicy = ResumePolicy.RESUME_SAME_STEP,
                 )
 
+                LlmRequestMode.PERSONALIZE_QUESTION -> LlmResponse(
+                    responseType = LlmResponseType.PERSONALIZED_STEP,
+                    spokenText = request.canonicalText,
+                    summaryText = request.canonicalText,
+                    safetyNotes = emptyList(),
+                    resumePolicy = ResumePolicy.RESUME_SAME_STEP,
+                )
+
                 LlmRequestMode.ANSWER_QUESTION -> LlmResponse(
                     responseType = LlmResponseType.QUESTION_ANSWER,
                     spokenText = answerQuestion(request),

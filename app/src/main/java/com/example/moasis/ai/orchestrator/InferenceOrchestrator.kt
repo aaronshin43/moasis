@@ -36,15 +36,37 @@ class InferenceOrchestrator(
         protocol: Protocol,
         step: ProtocolStep,
         userQuestion: String,
+        slots: Map<String, String> = emptyMap(),
     ): OrchestratedResponse {
         val request = promptFactory.buildAnswerQuestionRequest(
             scenarioId = scenarioId,
             protocol = protocol,
             step = step,
             userQuestion = userQuestion,
+            slots = slots,
         )
         val response = llmEngine.generate(request)
         return validateQuestionAnswerOrFallback(step, response)
+    }
+
+    fun personalizeQuestion(
+        scenarioId: String,
+        treeId: String,
+        nodeId: String,
+        questionText: String,
+        slots: Map<String, String>,
+        targetListener: String = "patient",
+    ): OrchestratedResponse {
+        val request = promptFactory.buildPersonalizeQuestionRequest(
+            scenarioId = scenarioId,
+            treeId = treeId,
+            nodeId = nodeId,
+            questionText = questionText,
+            slots = slots,
+            targetListener = targetListener,
+        )
+        val response = llmEngine.generate(request)
+        return validateQuestionPersonalizationOrFallback(questionText, response)
     }
 
     private fun validatePersonalizationOrFallback(
@@ -102,6 +124,36 @@ class InferenceOrchestrator(
         if (!validation.isValid) {
             safeLogWarn(
                 "Question-answer fallback reason=\"${validation.reason}\" responsePreview=\"${llmResponse.spokenText.preview()}\" canonicalStep=${step.stepId}",
+            )
+        }
+        return OrchestratedResponse(
+            spokenText = validation.resolvedText,
+            usedFallback = !validation.isValid,
+            fallbackReason = validation.reason,
+        )
+    }
+
+    private fun validateQuestionPersonalizationOrFallback(
+        canonicalQuestion: String,
+        response: Result<LlmResponse>,
+    ): OrchestratedResponse {
+        val llmResponse = response.getOrNull()
+        if (llmResponse == null) {
+            safeLogWarn("LLM question personalization failed. Falling back to canonical question.")
+            return OrchestratedResponse(
+                spokenText = canonicalQuestion,
+                usedFallback = true,
+                fallbackReason = response.exceptionOrNull()?.message ?: "LLM call failed.",
+            )
+        }
+
+        val validation = responseValidator.validatePersonalizedStep(
+            canonicalText = canonicalQuestion,
+            responseText = llmResponse.spokenText,
+        )
+        if (!validation.isValid) {
+            safeLogWarn(
+                "Question personalization fallback reason=\"${validation.reason}\" responsePreview=\"${llmResponse.spokenText.preview()}\"",
             )
         }
         return OrchestratedResponse(

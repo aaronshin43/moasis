@@ -33,6 +33,7 @@ sealed class DialogueState {
         val stepIndex: Int,
         val userQuestion: String,
         val returnToStepIndex: Int,
+        val slots: Map<String, String> = emptyMap(),
     ) : DialogueState()
 
     @Serializable

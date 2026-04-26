@@ -41,6 +41,7 @@ class PromptFactory {
         protocol: Protocol,
         step: ProtocolStep,
         userQuestion: String,
+        slots: Map<String, String> = emptyMap(),
     ): LlmRequest {
         return LlmRequest(
             mode = LlmRequestMode.ANSWER_QUESTION,
@@ -48,6 +49,7 @@ class PromptFactory {
             protocolId = protocol.protocolId,
             currentStepId = step.stepId,
             canonicalText = step.canonicalText,
+            slots = slots,
             userQuestion = userQuestion,
             constraints = LlmConstraints(
                 answerOnlyWithinCurrentContext = true,
@@ -57,6 +59,33 @@ class PromptFactory {
                 forbiddenContent = step.forbiddenKeywords,
             ),
             knownProhibitions = step.forbiddenKeywords,
+        )
+    }
+
+    fun buildPersonalizeQuestionRequest(
+        scenarioId: String,
+        treeId: String,
+        nodeId: String,
+        questionText: String,
+        slots: Map<String, String>,
+        targetListener: String = "patient",
+    ): LlmRequest {
+        return LlmRequest(
+            mode = LlmRequestMode.PERSONALIZE_QUESTION,
+            scenarioId = scenarioId,
+            protocolId = treeId,
+            currentStepId = nodeId,
+            canonicalText = questionText,
+            slots = slots,
+            constraints = LlmConstraints(
+                doNotAddNewSteps = true,
+                doNotRemoveRequiredDetails = true,
+            ),
+            style = LlmStyle(
+                tone = "calm",
+                length = "short",
+                targetListener = targetListener,
+            ),
         )
     }
 }

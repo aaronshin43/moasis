@@ -109,6 +109,7 @@ class DialogueStateManager(
                     stepIndex = currentState.stepIndex,
                     userQuestion = text,
                     returnToStepIndex = currentState.stepIndex,
+                    slots = currentState.slots,
                 ),
                 protocolId = currentState.protocolId,
                 stepId = protocolRepository.getProtocol(currentState.protocolId)
@@ -159,6 +160,7 @@ class DialogueStateManager(
             scenarioId = currentState.scenarioId,
             protocolId = currentState.protocolId,
             stepIndex = currentState.returnToStepIndex,
+            slots = currentState.slots,
             suspendedByQuestion = false,
             isSpeaking = false,
         )

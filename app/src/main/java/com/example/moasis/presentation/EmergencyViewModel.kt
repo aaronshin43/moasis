@@ -89,10 +89,12 @@ class EmergencyViewModel(
     private var earlierSessionsFromDb: List<EmergencySessionSummary> = emptyList()
     private var personalizationJob: Job? = null
     private var questionAnswerJob: Job? = null
+    private var entryPromptPersonalizationJob: Job? = null
     private var aiPreparationJob: Job? = null
     private var visionPreparationJob: Job? = null
     private var visionDetectionJob: Job? = null
     private val personalizedInstructions = mutableMapOf<String, String>()
+    private val personalizedEntryPrompts = mutableMapOf<String, String>()
     private val questionAnswers = mutableMapOf<String, QuestionAnswerResult>()
 
     init {
@@ -143,6 +145,7 @@ class EmergencyViewModel(
     fun resetSession() {
         cancelResponseJobs()
         personalizedInstructions.clear()
+        personalizedEntryPrompts.clear()
         questionAnswers.clear()
         currentDialogueState = null
         pendingImagePaths = emptyList()
@@ -653,16 +656,31 @@ class EmergencyViewModel(
         val node = requireNotNull(tree.nodes.firstOrNull { it.id == dialogueState.nodeId }) {
             "Missing node ${dialogueState.nodeId} for ${dialogueState.treeId}"
         }
+        val entryPromptKey = entryPromptPersonalizationKey(dialogueState)
+        val personalizedPrompt = personalizedEntryPrompts[entryPromptKey]
+        val isEntryPromptPending = aiEnabled && personalizedPrompt == null && !node.prompt.isNullOrBlank()
+        if (aiEnabled && personalizedPrompt == null && !node.prompt.isNullOrBlank()) {
+            requestEntryPromptPersonalization(
+                dialogueState = dialogueState,
+                questionText = node.prompt,
+                cacheKey = entryPromptKey,
+            )
+        }
 
         return EmergencyViewState(
             screenMode = ScreenMode.ACTIVE,
             uiState = UiState(
                 title = "",
-                primaryInstruction = node.prompt ?: "Answer the next question.",
+                primaryInstruction = if (isEntryPromptPending) {
+                    ""
+                } else {
+                    personalizedPrompt ?: node.prompt ?: "Answer the next question."
+                },
                 secondaryInstruction = null,
                 guidanceOriginLabel = null,
                 currentStep = 0,
                 totalSteps = 0,
+                isAiAnswerPending = isEntryPromptPending,
             ),
             statusText = statusText,
             quickResponses = if (node.type == "question") listOf("Yes", "No") else emptyList(),
@@ -1214,6 +1232,7 @@ class EmergencyViewModel(
                     protocolId = dialogueState.protocolId,
                     stepIndex = dialogueState.stepIndex,
                     userQuestion = dialogueState.userQuestion,
+                    slots = dialogueState.slots,
                 )
             }
             questionAnswers[cacheKey] = answerResult
@@ -1233,6 +1252,36 @@ class EmergencyViewModel(
                         isAiAnswerPending = false,
                     ),
                     statusText = answerResult.fallbackReason ?: "Returning to the current step.",
+                )
+            }
+        }
+    }
+
+    private fun requestEntryPromptPersonalization(
+        dialogueState: DialogueState.EntryMode,
+        questionText: String,
+        cacheKey: String,
+    ) {
+        entryPromptPersonalizationJob?.cancel()
+        entryPromptPersonalizationJob = viewModelScope.launch {
+            val response = withContext(Dispatchers.IO) {
+                inferenceOrchestrator.personalizeQuestion(
+                    scenarioId = dialogueState.treeId,
+                    treeId = dialogueState.treeId,
+                    nodeId = dialogueState.nodeId,
+                    questionText = questionText,
+                    slots = dialogueState.slots,
+                )
+            }
+            personalizedEntryPrompts[cacheKey] = response.spokenText
+
+            val currentState = currentDialogueState
+            if (currentState is DialogueState.EntryMode && entryPromptPersonalizationKey(currentState) == cacheKey) {
+                _viewState.value = _viewState.value.copy(
+                    uiState = _viewState.value.uiState.copy(
+                        primaryInstruction = response.spokenText,
+                        isAiAnswerPending = false,
+                    ),
                 )
             }
         }
@@ -1291,9 +1340,16 @@ class EmergencyViewModel(
         return "${dialogueState.scenarioId}|${dialogueState.protocolId}|${dialogueState.stepIndex}|${dialogueState.userQuestion}"
     }
 
+    private fun entryPromptPersonalizationKey(dialogueState: DialogueState.EntryMode): String {
+        val slotsHash = dialogueState.slots.toSortedMap().entries.joinToString { "${it.key}=${it.value}" }
+        return "${dialogueState.treeId}|${dialogueState.nodeId}|$slotsHash"
+    }
+
     private fun cancelResponseJobs() {
+        entryPromptPersonalizationJob?.cancel()
         personalizationJob?.cancel()
         questionAnswerJob?.cancel()
+        entryPromptPersonalizationJob = null
         personalizationJob = null
         questionAnswerJob = null
     }
