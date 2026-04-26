@@ -105,6 +105,7 @@ class EmergencyViewModel(
             isAiPreparing = _viewState.value.isAiPreparing,
             isAiReady = _viewState.value.isAiReady,
             canRetryAiPreparation = _viewState.value.canRetryAiPreparation,
+            isOfflineModeEnabled = _viewState.value.isOfflineModeEnabled,
             aiModelLabel = _viewState.value.aiModelLabel,
             aiRouteText = _viewState.value.aiRouteText,
             aiCacheSummaryText = _viewState.value.aiCacheSummaryText,
@@ -115,6 +116,10 @@ class EmergencyViewModel(
 
     fun retryAiPreparation() {
         prepareAiModelIfNeeded(force = true)
+    }
+
+    fun setOfflineModeEnabled(enabled: Boolean) {
+        _viewState.value = _viewState.value.copy(isOfflineModeEnabled = enabled)
     }
 
     fun updateListening(isListening: Boolean) {
@@ -349,6 +354,7 @@ class EmergencyViewModel(
             isAiPreparing = _viewState.value.isAiPreparing,
             isAiReady = _viewState.value.isAiReady,
             canRetryAiPreparation = _viewState.value.canRetryAiPreparation,
+            isOfflineModeEnabled = _viewState.value.isOfflineModeEnabled,
             aiModelLabel = _viewState.value.aiModelLabel,
             aiRouteText = _viewState.value.aiRouteText,
             aiCacheSummaryText = _viewState.value.aiCacheSummaryText,
@@ -388,6 +394,7 @@ class EmergencyViewModel(
             isAiPreparing = _viewState.value.isAiPreparing,
             isAiReady = _viewState.value.isAiReady,
             canRetryAiPreparation = _viewState.value.canRetryAiPreparation,
+            isOfflineModeEnabled = _viewState.value.isOfflineModeEnabled,
             aiModelLabel = _viewState.value.aiModelLabel,
             aiRouteText = _viewState.value.aiRouteText,
             aiCacheSummaryText = _viewState.value.aiCacheSummaryText,
@@ -448,6 +455,7 @@ class EmergencyViewModel(
             isAiPreparing = _viewState.value.isAiPreparing,
             isAiReady = _viewState.value.isAiReady,
             canRetryAiPreparation = _viewState.value.canRetryAiPreparation,
+            isOfflineModeEnabled = _viewState.value.isOfflineModeEnabled,
             aiModelLabel = _viewState.value.aiModelLabel,
             aiRouteText = _viewState.value.aiRouteText,
             aiCacheSummaryText = _viewState.value.aiCacheSummaryText,
@@ -479,6 +487,7 @@ class EmergencyViewModel(
             isAiPreparing = _viewState.value.isAiPreparing,
             isAiReady = _viewState.value.isAiReady,
             canRetryAiPreparation = _viewState.value.canRetryAiPreparation,
+            isOfflineModeEnabled = _viewState.value.isOfflineModeEnabled,
             aiModelLabel = _viewState.value.aiModelLabel,
             aiRouteText = _viewState.value.aiRouteText,
             aiCacheSummaryText = _viewState.value.aiCacheSummaryText,
@@ -505,6 +514,7 @@ class EmergencyViewModel(
             isAiPreparing = _viewState.value.isAiPreparing,
             isAiReady = _viewState.value.isAiReady,
             canRetryAiPreparation = _viewState.value.canRetryAiPreparation,
+            isOfflineModeEnabled = _viewState.value.isOfflineModeEnabled,
             aiModelLabel = _viewState.value.aiModelLabel,
             aiRouteText = _viewState.value.aiRouteText,
             aiCacheSummaryText = _viewState.value.aiCacheSummaryText,

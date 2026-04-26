@@ -13,6 +13,7 @@ data class EmergencyViewState(
     val isAiPreparing: Boolean = false,
     val isAiReady: Boolean = false,
     val canRetryAiPreparation: Boolean = false,
+    val isOfflineModeEnabled: Boolean = false,
     val aiModelLabel: String? = null,
     val aiRouteText: String? = null,
     val aiCacheSummaryText: String? = null,

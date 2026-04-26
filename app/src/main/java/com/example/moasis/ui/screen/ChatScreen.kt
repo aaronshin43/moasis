@@ -43,14 +43,13 @@ fun ChatScreen(
     viewState: EmergencyViewState,
     onSubmitText: (String) -> Unit,
     onResetSession: () -> Unit,
-    onClearSessionArtifacts: () -> Unit,
+    onOfflineModeChange: (Boolean) -> Unit,
     onVoiceInput: () -> Unit,
     onPickImage: () -> Unit,
     onCaptureImage: () -> Unit,
     onClearImages: () -> Unit,
     onRemoveImage: (String) -> Unit,
     onAction: (UiAction) -> Unit,
-    onRetryAiPreparation: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var isSessionsDrawerOpen by remember { mutableStateOf(false) }
@@ -195,14 +194,8 @@ fun ChatScreen(
                         .clickable(onClick = { isSettingsSheetOpen = false }),
                 )
                 SettingsSheet(
-                    isAiReady = viewState.isAiReady,
-                    isAiPreparing = viewState.isAiPreparing,
-                    aiStatusText = viewState.aiStatusText,
-                    canRetryAi = viewState.canRetryAiPreparation,
-                    onClearSessionArtifacts = onClearSessionArtifacts,
-                    onRetryAi = {
-                        onRetryAiPreparation()
-                    },
+                    isOfflineModeEnabled = viewState.isOfflineModeEnabled,
+                    onOfflineModeChange = onOfflineModeChange,
                     onClose = { isSettingsSheetOpen = false },
                     modifier = Modifier.align(Alignment.BottomCenter),
                 )
