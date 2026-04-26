@@ -34,6 +34,7 @@ import com.example.moasis.domain.nlu.RegexIntentMatcher
 import com.example.moasis.domain.safety.KeywordResponseValidator
 import com.example.moasis.domain.state.DialogueStateManager
 import com.example.moasis.domain.usecase.AnswerQuestionUseCase
+import com.example.moasis.presentation.EmbeddingPreparationStateHolder
 import com.example.moasis.presentation.EmergencyViewModelFactory
 import com.example.moasis.ui.EmergencyApp
 import com.example.moasis.ui.theme.MoasisTheme
@@ -75,11 +76,26 @@ class MainActivity : ComponentActivity() {
             modelModeName = BuildConfig.EMBEDDING_MODEL_MODE,
         )
         val embeddingEnabled = BuildConfig.EMBEDDING_ENABLED && embeddingConfig.isConfigured
+        val embeddingPreparationStateHolder = EmbeddingPreparationStateHolder().also { holder ->
+            if (embeddingEnabled) {
+                val initialStatus = if (aiEnabled) {
+                    "Waiting for the main AI model before preparing the embedding model."
+                } else {
+                    "Preparing local embedding model."
+                }
+                holder.markPreparing(initialStatus)
+            } else {
+                holder.markDisabled()
+            }
+        }
         val visionConfig = MelangeVisionRuntimeConfig(
             personalKey = BuildConfig.VISION_PERSONAL_KEY,
             modelName = BuildConfig.VISION_MODEL_NAME,
             modelVersion = BuildConfig.VISION_MODEL_VERSION.takeIf { it >= 0 },
             modelModeName = BuildConfig.VISION_MODEL_MODE,
+            quantTypeName = BuildConfig.VISION_QUANT_TYPE.takeIf { it.isNotBlank() },
+            targetName = BuildConfig.VISION_TARGET.takeIf { it.isNotBlank() },
+            apTypeName = resolveVisionApType(BuildConfig.VISION_AP_TYPE),
         )
         val visionEnabled = BuildConfig.VISION_ENABLED && visionConfig.isConfigured
         Log.d(
@@ -89,7 +105,7 @@ class MainActivity : ComponentActivity() {
         if (visionEnabled) {
             Log.d(
                 TAG,
-                "YOLO detector enabled=true model=${visionConfig.modelName} version=${visionConfig.modelVersion ?: "latest"} mode=${visionConfig.modelModeName}",
+                "YOLO detector enabled=true model=${visionConfig.modelName} version=${visionConfig.modelVersion ?: "latest"} mode=${visionConfig.modelModeName} target=${visionConfig.targetName ?: "auto"} ap=${visionConfig.apTypeName ?: "auto"} quant=${visionConfig.quantTypeName ?: "auto"}",
             )
         }
         val intentClassifier = if (embeddingEnabled) {
@@ -128,8 +144,8 @@ class MainActivity : ComponentActivity() {
         }
         val visionDetectionEngine = melangeVisionModelManager?.let { MelangeYoloDetectionEngine(it) }
         when {
-            aiEnabled && embeddingEnabled -> preloadEmbeddingModelAfterLlmReady()
-            embeddingEnabled -> preloadEmbeddingModel()
+            aiEnabled && embeddingEnabled -> preloadEmbeddingModelAfterLlmReady(embeddingPreparationStateHolder)
+            embeddingEnabled -> preloadEmbeddingModel(embeddingPreparationStateHolder)
         }
         val inferenceOrchestrator = InferenceOrchestrator(
             llmEngine = llmEngine,
@@ -156,6 +172,7 @@ class MainActivity : ComponentActivity() {
             melangeModelManager = melangeModelManager,
             melangeVisionModelManager = melangeVisionModelManager,
             visionDetectionEngine = visionDetectionEngine,
+            embeddingPreparationStateHolder = embeddingPreparationStateHolder,
             aiEnabled = aiEnabled,
         )
         setContent {
@@ -178,44 +195,59 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
     }
 
-    private fun preloadEmbeddingModel() {
+    private fun preloadEmbeddingModel(
+        embeddingPreparationStateHolder: EmbeddingPreparationStateHolder,
+    ) {
         val modelManager = melangeEmbeddingModelManager ?: return
         if (modelManager.isPreparedInMemory()) {
             Log.d(TAG, "Embedding model ready")
+            embeddingPreparationStateHolder.markReady()
             return
         }
+        embeddingPreparationStateHolder.markPreparing("Preparing local embedding model.")
         lifecycleScope.launch(Dispatchers.IO) {
             modelManager.getOrCreateSession()
                 .onSuccess {
                     Log.d(TAG, "Embedding model ready")
+                    embeddingPreparationStateHolder.markReady()
                 }
                 .onFailure { throwable ->
                     val detail = throwable.message?.takeIf { it.isNotBlank() } ?: throwable::class.java.simpleName
                     Log.w(TAG, "Embedding model prepare failed: $detail")
+                    embeddingPreparationStateHolder.markFailed(
+                        "Embedding model preparation failed. $detail",
+                    )
                 }
         }
     }
 
-    private fun preloadEmbeddingModelAfterLlmReady() {
+    private fun preloadEmbeddingModelAfterLlmReady(
+        embeddingPreparationStateHolder: EmbeddingPreparationStateHolder,
+    ) {
         val embeddingManager = melangeEmbeddingModelManager ?: return
         val llmManager = melangeModelManager ?: run {
-            preloadEmbeddingModel()
+            preloadEmbeddingModel(embeddingPreparationStateHolder)
             return
         }
         if (embeddingManager.isPreparedInMemory()) {
             Log.d(TAG, "Embedding model ready")
+            embeddingPreparationStateHolder.markReady()
             return
         }
         lifecycleScope.launch(Dispatchers.IO) {
             repeat(120) {
                 if (llmManager.isPreparedInMemory()) {
                     Log.d(TAG, "LLM model ready. Starting deferred embedding preload.")
-                    preloadEmbeddingModel()
+                    embeddingPreparationStateHolder.markPreparing("Preparing local embedding model.")
+                    preloadEmbeddingModel(embeddingPreparationStateHolder)
                     return@launch
                 }
                 delay(500)
             }
             Log.w(TAG, "LLM model was not ready within the wait window. Skipping deferred embedding preload.")
+            embeddingPreparationStateHolder.markFailed(
+                "Embedding model preparation did not start because the main AI model was not ready in time.",
+            )
         }
     }
 
@@ -244,6 +276,33 @@ class MainActivity : ComponentActivity() {
 
         val resolved = if (isQualcomm) "GPU" else "CPU"
         Log.d(TAG, "Resolved Melange APType=$resolved from requested=AUTO")
+        return resolved
+    }
+
+    private fun resolveVisionApType(requestedApType: String): String? {
+        val normalized = requestedApType.trim().uppercase()
+        if (normalized.isBlank()) {
+            return null
+        }
+        if (normalized != "AUTO") {
+            Log.d(TAG, "Using configured vision APType=$normalized")
+            return normalized
+        }
+
+        val isQualcomm = sequenceOf(
+            Build.SOC_MANUFACTURER,
+            Build.HARDWARE,
+            Build.BOARD,
+            Build.PRODUCT,
+        )
+            .filterNotNull()
+            .map { it.lowercase() }
+            .any { value ->
+                "qualcomm" in value || "qcom" in value || "snapdragon" in value
+            }
+
+        val resolved = if (isQualcomm) "NPU" else "CPU"
+        Log.d(TAG, "Resolved vision APType=$resolved from requested=AUTO")
         return resolved
     }
 }

@@ -77,6 +77,15 @@ val visionModelVersion = providers.gradleProperty("MOASIS_VISION_MODEL_VERSION")
 val visionModelMode = providers.gradleProperty("MOASIS_VISION_MODEL_MODE")
     .orElse("RUN_AUTO")
     .get()
+val visionQuantType = providers.gradleProperty("MOASIS_VISION_QUANT_TYPE")
+    .orElse("")
+    .get()
+val visionTarget = providers.gradleProperty("MOASIS_VISION_TARGET")
+    .orElse("")
+    .get()
+val visionApType = providers.gradleProperty("MOASIS_VISION_AP_TYPE")
+    .orElse("AUTO")
+    .get()
 val uploadStoreFile = providers.gradleProperty("MOASIS_UPLOAD_STORE_FILE").orNull
 val uploadStorePassword = providers.gradleProperty("MOASIS_UPLOAD_STORE_PASSWORD").orNull
 val uploadKeyAlias = providers.gradleProperty("MOASIS_UPLOAD_KEY_ALIAS").orNull
@@ -112,6 +121,9 @@ android {
         buildConfigField("String", "VISION_MODEL_NAME", visionModelName.toBuildConfigString())
         buildConfigField("int", "VISION_MODEL_VERSION", visionModelVersion.toString())
         buildConfigField("String", "VISION_MODEL_MODE", visionModelMode.toBuildConfigString())
+        buildConfigField("String", "VISION_QUANT_TYPE", visionQuantType.toBuildConfigString())
+        buildConfigField("String", "VISION_TARGET", visionTarget.toBuildConfigString())
+        buildConfigField("String", "VISION_AP_TYPE", visionApType.toBuildConfigString())
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

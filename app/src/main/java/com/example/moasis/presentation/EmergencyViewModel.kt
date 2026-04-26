@@ -52,6 +52,7 @@ class EmergencyViewModel(
     private val melangeModelManager: MelangeModelManager? = null,
     private val melangeVisionModelManager: MelangeVisionModelManager? = null,
     private val visionDetectionEngine: VisionDetectionEngine? = null,
+    private val embeddingPreparationStateHolder: EmbeddingPreparationStateHolder? = null,
     private val aiEnabled: Boolean = BuildConfig.AI_ENABLED,
 ) : ViewModel() {
     private var speechRequestKeyCounter: Int = 0
@@ -66,6 +67,10 @@ class EmergencyViewModel(
                 secondaryInstruction = "Describe what happened to begin.",
             ),
             isAiEnabled = aiEnabled,
+            isEmbeddingEnabled = embeddingPreparationStateHolder?.currentState()?.isEnabled == true,
+            embeddingStatusText = embeddingPreparationStateHolder?.currentState()?.statusText,
+            isEmbeddingPreparing = embeddingPreparationStateHolder?.currentState()?.isPreparing == true,
+            isEmbeddingReady = embeddingPreparationStateHolder?.currentState()?.isReady == true,
             aiModelLabel = melangeModelManager?.configuredModelLabel(),
             aiCacheSummaryText = melangeModelManager?.inspectCache()?.summaryText(),
         )
@@ -96,6 +101,18 @@ class EmergencyViewModel(
                 repository.observeEarlierSessions().collectLatest { sessions ->
                     earlierSessionsFromDb = sessions
                     publishEarlierSessions()
+                }
+            }
+        }
+        embeddingPreparationStateHolder?.let { holder ->
+            viewModelScope.launch {
+                holder.state.collectLatest { state ->
+                    _viewState.value = _viewState.value.copy(
+                        isEmbeddingEnabled = state.isEnabled,
+                        embeddingStatusText = state.statusText,
+                        isEmbeddingPreparing = state.isPreparing,
+                        isEmbeddingReady = state.isReady,
+                    )
                 }
             }
         }
@@ -149,6 +166,10 @@ class EmergencyViewModel(
             isAiPreparing = _viewState.value.isAiPreparing,
             isAiReady = _viewState.value.isAiReady,
             canRetryAiPreparation = _viewState.value.canRetryAiPreparation,
+            isEmbeddingEnabled = _viewState.value.isEmbeddingEnabled,
+            embeddingStatusText = _viewState.value.embeddingStatusText,
+            isEmbeddingPreparing = _viewState.value.isEmbeddingPreparing,
+            isEmbeddingReady = _viewState.value.isEmbeddingReady,
             isOfflineModeEnabled = _viewState.value.isOfflineModeEnabled,
             aiModelLabel = _viewState.value.aiModelLabel,
             aiRouteText = _viewState.value.aiRouteText,
@@ -812,7 +833,8 @@ class EmergencyViewModel(
     }
 
     private fun isInputBlockedUntilAiReady(): Boolean {
-        return aiEnabled && !_viewState.value.isAiReady
+        return (aiEnabled && !_viewState.value.isAiReady) ||
+            (_viewState.value.isEmbeddingEnabled && !_viewState.value.isEmbeddingReady)
     }
 
     private fun treeTitle(treeId: String): String {
@@ -1352,6 +1374,7 @@ class EmergencyViewModelFactory(
     private val melangeModelManager: MelangeModelManager? = null,
     private val melangeVisionModelManager: MelangeVisionModelManager? = null,
     private val visionDetectionEngine: VisionDetectionEngine? = null,
+    private val embeddingPreparationStateHolder: EmbeddingPreparationStateHolder? = null,
     private val aiEnabled: Boolean = BuildConfig.AI_ENABLED,
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
@@ -1367,6 +1390,7 @@ class EmergencyViewModelFactory(
                 melangeModelManager = melangeModelManager,
                 melangeVisionModelManager = melangeVisionModelManager,
                 visionDetectionEngine = visionDetectionEngine,
+                embeddingPreparationStateHolder = embeddingPreparationStateHolder,
                 aiEnabled = aiEnabled,
             ) as T
         }

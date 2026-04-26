@@ -29,6 +29,7 @@ import com.example.moasis.imaging.ImageInputController
 import com.example.moasis.presentation.EmergencyViewModel
 import com.example.moasis.presentation.EmergencyViewModelFactory
 import com.example.moasis.presentation.ScreenMode
+import com.example.moasis.ui.screen.AiModelLoadingScreen
 import com.example.moasis.ui.screen.ChatScreen
 
 @Composable
@@ -38,7 +39,14 @@ fun EmergencyApp(
 ) {
     val viewModel: EmergencyViewModel = viewModel(factory = factory)
     val viewState by viewModel.viewState.collectAsStateWithLifecycle()
-    val isInputLockedForAi = viewState.isAiEnabled && !viewState.isAiReady
+    val isInputLockedForAi =
+        (viewState.isAiEnabled && !viewState.isAiReady) ||
+            (viewState.isEmbeddingEnabled && !viewState.isEmbeddingReady)
+    val shouldShowStartupLoadingScreen =
+        ((viewState.isAiEnabled && !viewState.isAiReady) ||
+            (viewState.isEmbeddingEnabled && !viewState.isEmbeddingReady)) &&
+            viewState.screenMode == ScreenMode.HOME &&
+            viewState.chatHistory.isEmpty()
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val imageInputController = remember(context) { ImageInputController(context) }
@@ -210,21 +218,34 @@ fun EmergencyApp(
         }
     }
 
-    ChatScreen(
-        viewState = viewState,
-        onSubmitText = viewModel::submitText,
-        onResetSession = viewModel::startNewSession,
-        onOpenSession = viewModel::openEarlierSession,
-        onDeleteSession = viewModel::deleteEarlierSession,
-        onOfflineModeChange = viewModel::setOfflineModeEnabled,
-        onVoiceInput = ::startListening,
-        onPickImage = ::openGalleryPicker,
-        onCaptureImage = ::captureImage,
-        onClearImages = viewModel::clearPendingImages,
-        onRemoveImage = viewModel::removeAttachedImage,
-        onAction = { action -> viewModel.reduce(com.example.moasis.presentation.AppEvent.UserTappedAction(action)) },
-        modifier = modifier,
-    )
+    if (shouldShowStartupLoadingScreen) {
+        AiModelLoadingScreen(
+            aiStatusText = viewState.aiStatusText,
+            aiProgress = viewState.aiProgress,
+            aiDownloadedBytes = viewState.aiDownloadedBytes,
+            aiModelLabel = viewState.aiModelLabel,
+            aiRouteText = viewState.aiRouteText,
+            embeddingStatusText = viewState.embeddingStatusText,
+            isEmbeddingEnabled = viewState.isEmbeddingEnabled,
+            modifier = modifier,
+        )
+    } else {
+        ChatScreen(
+            viewState = viewState,
+            onSubmitText = viewModel::submitText,
+            onResetSession = viewModel::startNewSession,
+            onOpenSession = viewModel::openEarlierSession,
+            onDeleteSession = viewModel::deleteEarlierSession,
+            onOfflineModeChange = viewModel::setOfflineModeEnabled,
+            onVoiceInput = ::startListening,
+            onPickImage = ::openGalleryPicker,
+            onCaptureImage = ::captureImage,
+            onClearImages = viewModel::clearPendingImages,
+            onRemoveImage = viewModel::removeAttachedImage,
+            onAction = { action -> viewModel.reduce(com.example.moasis.presentation.AppEvent.UserTappedAction(action)) },
+            modifier = modifier,
+        )
+    }
 }
 
 private fun attachImageFromUri(
