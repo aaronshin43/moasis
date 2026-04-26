@@ -24,45 +24,43 @@ class MelangeSentenceEmbedder(
         }
         Log.d(TAG, "Embedding request batchSize=${texts.size}")
         val session = modelManager.peekSession() ?: run {
-            Log.d(TAG, "Embedding session not ready in memory. Falling back to regex path.")
+            // Log.d(TAG, "Embedding session not ready in memory. Falling back to regex path.")
             return emptyList()
         }
         val metadata = session.metadata
         val maxSequenceLength = metadata.profileResult.inputTensors.firstOrNull()?.shape?.lastOrNull()
             ?: run {
-                Log.e(TAG, "Embedding metadata has no input tensor shape")
+                // Log.e(TAG, "Embedding metadata has no input tensor shape")
                 return emptyList()
             }
 
         return texts.map { text ->
             runCatching {
                 val tokenized = tokenizer.encode(text, maxSequenceLength)
-                Log.d(
-                    TAG,
-                    "Tokenized text=\"${text.preview()}\" tokens=${tokenized.nonPaddingTokenCount} maxSeq=$maxSequenceLength",
-                )
+                // Log.d(
+                //     TAG,
+                //     "Tokenized text=\"${text.preview()}\" tokens=${tokenized.nonPaddingTokenCount} maxSeq=$maxSequenceLength",
+                // )
                 val inputs = metadata.profileResult.inputTensors.map { tensorInfo ->
                     createInputTensor(tensorInfo.name, tensorInfo.dtype, tensorInfo.shape, tokenized)
                 }.toTypedArray()
-                Log.d(
-                    TAG,
-                    "Running embedding model inputs=${metadata.profileResult.inputTensors.map { "${it.name}:${it.dtype}:${it.shape}" }}",
-                )
+                // Log.d(
+                //     TAG,
+                //     "Running embedding model inputs=${metadata.profileResult.inputTensors.map { "${it.name}:${it.dtype}:${it.shape}" }}",
+                // )
 
                 val outputs = session.model.run(inputs)
-                Log.d(
-                    TAG,
-                    "Embedding model returned outputs=${metadata.profileResult.outputTensors.map { "${it.name}:${it.dtype}:${it.shape}" }} actualCount=${outputs.size}",
-                )
+                // Log.d(
+                //     TAG,
+                //     "Embedding model returned outputs=${metadata.profileResult.outputTensors.map { "${it.name}:${it.dtype}:${it.shape}" }} actualCount=${outputs.size}",
+                // )
                 extractSentenceEmbedding(
                     outputs = outputs,
                     metadata = metadata,
                     attentionMask = tokenized.attentionMask,
-                ).also {
-                    Log.d(TAG, "Extracted embedding length=${it.size} for text=\"${text.preview()}\"")
-                }
+                )
             }.onFailure { throwable ->
-                Log.e(TAG, "Embedding generation failed for text=\"${text.preview()}\"", throwable)
+                // Log.e(TAG, "Embedding generation failed for text=\"${text.preview()}\"", throwable)
             }.getOrDefault(FloatArray(0))
         }
     }

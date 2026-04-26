@@ -29,18 +29,18 @@ class MelangeEmbeddingModelManager(
 
     fun getOrCreateSession(): Result<EmbeddingModelSession> {
         if (!config.isConfigured) {
-            Log.w(TAG, "Embedding runtime is not configured")
+            // Log.w(TAG, "Embedding runtime is not configured")
             return Result.failure(IllegalStateException("Embedding runtime is not configured."))
         }
 
         cachedSession?.let {
-            Log.d(TAG, "Reusing cached embedding session for ${config.modelName}")
+            // Log.d(TAG, "Reusing cached embedding session for ${config.modelName}")
             return Result.success(it)
         }
 
         synchronized(lock) {
             cachedSession?.let {
-                Log.d(TAG, "Reusing cached embedding session for ${config.modelName} after lock")
+                // Log.d(TAG, "Reusing cached embedding session for ${config.modelName} after lock")
                 return Result.success(it)
             }
 
@@ -62,10 +62,10 @@ class MelangeEmbeddingModelManager(
                     )
                 }
                 val metadata = model.readMetadata()
-                Log.d(
-                    TAG,
-                    "Embedding model metadata loaded inputs=${metadata.profileResult.inputTensors.map { it.name to it.shape }} outputs=${metadata.profileResult.outputTensors.map { it.name to it.shape }}",
-                )
+                // Log.d(
+                //     TAG,
+                //     "Embedding model metadata loaded inputs=${metadata.profileResult.inputTensors.map { it.name to it.shape }} outputs=${metadata.profileResult.outputTensors.map { it.name to it.shape }}",
+                // )
                 EmbeddingModelSession(model = model, metadata = metadata)
             }.onSuccess {
                 cachedSession = it

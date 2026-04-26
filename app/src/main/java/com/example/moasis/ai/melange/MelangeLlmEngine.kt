@@ -94,62 +94,37 @@ class MelangeLlmEngine(
     }
 
     private fun buildPrompt(request: LlmRequest): String {
-        return if (modelManager.configuredModelName().contains("qwen", ignoreCase = true)) {
-            buildQwenPrompt(request)
-        } else {
-            buildGenericPrompt(request)
+        val modelName = modelManager.configuredModelName()
+        return when {
+            modelName.contains("qwen", ignoreCase = true) -> buildQwenPrompt(request)
+            modelName.contains("medgemma", ignoreCase = true) -> buildMedGemmaPrompt(request)
+            modelName.contains("gemma", ignoreCase = true) -> buildGemmaPrompt(request)
+            else -> buildGenericPrompt(request)
         }
     }
 
     private fun buildGenericPrompt(request: LlmRequest): String {
-        val keepKeywords = request.constraints.keepKeywords
-            .joinToString(", ")
-            .ifBlank { "none" }
-        val forbiddenContent = request.constraints.forbiddenContent
-            .joinToString(", ")
-            .ifBlank { "none" }
-        val slotSummary = request.slots.entries
-            .joinToString(separator = "\n") { (key, value) -> "- $key: $value" }
-            .ifBlank { "- none" }
-
         val systemPrompt = buildString {
-            appendLine("You are assisting with first-aid guidance.")
-            appendLine("Stay within the provided protocol step.")
-            appendLine("Do not add new actions, diagnoses, or reordered steps.")
-            appendLine("Keep this response short and directly actionable.")
-            appendLine("Do not output thinking, reasoning traces, or <think> tags.")
-            appendLine("Required keywords must appear verbatim, exactly as written.")
-            appendLine("Do not paraphrase or substitute the required keywords.")
+            appendLine("You are a first-aid assistant.")
+            appendLine("Stay within the current protocol step.")
+            appendLine("Do not add diagnosis or extra steps.")
+            appendLine("Reply briefly with direct spoken guidance.")
         }.trim()
 
         val userPrompt = buildString {
-            appendLine("Scenario: ${request.scenarioId}")
-            appendLine("Protocol: ${request.protocolId}")
-            appendLine("Current step: ${request.stepId ?: request.currentStepId ?: "unknown"}")
-            appendLine("Canonical instruction: ${request.canonicalText}")
-            appendLine("Required keywords: $keepKeywords")
-            appendLine("Forbidden content: $forbiddenContent")
-            appendLine("Slots:")
-            appendLine(slotSummary)
-
             when (request.mode) {
                 LlmRequestMode.PERSONALIZE_STEP -> {
-                    appendLine("Task: Rewrite the canonical instruction for the target listener.")
-                    appendLine("Target listener: ${request.style?.targetListener ?: "caregiver"}")
-                    appendLine("Tone: ${request.style?.tone ?: "calm"}")
-                    appendLine("Length: ${request.style?.length ?: "short"}")
-                    appendLine("Respond in one sentence, ideally under 24 words.")
-                    appendLine("Prefer the canonical wording. Only simplify tone and phrasing around the required keywords.")
-                    appendLine("Return only the spoken instruction.")
+                    appendLine("Rewrite this step as one short spoken instruction.")
+                    appendLine("Step: ${request.canonicalText}")
+                    appendLine("Keep exactly: ${request.constraints.keepKeywords.joinToString(", ").ifBlank { "none" }}")
+                    appendLine("Listener: ${request.style?.targetListener ?: "caregiver"}")
                 }
 
                 LlmRequestMode.ANSWER_QUESTION -> {
-                    appendLine("Task: Answer the user question briefly, then remain aligned to the current step.")
-                    appendLine("User question: ${request.userQuestion.orEmpty()}")
-                    appendLine("Known prohibitions: ${request.knownProhibitions.joinToString(", ").ifBlank { "none" }}")
-                    appendLine("Respond in one or two short sentences, ideally under 40 words.")
-                    appendLine("If required keywords apply to this step, include them verbatim.")
-                    appendLine("Return only the answer text.")
+                    appendLine("Answer the question briefly and stay aligned with this step.")
+                    appendLine("Question: ${request.userQuestion.orEmpty()}")
+                    appendLine("Step: ${request.canonicalText}")
+                    appendLine("Avoid: ${request.constraints.forbiddenContent.joinToString(", ").ifBlank { "none" }}")
                 }
             }
         }.trim()
@@ -163,6 +138,94 @@ class MelangeLlmEngine(
             append(userPrompt)
             append('\n')
             append("<|turn>model\n")
+        }
+    }
+
+    private fun buildGemmaPrompt(request: LlmRequest): String {
+        val systemPrompt = buildString {
+            appendLine("You are a first-aid assistant.")
+            appendLine("Use only the current step.")
+            appendLine("Do not add diagnosis, extra steps, or reasoning.")
+            appendLine("Reply with short spoken guidance.")
+        }.trim()
+
+        val userPrompt = buildString {
+            when (request.mode) {
+                LlmRequestMode.PERSONALIZE_STEP -> {
+                    appendLine("Rewrite this step for speech in one short sentence.")
+                    appendLine("Keep these words exact: ${request.constraints.keepKeywords.joinToString(", ").ifBlank { "none" }}")
+                    appendLine("Step: ${request.canonicalText}")
+                    appendLine("Listener: ${request.style?.targetListener ?: "caregiver"}")
+                    appendLine("Start with: Please")
+                }
+
+                LlmRequestMode.ANSWER_QUESTION -> {
+                    appendLine("Answer the question in one or two short sentences.")
+                    appendLine("Do not repeat the whole step unless needed.")
+                    appendLine("If the action is unsafe, say not to do it and keep the answer aligned with the step.")
+                    appendLine("Question: ${request.userQuestion.orEmpty()}")
+                    appendLine("Current step: ${request.canonicalText}")
+                    appendLine("Known unsafe content: ${request.constraints.forbiddenContent.joinToString(", ").ifBlank { "none" }}")
+                    appendLine("Start with: Please")
+                }
+            }
+        }.trim()
+
+        return buildString {
+            append("<bos>")
+            append("<start_of_turn>user\n")
+            append("System:\n")
+            append(systemPrompt)
+            append("\n\nUser:\n")
+            append(userPrompt)
+            append("\n<end_of_turn>\n")
+            append("<start_of_turn>model\n")
+            append("Please ")
+        }
+    }
+
+    private fun buildMedGemmaPrompt(request: LlmRequest): String {
+        val systemPrompt = "First-aid assistant. Use only the current step. No diagnosis. No extra steps. No reasoning."
+
+        val userPrompt = when (request.mode) {
+            LlmRequestMode.PERSONALIZE_STEP -> {
+                buildString {
+                    append("Rewrite for speech in one short sentence. ")
+                    append("Keep exact: ")
+                    append(request.constraints.keepKeywords.joinToString(", ").ifBlank { "none" })
+                    append(". Step: ")
+                    append(request.canonicalText)
+                    append(". Listener: ")
+                    append(request.style?.targetListener ?: "caregiver")
+                    append(".")
+                }
+            }
+
+            LlmRequestMode.ANSWER_QUESTION -> {
+                buildString {
+                    append("Answer briefly and stay aligned with the current step. ")
+                    append("If unsafe, say not to do it. ")
+                    append("Question: ")
+                    append(request.userQuestion.orEmpty())
+                    append(". Step: ")
+                    append(request.canonicalText)
+                    append(". Avoid: ")
+                    append(request.constraints.forbiddenContent.joinToString(", ").ifBlank { "none" })
+                    append(".")
+                }
+            }
+        }
+
+        return buildString {
+            append("<bos>")
+            append("<start_of_turn>user\n")
+            append("System: ")
+            append(systemPrompt)
+            append("\nUser: ")
+            append(userPrompt)
+            append("\n<end_of_turn>\n")
+            append("<start_of_turn>model\n")
+            append("Please ")
         }
     }
 
@@ -232,6 +295,9 @@ class MelangeLlmEngine(
             .replace(Regex("</?think>", RegexOption.IGNORE_CASE), " ")
             .replace("<|turn>model", " ")
             .replace("<|turn|>", " ")
+            .replace("<start_of_turn>model", " ")
+            .replace("<start_of_turn>user", " ")
+            .replace("<end_of_turn>", " ")
             .replace("<eos>", " ")
             .replace("<bos>", " ")
             .replace(Regex("\\s+"), " ")

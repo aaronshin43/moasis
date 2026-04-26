@@ -613,25 +613,38 @@ class EmergencyViewModel(
                         )
                     },
                     onStatusChanged = { status ->
-                        val statusText = when (status) {
-                            ModelLoadingStatus.UNKNOWN -> "Checking AI model."
-                            ModelLoadingStatus.PENDING -> "Preparing AI model."
-                            ModelLoadingStatus.DOWNLOADING -> "Downloading AI model."
-                            ModelLoadingStatus.TRANSFERRING -> "Finalizing AI model files."
-                            ModelLoadingStatus.COMPLETED -> "AI model ready on device."
-                            ModelLoadingStatus.FAILED -> "AI model preparation failed."
-                            ModelLoadingStatus.CANCELED -> "AI model download canceled."
-                            ModelLoadingStatus.WAITING_FOR_WIFI -> "Waiting for Wi-Fi to continue AI model download."
-                            ModelLoadingStatus.NOT_INSTALLED -> "AI model not installed yet. Download will start if network is available."
-                            ModelLoadingStatus.REQUIRES_USER_CONFIRMATION -> "AI model download needs user confirmation."
+                        val isTransientBackendFailure =
+                            status == ModelLoadingStatus.FAILED && !modelManager.isPreparedInMemory()
+
+                        val statusText = when {
+                            isTransientBackendFailure ->
+                                "One local accelerator path failed. Trying an alternate runtime."
+                            else -> when (status) {
+                                ModelLoadingStatus.UNKNOWN -> "Checking AI model."
+                                ModelLoadingStatus.PENDING -> "Preparing AI model."
+                                ModelLoadingStatus.DOWNLOADING -> "Downloading AI model."
+                                ModelLoadingStatus.TRANSFERRING -> "Finalizing AI model files."
+                                ModelLoadingStatus.COMPLETED -> "AI model ready on device."
+                                ModelLoadingStatus.FAILED -> "AI model preparation failed."
+                                ModelLoadingStatus.CANCELED -> "AI model download canceled."
+                                ModelLoadingStatus.WAITING_FOR_WIFI -> "Waiting for Wi-Fi to continue AI model download."
+                                ModelLoadingStatus.NOT_INSTALLED -> "AI model not installed yet. Download will start if network is available."
+                                ModelLoadingStatus.REQUIRES_USER_CONFIRMATION -> "AI model download needs user confirmation."
+                            }
                         }
                         publishAiState(
                             statusText = statusText,
                             progress = if (status == ModelLoadingStatus.COMPLETED) 1f else _viewState.value.aiProgress,
                             isPreparing = status != ModelLoadingStatus.COMPLETED,
                             isReady = status == ModelLoadingStatus.COMPLETED,
-                            canRetry = status == ModelLoadingStatus.FAILED || status == ModelLoadingStatus.CANCELED || status == ModelLoadingStatus.WAITING_FOR_WIFI,
-                            routeText = statusToRouteText(status),
+                            canRetry = when {
+                                isTransientBackendFailure -> false
+                                else -> status == ModelLoadingStatus.FAILED || status == ModelLoadingStatus.CANCELED || status == ModelLoadingStatus.WAITING_FOR_WIFI
+                            },
+                            routeText = statusToRouteText(
+                                status = status,
+                                treatFailedAsTransient = isTransientBackendFailure,
+                            ),
                             diagnosticDetail = _viewState.value.aiDiagnosticDetail,
                         )
                     },
@@ -769,14 +782,21 @@ class EmergencyViewModel(
         }
     }
 
-    private fun statusToRouteText(status: ModelLoadingStatus): String {
+    private fun statusToRouteText(
+        status: ModelLoadingStatus,
+        treatFailedAsTransient: Boolean = false,
+    ): String {
         return when (status) {
             ModelLoadingStatus.UNKNOWN -> "Startup cache and model check"
             ModelLoadingStatus.PENDING -> "Model constructor and metadata setup"
             ModelLoadingStatus.DOWNLOADING -> "Model payload download in progress"
             ModelLoadingStatus.TRANSFERRING -> "Model payload transfer and finalization"
             ModelLoadingStatus.COMPLETED -> _viewState.value.aiRouteText ?: "Local model ready"
-            ModelLoadingStatus.FAILED -> _viewState.value.aiRouteText ?: "Model preparation failed"
+            ModelLoadingStatus.FAILED -> if (treatFailedAsTransient) {
+                "Local accelerator/backend probing"
+            } else {
+                _viewState.value.aiRouteText ?: "Model preparation failed"
+            }
             ModelLoadingStatus.CANCELED -> "Model preparation canceled"
             ModelLoadingStatus.WAITING_FOR_WIFI -> "Waiting for network policy clearance"
             ModelLoadingStatus.NOT_INSTALLED -> "Play Asset Delivery lookup"
