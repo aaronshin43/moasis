@@ -44,12 +44,6 @@ fun ChatGreeting(
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
-                text = "Hi",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
                 text = "What's the\nemergency?",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Medium,
