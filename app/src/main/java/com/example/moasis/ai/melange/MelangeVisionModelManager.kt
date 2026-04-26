@@ -2,7 +2,10 @@ package com.example.moasis.ai.melange
 
 import android.content.Context
 import android.util.Log
+import com.zeticai.mlange.core.model.APType
 import com.zeticai.mlange.core.model.ModelMode
+import com.zeticai.mlange.core.model.QuantType
+import com.zeticai.mlange.core.model.Target
 import com.zeticai.mlange.core.model.ZeticMLangeModel
 import com.zeticai.mlange.core.model.ZeticMLangeModelMetadata
 
@@ -24,7 +27,10 @@ class MelangeVisionModelManager(
 
     fun configuredModelLabel(): String {
         val versionSuffix = config.modelVersion?.let { " v$it" }.orEmpty()
-        return "${config.modelName}$versionSuffix (${config.modelModeName})"
+        val targetSuffix = config.targetName?.takeIf { it.isNotBlank() } ?: config.modelModeName
+        val apSuffix = config.apTypeName?.takeIf { it.isNotBlank() }?.let { "/$it" }.orEmpty()
+        val quantSuffix = config.quantTypeName?.takeIf { it.isNotBlank() }?.let { "/$it" }.orEmpty()
+        return "${config.modelName}$versionSuffix ($targetSuffix$apSuffix$quantSuffix)"
     }
 
     fun getOrCreateSession(): Result<VisionModelSession> {
@@ -39,20 +45,14 @@ class MelangeVisionModelManager(
 
             Log.d(
                 TAG,
-                "Creating detector session model=${config.modelName} version=${config.modelVersion ?: "latest"} mode=${config.modelModeName}",
+                "Creating detector session model=${config.modelName} version=${config.modelVersion ?: "latest"} mode=${config.modelModeName} target=${config.targetName ?: "auto"} ap=${config.apTypeName ?: "auto"} quant=${config.quantTypeName ?: "auto"}",
             )
             return runCatching {
                 val model = MelangeInitCoordinator.runExclusive(
                     modelType = "vision",
                     modelName = config.modelName,
                 ) {
-                    ZeticMLangeModel(
-                        context = appContext,
-                        personalKey = config.personalKey,
-                        name = config.modelName,
-                        version = config.modelVersion,
-                        modelMode = resolveModelMode(config.modelModeName),
-                    )
+                    createModel()
                 }
                 val session = VisionModelSession(
                     model = model,
@@ -65,6 +65,32 @@ class MelangeVisionModelManager(
         }
     }
 
+    private fun createModel(): ZeticMLangeModel {
+        val targetName = config.targetName?.takeIf { it.isNotBlank() }
+        val apTypeName = config.apTypeName?.takeIf { it.isNotBlank() }
+        val quantTypeName = config.quantTypeName?.takeIf { it.isNotBlank() }
+
+        if (targetName != null && apTypeName != null) {
+            return ZeticMLangeModel(
+                context = appContext,
+                personalKey = config.personalKey,
+                name = config.modelName,
+                version = config.modelVersion,
+                target = resolveTarget(targetName),
+                apType = resolveApType(apTypeName),
+            )
+        }
+
+        return ZeticMLangeModel(
+            context = appContext,
+            personalKey = config.personalKey,
+            name = config.modelName,
+            version = config.modelVersion,
+            modelMode = resolveModelMode(config.modelModeName),
+            quantType = quantTypeName?.let(::resolveQuantType),
+        )
+    }
+
     fun release() {
         synchronized(lock) {
             runCatching { cachedSession?.model?.close() }
@@ -75,6 +101,21 @@ class MelangeVisionModelManager(
     private fun resolveModelMode(modeName: String): ModelMode {
         return runCatching { ModelMode.valueOf(modeName) }
             .getOrDefault(ModelMode.RUN_AUTO)
+    }
+
+    private fun resolveQuantType(quantTypeName: String): QuantType {
+        return runCatching { QuantType.valueOf(quantTypeName) }
+            .getOrDefault(QuantType.FP32)
+    }
+
+    private fun resolveTarget(targetName: String): Target {
+        return runCatching { Target.valueOf(targetName) }
+            .getOrElse { error("Unsupported vision target: $targetName") }
+    }
+
+    private fun resolveApType(apTypeName: String): APType {
+        return runCatching { APType.valueOf(apTypeName) }
+            .getOrElse { error("Unsupported vision APType: $apTypeName") }
     }
 
     private fun ZeticMLangeModel.readMetadata(): ZeticMLangeModelMetadata {

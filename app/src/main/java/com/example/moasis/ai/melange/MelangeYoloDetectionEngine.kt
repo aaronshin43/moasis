@@ -95,6 +95,13 @@ class MelangeYoloDetectionEngine(
 
         val values = DataUtils.convertByteBufferToFloatArray(firstOutput.data.duplicate())
         val rawDetections = when {
+            shape[1] == 300 && shape[2] == 38 ->
+                parsePostNmsYoloeSegmentation(
+                    values = values,
+                    proposalCount = shape[1],
+                    channelCount = shape[2],
+                    metadata = metadata,
+                )
             shape[1] in 5..256 && shape[2] > shape[1] ->
                 parseChannelFirstYolo(values, channelCount = shape[1], proposalCount = shape[2])
             shape[2] in 5..256 && shape[1] > shape[2] ->
@@ -113,6 +120,56 @@ class MelangeYoloDetectionEngine(
             objects = filtered,
             rawObjects = deduplicated.sortedByDescending { it.confidence }.take(MAX_RESULTS),
         )
+    }
+
+    private fun parsePostNmsYoloeSegmentation(
+        values: FloatArray,
+        proposalCount: Int,
+        channelCount: Int,
+        metadata: ZeticMLangeModelMetadata,
+    ): List<DetectedObject> {
+        val inputShape = metadata.profileResult.inputTensors.firstOrNull()?.shape.orEmpty()
+        val inputWidth = when {
+            inputShape.size == 4 && inputShape[1] == 3 -> inputShape[3].toFloat()
+            inputShape.size == 4 && inputShape.last() == 3 -> inputShape[2].toFloat()
+            else -> 640f
+        }
+        val inputHeight = when {
+            inputShape.size == 4 && inputShape[1] == 3 -> inputShape[2].toFloat()
+            inputShape.size == 4 && inputShape.last() == 3 -> inputShape[1].toFloat()
+            else -> 640f
+        }
+
+        return buildList {
+            for (proposalIndex in 0 until proposalCount) {
+                val offset = proposalIndex * channelCount
+                val left = values[offset]
+                val top = values[offset + 1]
+                val right = values[offset + 2]
+                val bottom = values[offset + 3]
+                val score = values[offset + 4]
+                val classId = values[offset + 5].toInt()
+                if (score < SCORE_THRESHOLD) {
+                    continue
+                }
+                if (right <= left || bottom <= top) {
+                    continue
+                }
+
+                add(
+                    DetectedObject(
+                        label = labelForClassId(classId),
+                        confidence = score,
+                        boundingBox = NormalizedBoundingBox(
+                            left = clamp01(left / inputWidth),
+                            top = clamp01(top / inputHeight),
+                            right = clamp01(right / inputWidth),
+                            bottom = clamp01(bottom / inputHeight),
+                        ),
+                    ),
+                )
+            }
+        }
     }
 
     private fun parseChannelFirstYolo(
@@ -193,10 +250,14 @@ class MelangeYoloDetectionEngine(
         }
 
         return DetectedObject(
-            label = COCO_LABELS[bestIndex],
+            label = labelForClassId(bestIndex),
             confidence = bestScore,
             boundingBox = NormalizedBoundingBox(left, top, right, bottom),
         )
+    }
+
+    private fun labelForClassId(classId: Int): String {
+        return COCO_LABELS.getOrNull(classId) ?: "class_$classId"
     }
 
     private fun nonMaxSuppression(detections: List<DetectedObject>): List<DetectedObject> {
