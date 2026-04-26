@@ -140,6 +140,10 @@ android {
     packaging {
         jniLibs {
             useLegacyPackaging = true
+            // Melange (Zetic) SDK bundles its own libonnxruntime.so.
+            // Pick the first match so it does not clash with the
+            // onnxruntime-android dependency we added for YOLOE.
+            pickFirsts += "lib/*/libonnxruntime.so"
         }
     }
     // Keep ONNX model files uncompressed in the APK so they can be
