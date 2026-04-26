@@ -1,5 +1,7 @@
 package com.example.moasis.presentation
 
+import com.example.moasis.domain.model.EmergencySessionSummary
+
 data class EmergencyViewState(
     val screenMode: ScreenMode = ScreenMode.HOME,
     val uiState: UiState = UiState(),
@@ -22,6 +24,9 @@ data class EmergencyViewState(
     val speechRequestKey: Int = 0,
     val attachedImagePaths: List<String> = emptyList(),
     val chatHistory: List<ChatMessage> = emptyList(),
+    val earlierSessions: List<EmergencySessionSummary> = emptyList(),
+    val isViewingArchivedSession: Boolean = false,
+    val viewingArchivedSessionId: String? = null,
 )
 
 enum class ScreenMode {

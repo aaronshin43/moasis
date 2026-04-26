@@ -1,5 +1,13 @@
 package com.example.moasis.ui.screen
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -43,6 +51,8 @@ fun ChatScreen(
     viewState: EmergencyViewState,
     onSubmitText: (String) -> Unit,
     onResetSession: () -> Unit,
+    onOpenSession: (String) -> Unit,
+    onDeleteSession: (String) -> Unit,
     onOfflineModeChange: (Boolean) -> Unit,
     onVoiceInput: () -> Unit,
     onPickImage: () -> Unit,
@@ -96,7 +106,10 @@ fun ChatScreen(
             LazyColumn(
                 modifier = Modifier.weight(1f),
                 state = listState,
-                contentPadding = PaddingValues(top = 8.dp, bottom = 8.dp),
+                contentPadding = PaddingValues(
+                    top = 8.dp,
+                    bottom = if (viewState.isViewingArchivedSession) 48.dp else 8.dp,
+                ),
             ) {
                 when (viewState.screenMode) {
                     ScreenMode.HOME -> {
@@ -118,22 +131,24 @@ fun ChatScreen(
                             }
                         }
 
-                        item {
-                            CurrentStepBlock(
-                                uiState = viewState.uiState,
-                                quickReplies = viewState.quickResponses,
-                                statusText = viewState.statusText,
-                                isInputEnabled = !isInputLockedForAi,
-                                onQuickReply = onSubmitText,
-                                onAction = onAction,
-                            )
+                        if (!viewState.isViewingArchivedSession) {
+                            item {
+                                CurrentStepBlock(
+                                    uiState = viewState.uiState,
+                                    quickReplies = viewState.quickResponses,
+                                    statusText = viewState.statusText,
+                                    isInputEnabled = !isInputLockedForAi,
+                                    onQuickReply = onSubmitText,
+                                    onAction = onAction,
+                                )
+                            }
                         }
                     }
                 }
             }
 
             // Attached images above composer
-            if (viewState.attachedImagePaths.isNotEmpty()) {
+            if (!viewState.isViewingArchivedSession && viewState.attachedImagePaths.isNotEmpty()) {
                 AttachedImageStrip(
                     imagePaths = viewState.attachedImagePaths,
                     onClearImages = onClearImages,
@@ -144,83 +159,139 @@ fun ChatScreen(
             }
 
             // Composer
-            Composer(
-                value = composerText,
-                onValueChange = { composerText = it },
-                isInputEnabled = !isInputLockedForAi,
-                isVoiceActive = viewState.uiState.isListening,
-                transcript = viewState.transcriptDraft,
-                onMic = onVoiceInput,
-                onTakePhoto = onCaptureImage,
-                onPickFromGallery = onPickImage,
-                onSettings = { isSettingsSheetOpen = true },
-                onSend = {
-                    if (composerText.isNotBlank()) {
-                        onSubmitText(composerText)
-                        composerText = ""
-                    }
-                },
-            )
+            if (!viewState.isViewingArchivedSession) {
+                Composer(
+                    value = composerText,
+                    onValueChange = { composerText = it },
+                    isInputEnabled = !isInputLockedForAi,
+                    isVoiceActive = viewState.uiState.isListening,
+                    transcript = viewState.transcriptDraft,
+                    onMic = onVoiceInput,
+                    onTakePhoto = onCaptureImage,
+                    onPickFromGallery = onPickImage,
+                    onSettings = { isSettingsSheetOpen = true },
+                    onSend = {
+                        if (composerText.isNotBlank()) {
+                            onSubmitText(composerText)
+                            composerText = ""
+                        }
+                    },
+                )
+            }
         }
 
         // Overlays
 
         // Sessions drawer — slides in from left
-        if (isSessionsDrawerOpen) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                // Tap-outside dismisses
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clickable(onClick = { isSessionsDrawerOpen = false }),
-                )
-                SessionsDrawer(
-                    isActiveSession = viewState.screenMode == ScreenMode.ACTIVE,
-                    onNewSession = {
+        AnimatedVisibility(
+            visible = isSessionsDrawerOpen,
+            enter = fadeIn(animationSpec = tween(120)),
+            exit = fadeOut(animationSpec = tween(140)),
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable(onClick = { isSessionsDrawerOpen = false }),
+            )
+        }
+        AnimatedVisibility(
+            visible = isSessionsDrawerOpen,
+            enter = slideInHorizontally(
+                initialOffsetX = { -it },
+                animationSpec = tween(240),
+            ) + fadeIn(animationSpec = tween(120)),
+            exit = slideOutHorizontally(
+                targetOffsetX = { -it },
+                animationSpec = tween(190),
+            ) + fadeOut(animationSpec = tween(140)),
+        ) {
+            SessionsDrawer(
+                isActiveSession = viewState.screenMode == ScreenMode.ACTIVE && !viewState.isViewingArchivedSession,
+                earlierSessions = viewState.earlierSessions,
+                onOpenSession = { sessionId ->
+                    isSessionsDrawerOpen = false
+                    onOpenSession(sessionId)
+                },
+                onNewSession = {
+                    isSessionsDrawerOpen = false
+                    onResetSession()
+                },
+                onDeleteSession = { sessionId ->
+                    if (viewState.viewingArchivedSessionId == sessionId) {
                         isSessionsDrawerOpen = false
-                        onResetSession()
-                    },
-                    onClose = { isSessionsDrawerOpen = false },
-                )
-            }
+                    }
+                    onDeleteSession(sessionId)
+                },
+                onClose = { isSessionsDrawerOpen = false },
+            )
         }
 
         // Settings sheet — slides up from bottom
-        if (isSettingsSheetOpen) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clickable(onClick = { isSettingsSheetOpen = false }),
-                )
-                SettingsSheet(
-                    isOfflineModeEnabled = viewState.isOfflineModeEnabled,
-                    onOfflineModeChange = onOfflineModeChange,
-                    onClose = { isSettingsSheetOpen = false },
-                    modifier = Modifier.align(Alignment.BottomCenter),
-                )
-            }
+        AnimatedVisibility(
+            visible = isSettingsSheetOpen,
+            enter = fadeIn(animationSpec = tween(120)),
+            exit = fadeOut(animationSpec = tween(140)),
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable(onClick = { isSettingsSheetOpen = false }),
+            )
+        }
+        AnimatedVisibility(
+            visible = isSettingsSheetOpen,
+            enter = slideInVertically(
+                initialOffsetY = { it },
+                animationSpec = tween(240),
+            ) + fadeIn(animationSpec = tween(120)),
+            exit = slideOutVertically(
+                targetOffsetY = { it },
+                animationSpec = tween(190),
+            ) + fadeOut(animationSpec = tween(140)),
+            modifier = Modifier.align(Alignment.BottomCenter),
+        ) {
+            SettingsSheet(
+                isOfflineModeEnabled = viewState.isOfflineModeEnabled,
+                onOfflineModeChange = onOfflineModeChange,
+                onClose = { isSettingsSheetOpen = false },
+            )
         }
 
         // New session menu — top-right popover
-        if (isNewSessionMenuOpen) {
+        AnimatedVisibility(
+            visible = isNewSessionMenuOpen,
+            enter = fadeIn(animationSpec = tween(90)),
+            exit = fadeOut(animationSpec = tween(120)),
+        ) {
             Box(modifier = Modifier.fillMaxSize()) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .clickable(onClick = { isNewSessionMenuOpen = false }),
                 )
-                NewSessionMenu(
-                    onNewSession = {
-                        isNewSessionMenuOpen = false
-                        onResetSession()
-                    },
-                    onDismiss = { isNewSessionMenuOpen = false },
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(top = 56.dp, end = 8.dp),
-                )
             }
+        }
+        AnimatedVisibility(
+            visible = isNewSessionMenuOpen,
+            enter = slideInVertically(
+                initialOffsetY = { -it / 3 },
+                animationSpec = tween(170),
+            ) + fadeIn(animationSpec = tween(100)),
+            exit = slideOutVertically(
+                targetOffsetY = { -it / 3 },
+                animationSpec = tween(130),
+            ) + fadeOut(animationSpec = tween(100)),
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 56.dp, end = 8.dp),
+        ) {
+            NewSessionMenu(
+                onNewSession = {
+                    isNewSessionMenuOpen = false
+                    onResetSession()
+                },
+                onDismiss = { isNewSessionMenuOpen = false },
+            )
         }
 
     }
