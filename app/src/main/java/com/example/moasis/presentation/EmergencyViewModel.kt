@@ -724,7 +724,7 @@ class EmergencyViewModel(
             } else {
                 "Returning to the current step."
             },
-            quickResponses = emptyList(),
+            quickResponses = if (answerResult != null) listOf("Next step") else emptyList(),
             isAiEnabled = aiEnabled,
             aiStatusText = _viewState.value.aiStatusText,
             aiProgress = _viewState.value.aiProgress,

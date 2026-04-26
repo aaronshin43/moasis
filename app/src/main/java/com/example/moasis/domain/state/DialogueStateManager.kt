@@ -26,17 +26,7 @@ class DialogueStateManager(
 
             is DialogueState.EntryMode -> handleEntryMode(text, currentState)
 
-            is DialogueState.QuestionMode -> {
-                DialogueTurnResult(
-                    dialogueState = DialogueState.ProtocolMode(
-                        scenarioId = currentState.scenarioId,
-                        protocolId = currentState.protocolId,
-                        stepIndex = currentState.returnToStepIndex,
-                        suspendedByQuestion = false,
-                        isSpeaking = false,
-                    ),
-                )
-            }
+            is DialogueState.QuestionMode -> handleQuestionMode(text, currentState)
 
             is DialogueState.ReTriageMode -> handleNewInput(text)
         }
@@ -154,6 +144,54 @@ class DialogueStateManager(
                     ?.let { protocolStateMachine.currentStepId(it, currentState.stepIndex) },
                 interruptionDecision = interruptionDecision,
             )
+        }
+    }
+
+    private fun handleQuestionMode(
+        text: String,
+        currentState: DialogueState.QuestionMode,
+    ): DialogueTurnResult {
+        val interruptionDecision = interruptionRouter.classify(text)
+        val protocol = requireNotNull(protocolRepository.getProtocol(currentState.protocolId)) {
+            "Missing protocol asset for ${currentState.protocolId}"
+        }
+        val resumedProtocolState = DialogueState.ProtocolMode(
+            scenarioId = currentState.scenarioId,
+            protocolId = currentState.protocolId,
+            stepIndex = currentState.returnToStepIndex,
+            suspendedByQuestion = false,
+            isSpeaking = false,
+        )
+
+        return when (interruptionDecision.type) {
+            InterruptionType.CONTROL_INTENT -> {
+                val nextState = protocolStateMachine.advanceProtocol(
+                    protocol = protocol,
+                    currentState = resumedProtocolState,
+                    controlIntent = interruptionDecision.controlIntent ?: ControlIntent.UNKNOWN,
+                )
+                DialogueTurnResult(
+                    dialogueState = nextState,
+                    protocolId = if (nextState is DialogueState.ProtocolMode) nextState.protocolId else currentState.protocolId,
+                    stepId = if (nextState is DialogueState.ProtocolMode) {
+                        protocolStateMachine.currentStepId(protocol, nextState.stepIndex)
+                    } else {
+                        null
+                    },
+                    interruptionDecision = interruptionDecision,
+                )
+            }
+
+            InterruptionType.CLARIFICATION_QUESTION,
+            InterruptionType.OUT_OF_DOMAIN,
+            InterruptionType.STATE_CHANGING_REPORT -> {
+                DialogueTurnResult(
+                    dialogueState = resumedProtocolState,
+                    protocolId = resumedProtocolState.protocolId,
+                    stepId = protocolStateMachine.currentStepId(protocol, resumedProtocolState.stepIndex),
+                    interruptionDecision = interruptionDecision,
+                )
+            }
         }
     }
 

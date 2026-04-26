@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
+import java.util.Locale
 
 class AndroidSpeechRecognizer(
     context: Context,
@@ -72,7 +73,8 @@ class AndroidSpeechRecognizer(
         instance.startListening(
             Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                 putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE, ENGLISH_LANGUAGE_TAG)
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, ENGLISH_LANGUAGE_TAG)
                 putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
                 putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
                 putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, appContext.packageName)
@@ -105,5 +107,9 @@ class AndroidSpeechRecognizer(
             SpeechRecognizer.ERROR_SERVER -> "Speech recognition service failed."
             else -> "Speech recognition failed."
         }
+    }
+
+    companion object {
+        private val ENGLISH_LANGUAGE_TAG = Locale.US.toLanguageTag()
     }
 }
