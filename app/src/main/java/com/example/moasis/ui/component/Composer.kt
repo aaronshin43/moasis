@@ -16,11 +16,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material.icons.outlined.PhotoLibrary
-import androidx.compose.material.icons.outlined.Send
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -37,7 +37,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Brush
@@ -314,7 +313,7 @@ fun Composer(
                         modifier = Modifier.size(40.dp),
                     ) {
                         Icon(
-                            imageVector = if (isSendMode) Icons.Outlined.Send else Icons.Outlined.Mic,
+                            imageVector = if (isSendMode) Icons.AutoMirrored.Outlined.Send else Icons.Outlined.Mic,
                             contentDescription = if (isVoiceActive) "Stop listening" else if (isSendMode) "Send" else "Start voice",
                             tint = if (isVoiceActive) VoiceBlue else Color.White,
                             modifier = Modifier.size(22.dp),

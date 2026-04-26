@@ -29,7 +29,7 @@ class MelangeModelManager(
     private val cacheRoot: File
         get() = File(appContext.filesDir, "mlange_cache")
 
-    fun isConfigured(): Boolean = config.isConfigured
+    // fun isConfigured(): Boolean = config.isConfigured
 
     fun isPreparedInMemory(): Boolean = cachedModel != null
 
