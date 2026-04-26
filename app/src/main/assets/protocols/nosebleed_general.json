@@ -27,7 +27,15 @@
         "10 to 15 minutes"
       ],
       "forbidden_keywords": [],
-      "asset_refs": []
+      "asset_refs": [
+        {
+          "asset_id": "nosebleed_pinch_soft_nose_01",
+          "type": "image",
+          "caption": "Pinch the soft part of the nose to slow the bleeding",
+          "content_description": "A seated person pinching the soft part of the nose during a nosebleed.",
+          "priority": 10
+        }
+      ]
     },
     {
       "step_id": "breathe_through_mouth",

@@ -46,7 +46,22 @@
         "from the cold ground"
       ],
       "forbidden_keywords": [],
-      "asset_refs": []
+      "asset_refs": [
+        {
+          "asset_id": "hypothermia_wrap_blankets_01",
+          "type": "image",
+          "caption": "Wrap the person fully and keep cold air off the body",
+          "content_description": "A person wrapped in blankets and reflective material during hypothermia care.",
+          "priority": 10
+        },
+        {
+          "asset_id": "hypothermia_sleeping_bag_insulation_01",
+          "type": "image",
+          "caption": "Use a sleeping bag or thick wrap and insulate from the ground",
+          "content_description": "A person enclosed in a sleeping bag setup with insulating material underneath.",
+          "priority": 9
+        }
+      ]
     },
     {
       "step_id": "no_direct_heat_or_rubbing",

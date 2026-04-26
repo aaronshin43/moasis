@@ -33,7 +33,7 @@ fun VisualAidStrip(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        visualAids.take(2).forEach { visualAid ->
+        visualAids.take(3).forEach { visualAid ->
             VisualAidItem(visualAid = visualAid)
         }
     }

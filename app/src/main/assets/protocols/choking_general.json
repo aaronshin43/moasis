@@ -24,7 +24,15 @@
         "between the shoulder blades"
       ],
       "forbidden_keywords": [],
-      "asset_refs": []
+      "asset_refs": [
+        {
+          "asset_id": "choking_back_blow_01",
+          "type": "image",
+          "caption": "Give firm back blows between the shoulder blades",
+          "content_description": "A hand positioned to deliver a back blow between the shoulder blades.",
+          "priority": 10
+        }
+      ]
     },
     {
       "step_id": "five_abdominal_thrusts",
@@ -35,7 +43,22 @@
         "chest thrusts"
       ],
       "forbidden_keywords": [],
-      "asset_refs": []
+      "asset_refs": [
+        {
+          "asset_id": "choking_abdominal_thrust_hand_position_01",
+          "type": "image",
+          "caption": "Place the fist just above the navel for abdominal thrusts",
+          "content_description": "A close-up showing fist placement just above the navel for an abdominal thrust.",
+          "priority": 10
+        },
+        {
+          "asset_id": "choking_abdominal_thrust_01",
+          "type": "image",
+          "caption": "Stand behind the person and deliver abdominal thrusts inward and upward",
+          "content_description": "A rescuer standing behind a choking adult to deliver abdominal thrusts.",
+          "priority": 9
+        }
+      ]
     },
     {
       "step_id": "alternate_until_clear",
@@ -55,7 +78,15 @@
         "chest compressions"
       ],
       "forbidden_keywords": [],
-      "asset_refs": []
+      "asset_refs": [
+        {
+          "asset_id": "choking_unresponsive_chest_compressions_01",
+          "type": "image",
+          "caption": "If the person becomes unresponsive, lower them to the floor and start chest compressions",
+          "content_description": "A rescuer performing chest compressions on an unresponsive choking adult.",
+          "priority": 10
+        }
+      ]
     }
   ]
 }

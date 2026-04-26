@@ -57,7 +57,22 @@
         "as directed"
       ],
       "forbidden_keywords": [],
-      "asset_refs": []
+      "asset_refs": [
+        {
+          "asset_id": "breathing_prescribed_inhaler_use_01",
+          "type": "image",
+          "caption": "Help the person use their prescribed inhaler as directed",
+          "content_description": "A child using a prescribed inhaler with the mouthpiece sealed at the lips.",
+          "priority": 10
+        },
+        {
+          "asset_id": "breathing_prescribed_inhaler_spacer_01",
+          "type": "image",
+          "caption": "If prescribed, connect the inhaler to the spacer before use",
+          "content_description": "Hands attaching an inhaler to a spacer device before assisting with medication use.",
+          "priority": 9
+        }
+      ]
     },
     {
       "step_id": "watch_for_severe_signs",

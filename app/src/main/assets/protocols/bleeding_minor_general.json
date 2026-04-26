@@ -13,7 +13,15 @@
         "debris"
       ],
       "forbidden_keywords": [],
-      "asset_refs": []
+      "asset_refs": [
+        {
+          "asset_id": "minor_wound_rinse_01",
+          "type": "image",
+          "caption": "Rinse the wound gently with clean water",
+          "content_description": "A responder flushing a small open wound on the forearm with clean water.",
+          "priority": 10
+        }
+      ]
     },
     {
       "step_id": "direct_pressure_for_minor_bleeding",

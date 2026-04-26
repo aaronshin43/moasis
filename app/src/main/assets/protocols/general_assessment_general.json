@@ -24,7 +24,15 @@
         "breathing normally"
       ],
       "forbidden_keywords": [],
-      "asset_refs": []
+      "asset_refs": [
+        {
+          "asset_id": "general_assessment_open_airway_01",
+          "type": "image",
+          "caption": "Open the airway and look for normal breathing",
+          "content_description": "A responder opening the airway with head tilt and chin lift while checking breathing.",
+          "priority": 10
+        }
+      ]
     },
     {
       "step_id": "watch_skin_and_alertness",

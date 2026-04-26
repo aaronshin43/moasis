@@ -19,7 +19,29 @@
       "forbidden_keywords": [
         "swim out to them"
       ],
-      "asset_refs": []
+      "asset_refs": [
+        {
+          "asset_id": "drowning_reach_rescue_01",
+          "type": "image",
+          "caption": "Reach with a long object from shore instead of entering the water",
+          "content_description": "A rescuer on shore using a long branch to reach a person in the water.",
+          "priority": 10
+        },
+        {
+          "asset_id": "drowning_throw_rescue_01",
+          "type": "image",
+          "caption": "Throw a flotation aid to the person if you cannot reach them",
+          "content_description": "A rescuer throwing a flotation aid attached to a rope toward a person in the water.",
+          "priority": 9
+        },
+        {
+          "asset_id": "drowning_row_rescue_01",
+          "type": "image",
+          "caption": "If available, row out in a boat instead of swimming directly to the person",
+          "content_description": "A rescuer in a boat using an oar to reach a person in the water.",
+          "priority": 8
+        }
+      ]
     },
     {
       "step_id": "call_emergency_immediately",

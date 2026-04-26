@@ -36,5 +36,648 @@
     "variants": {
       "default": "bandage_wrap_arm_01.webp"
     }
+  },
+  {
+    "asset_id": "bleeding_apply_direct_pressure_01",
+    "file_name": "bleeding_apply_direct_pressure_01.png",
+    "type": "image",
+    "tags": [
+      "bleeding",
+      "direct_pressure",
+      "arm"
+    ],
+    "usage_scope": [
+      "bleeding_external_general"
+    ],
+    "caption": "Apply firm direct pressure to the wound",
+    "content_description": "A responder pressing directly on a bleeding arm wound with gloved fingers.",
+    "variants": {
+      "default": "bleeding_apply_direct_pressure_01.png"
+    }
+  },
+  {
+    "asset_id": "bleeding_embedded_object_stabilize_01",
+    "file_name": "bleeding_embedded_object_stabilize_01.png",
+    "type": "image",
+    "tags": [
+      "bleeding",
+      "embedded_object",
+      "stabilize"
+    ],
+    "usage_scope": [
+      "bleeding_external_general"
+    ],
+    "caption": "Leave the embedded object in place and press around it",
+    "content_description": "A responder padding around an embedded object instead of removing it.",
+    "variants": {
+      "default": "bleeding_embedded_object_stabilize_01.png"
+    }
+  },
+  {
+    "asset_id": "minor_wound_rinse_01",
+    "file_name": "minor_wound_rinse_01.png",
+    "type": "image",
+    "tags": [
+      "minor_bleeding",
+      "wound_cleaning",
+      "rinse"
+    ],
+    "usage_scope": [
+      "bleeding_minor_general"
+    ],
+    "caption": "Rinse the wound gently with clean water",
+    "content_description": "A responder flushing a small open wound on the forearm with clean water.",
+    "variants": {
+      "default": "minor_wound_rinse_01.png"
+    }
+  },
+  {
+    "asset_id": "nosebleed_pinch_soft_nose_01",
+    "file_name": "nosebleed_pinch_soft_nose_01.png",
+    "type": "image",
+    "tags": [
+      "nosebleed",
+      "pinch",
+      "bleeding"
+    ],
+    "usage_scope": [
+      "nosebleed_general"
+    ],
+    "caption": "Pinch the soft part of the nose to slow the bleeding",
+    "content_description": "A seated person pinching the soft part of the nose during a nosebleed.",
+    "variants": {
+      "default": "nosebleed_pinch_soft_nose_01.png"
+    }
+  },
+  {
+    "asset_id": "breathing_prescribed_inhaler_use_01",
+    "file_name": "breathing_prescribed_inhaler_use_01.png",
+    "type": "image",
+    "tags": [
+      "breathing_problem",
+      "inhaler",
+      "medication"
+    ],
+    "usage_scope": [
+      "breathing_problem_general"
+    ],
+    "caption": "Help the person use their prescribed inhaler as directed",
+    "content_description": "A child using a prescribed inhaler with the mouthpiece sealed at the lips.",
+    "variants": {
+      "default": "breathing_prescribed_inhaler_use_01.png"
+    }
+  },
+  {
+    "asset_id": "breathing_prescribed_inhaler_spacer_01",
+    "file_name": "breathing_prescribed_inhaler_spacer_01.png",
+    "type": "image",
+    "tags": [
+      "breathing_problem",
+      "inhaler",
+      "spacer"
+    ],
+    "usage_scope": [
+      "breathing_problem_general"
+    ],
+    "caption": "If prescribed, connect the inhaler to the spacer before use",
+    "content_description": "Hands attaching an inhaler to a spacer device before assisting with medication use.",
+    "variants": {
+      "default": "breathing_prescribed_inhaler_spacer_01.png"
+    }
+  },
+  {
+    "asset_id": "fracture_forearm_improvised_splint_01",
+    "file_name": "fracture_forearm_improvised_splint_01.png",
+    "type": "image",
+    "tags": [
+      "fracture",
+      "splint",
+      "forearm"
+    ],
+    "usage_scope": [
+      "fracture_suspected_general"
+    ],
+    "caption": "Support the forearm with padding and an improvised rigid splint",
+    "content_description": "A forearm secured against a padded improvised splint with cloth wraps.",
+    "variants": {
+      "default": "fracture_forearm_improvised_splint_01.png"
+    }
+  },
+  {
+    "asset_id": "fracture_leg_padded_splint_01",
+    "file_name": "fracture_leg_padded_splint_01.png",
+    "type": "image",
+    "tags": [
+      "fracture",
+      "splint",
+      "leg"
+    ],
+    "usage_scope": [
+      "fracture_suspected_general"
+    ],
+    "caption": "Immobilize the leg with padding and ties above and below the injury",
+    "content_description": "A leg immobilized with padding and multiple cloth ties to keep the limb still.",
+    "variants": {
+      "default": "fracture_leg_padded_splint_01.png"
+    }
+  },
+  {
+    "asset_id": "fracture_lower_leg_splint_reference_01",
+    "file_name": "fracture_lower_leg_splint_reference_01.png",
+    "type": "image",
+    "tags": [
+      "fracture",
+      "splint",
+      "lower_leg"
+    ],
+    "usage_scope": [
+      "fracture_suspected_general"
+    ],
+    "caption": "Secure a lower-leg splint with padding and ties",
+    "content_description": "A lower leg supported with padding and tied in place to limit movement.",
+    "variants": {
+      "default": "fracture_lower_leg_splint_reference_01.png"
+    }
+  },
+  {
+    "asset_id": "cardiac_cpr_hand_position_01",
+    "file_name": "cardiac_cpr_hand_position_01.png",
+    "type": "image",
+    "tags": [
+      "cardiac_arrest",
+      "cpr",
+      "hand_position"
+    ],
+    "usage_scope": [
+      "cardiac_arrest_general"
+    ],
+    "caption": "Place the heel of one hand in the center of the chest",
+    "content_description": "A rescuer placing both hands in the center of the chest for CPR compressions.",
+    "variants": {
+      "default": "cardiac_cpr_hand_position_01.png"
+    }
+  },
+  {
+    "asset_id": "cardiac_aed_power_on_01",
+    "file_name": "cardiac_aed_power_on_01.png",
+    "type": "image",
+    "tags": [
+      "cardiac_arrest",
+      "aed",
+      "power_on"
+    ],
+    "usage_scope": [
+      "cardiac_arrest_general"
+    ],
+    "caption": "Turn the AED on and follow the voice prompts",
+    "content_description": "A gloved hand pressing the power button on an AED.",
+    "variants": {
+      "default": "cardiac_aed_power_on_01.png"
+    }
+  },
+  {
+    "asset_id": "cardiac_aed_attach_pad_adult_01",
+    "file_name": "cardiac_aed_attach_pad_adult_01.png",
+    "type": "image",
+    "tags": [
+      "cardiac_arrest",
+      "aed",
+      "adult_pad"
+    ],
+    "usage_scope": [
+      "cardiac_arrest_general"
+    ],
+    "caption": "Attach the AED pads to the exposed chest as shown",
+    "content_description": "An AED pad being attached to an adult chest in the recommended position.",
+    "variants": {
+      "default": "cardiac_aed_attach_pad_adult_01.png"
+    }
+  },
+  {
+    "asset_id": "cardiac_aed_attach_pad_child_01",
+    "file_name": "cardiac_aed_attach_pad_child_01.png",
+    "type": "image",
+    "tags": [
+      "cardiac_arrest",
+      "aed",
+      "child_pad"
+    ],
+    "usage_scope": [
+      "cardiac_arrest_general"
+    ],
+    "caption": "For a child, attach the AED pads in the position shown on the pad diagrams",
+    "content_description": "An AED pad being attached to a child chest using the placement shown on the pad.",
+    "variants": {
+      "default": "cardiac_aed_attach_pad_child_01.png"
+    }
+  },
+  {
+    "asset_id": "choking_back_blow_01",
+    "file_name": "choking_back_blow_01.png",
+    "type": "image",
+    "tags": [
+      "choking",
+      "back_blow"
+    ],
+    "usage_scope": [
+      "choking_general"
+    ],
+    "caption": "Give firm back blows between the shoulder blades",
+    "content_description": "A hand positioned to deliver a back blow between the shoulder blades.",
+    "variants": {
+      "default": "choking_back_blow_01.png"
+    }
+  },
+  {
+    "asset_id": "choking_abdominal_thrust_hand_position_01",
+    "file_name": "choking_abdominal_thrust_hand_position_01.png",
+    "type": "image",
+    "tags": [
+      "choking",
+      "abdominal_thrust",
+      "hand_position"
+    ],
+    "usage_scope": [
+      "choking_general"
+    ],
+    "caption": "Place the fist just above the navel for abdominal thrusts",
+    "content_description": "A close-up showing fist placement just above the navel for an abdominal thrust.",
+    "variants": {
+      "default": "choking_abdominal_thrust_hand_position_01.png"
+    }
+  },
+  {
+    "asset_id": "choking_abdominal_thrust_01",
+    "file_name": "choking_abdominal_thrust_01.png",
+    "type": "image",
+    "tags": [
+      "choking",
+      "abdominal_thrust"
+    ],
+    "usage_scope": [
+      "choking_general"
+    ],
+    "caption": "Stand behind the person and deliver abdominal thrusts inward and upward",
+    "content_description": "A rescuer standing behind a choking adult to deliver abdominal thrusts.",
+    "variants": {
+      "default": "choking_abdominal_thrust_01.png"
+    }
+  },
+  {
+    "asset_id": "choking_unresponsive_chest_compressions_01",
+    "file_name": "choking_unresponsive_chest_compressions_01.png",
+    "type": "image",
+    "tags": [
+      "choking",
+      "unresponsive",
+      "chest_compressions"
+    ],
+    "usage_scope": [
+      "choking_general"
+    ],
+    "caption": "If the person becomes unresponsive, lower them to the floor and start chest compressions",
+    "content_description": "A rescuer performing chest compressions on an unresponsive choking adult.",
+    "variants": {
+      "default": "choking_unresponsive_chest_compressions_01.png"
+    }
+  },
+  {
+    "asset_id": "drowning_reach_rescue_01",
+    "file_name": "drowning_reach_rescue_01.png",
+    "type": "image",
+    "tags": [
+      "drowning",
+      "reach"
+    ],
+    "usage_scope": [
+      "drowning_general"
+    ],
+    "caption": "Reach with a long object from shore instead of entering the water",
+    "content_description": "A rescuer on shore using a long branch to reach a person in the water.",
+    "variants": {
+      "default": "drowning_reach_rescue_01.png"
+    }
+  },
+  {
+    "asset_id": "drowning_throw_rescue_01",
+    "file_name": "drowning_throw_rescue_01.png",
+    "type": "image",
+    "tags": [
+      "drowning",
+      "throw"
+    ],
+    "usage_scope": [
+      "drowning_general"
+    ],
+    "caption": "Throw a flotation aid to the person if you cannot reach them",
+    "content_description": "A rescuer throwing a flotation aid attached to a rope toward a person in the water.",
+    "variants": {
+      "default": "drowning_throw_rescue_01.png"
+    }
+  },
+  {
+    "asset_id": "drowning_row_rescue_01",
+    "file_name": "drowning_row_rescue_01.png",
+    "type": "image",
+    "tags": [
+      "drowning",
+      "row"
+    ],
+    "usage_scope": [
+      "drowning_general"
+    ],
+    "caption": "If available, row out in a boat instead of swimming directly to the person",
+    "content_description": "A rescuer in a boat using an oar to reach a person in the water.",
+    "variants": {
+      "default": "drowning_row_rescue_01.png"
+    }
+  },
+  {
+    "asset_id": "stroke_fast_face_droop_01",
+    "file_name": "stroke_fast_face_droop_01.png",
+    "type": "image",
+    "tags": [
+      "stroke",
+      "fast",
+      "face"
+    ],
+    "usage_scope": [
+      "stroke_fast_general"
+    ],
+    "caption": "Check for facial droop when the person smiles",
+    "content_description": "A face showing one-sided drooping consistent with a FAST stroke check.",
+    "variants": {
+      "default": "stroke_fast_face_droop_01.png"
+    }
+  },
+  {
+    "asset_id": "stroke_fast_arm_drift_01",
+    "file_name": "stroke_fast_arm_drift_01.png",
+    "type": "image",
+    "tags": [
+      "stroke",
+      "fast",
+      "arm"
+    ],
+    "usage_scope": [
+      "stroke_fast_general"
+    ],
+    "caption": "Ask the person to raise both arms and look for weakness or drift",
+    "content_description": "A person raising both arms unevenly during a FAST stroke check.",
+    "variants": {
+      "default": "stroke_fast_arm_drift_01.png"
+    }
+  },
+  {
+    "asset_id": "heat_stroke_cooling_01",
+    "file_name": "heat_stroke_cooling_01.png",
+    "type": "image",
+    "tags": [
+      "heat_stroke",
+      "cooling"
+    ],
+    "usage_scope": [
+      "heat_stroke_general"
+    ],
+    "caption": "Cool the person as fast as possible",
+    "content_description": "A rescuer actively cooling a person with suspected heat stroke near the waterline.",
+    "variants": {
+      "default": "heat_stroke_cooling_01.png"
+    }
+  },
+  {
+    "asset_id": "burn_cover_clean_dressing_01",
+    "file_name": "burn_cover_clean_dressing_01.png",
+    "type": "image",
+    "tags": [
+      "burn",
+      "cover",
+      "dressing"
+    ],
+    "usage_scope": [
+      "burn_minor_general",
+      "burn_second_degree_general"
+    ],
+    "caption": "Loosely cover the burn with a clean dressing",
+    "content_description": "A clean rectangular dressing being placed gently over a burn on the forearm.",
+    "variants": {
+      "default": "burn_cover_clean_dressing_01.png"
+    }
+  },
+  {
+    "asset_id": "anaphylaxis_epinephrine_device_01",
+    "file_name": "anaphylaxis_epinephrine_device_01.png",
+    "type": "image",
+    "tags": [
+      "anaphylaxis",
+      "epinephrine",
+      "device"
+    ],
+    "usage_scope": [
+      "anaphylaxis_general"
+    ],
+    "caption": "Use the person's prescribed epinephrine auto-injector",
+    "content_description": "Two prescribed epinephrine auto-injector devices shown side by side.",
+    "variants": {
+      "default": "anaphylaxis_epinephrine_device_01.png"
+    }
+  },
+  {
+    "asset_id": "anaphylaxis_epinephrine_outer_thigh_01",
+    "file_name": "anaphylaxis_epinephrine_outer_thigh_01.png",
+    "type": "image",
+    "tags": [
+      "anaphylaxis",
+      "epinephrine",
+      "outer_thigh"
+    ],
+    "usage_scope": [
+      "anaphylaxis_general"
+    ],
+    "caption": "Place the auto-injector against the outer thigh",
+    "content_description": "A responder positioning an epinephrine auto-injector against the outer thigh of a seated child.",
+    "variants": {
+      "default": "anaphylaxis_epinephrine_outer_thigh_01.png"
+    }
+  },
+  {
+    "asset_id": "anaphylaxis_epinephrine_press_hold_01",
+    "file_name": "anaphylaxis_epinephrine_press_hold_01.png",
+    "type": "image",
+    "tags": [
+      "anaphylaxis",
+      "epinephrine",
+      "inject"
+    ],
+    "usage_scope": [
+      "anaphylaxis_general"
+    ],
+    "caption": "Press and hold the injector in the outer thigh as directed",
+    "content_description": "A close-up of an epinephrine auto-injector pressed into the outer thigh during use.",
+    "variants": {
+      "default": "anaphylaxis_epinephrine_press_hold_01.png"
+    }
+  },
+  {
+    "asset_id": "hypothermia_wrap_blankets_01",
+    "file_name": "hypothermia_wrap_blankets_01.png",
+    "type": "image",
+    "tags": [
+      "hypothermia",
+      "blankets",
+      "insulation"
+    ],
+    "usage_scope": [
+      "hypothermia_general"
+    ],
+    "caption": "Wrap the person fully and keep cold air off the body",
+    "content_description": "A person wrapped in blankets and reflective material during hypothermia care.",
+    "variants": {
+      "default": "hypothermia_wrap_blankets_01.png"
+    }
+  },
+  {
+    "asset_id": "hypothermia_sleeping_bag_insulation_01",
+    "file_name": "hypothermia_sleeping_bag_insulation_01.png",
+    "type": "image",
+    "tags": [
+      "hypothermia",
+      "sleeping_bag",
+      "insulation"
+    ],
+    "usage_scope": [
+      "hypothermia_general"
+    ],
+    "caption": "Use a sleeping bag or thick wrap and insulate from the ground",
+    "content_description": "A person enclosed in a sleeping bag setup with insulating material underneath.",
+    "variants": {
+      "default": "hypothermia_sleeping_bag_insulation_01.png"
+    }
+  },
+  {
+    "asset_id": "hypothermia_warm_core_01",
+    "file_name": "hypothermia_warm_core_01.png",
+    "type": "image",
+    "tags": [
+      "hypothermia",
+      "warming",
+      "core"
+    ],
+    "usage_scope": [
+      "hypothermia_mild_general"
+    ],
+    "caption": "Wrap the person and warm the core first",
+    "content_description": "A person wrapped in blankets holding a warm drink during rewarming for mild hypothermia.",
+    "variants": {
+      "default": "hypothermia_warm_core_01.png"
+    }
+  },
+  {
+    "asset_id": "general_assessment_open_airway_01",
+    "file_name": "general_assessment_open_airway_01.png",
+    "type": "image",
+    "tags": [
+      "general_assessment",
+      "airway",
+      "breathing"
+    ],
+    "usage_scope": [
+      "general_assessment_general"
+    ],
+    "caption": "Open the airway and look for normal breathing",
+    "content_description": "A responder opening the airway with head tilt and chin lift while checking breathing.",
+    "variants": {
+      "default": "general_assessment_open_airway_01.png"
+    }
+  },
+  {
+    "asset_id": "unresponsive_check_breathing_01",
+    "file_name": "unresponsive_check_breathing_01.png",
+    "type": "image",
+    "tags": [
+      "unresponsive",
+      "breathing",
+      "airway"
+    ],
+    "usage_scope": [
+      "unresponsive_breathing_general"
+    ],
+    "caption": "Open the airway and look, listen, and feel for normal breathing",
+    "content_description": "A responder tilting the head and listening close to the mouth while checking breathing.",
+    "variants": {
+      "default": "unresponsive_check_breathing_01.png"
+    }
+  },
+  {
+    "asset_id": "head_injury_scalp_pressure_01",
+    "file_name": "head_injury_scalp_pressure_01.png",
+    "type": "image",
+    "tags": [
+      "head_injury",
+      "scalp",
+      "pressure"
+    ],
+    "usage_scope": [
+      "head_injury_general"
+    ],
+    "caption": "Apply gentle pressure to a scalp cut with a clean dressing",
+    "content_description": "Gloved hands holding a clean pad against a bleeding scalp wound.",
+    "variants": {
+      "default": "head_injury_scalp_pressure_01.png"
+    }
+  },
+  {
+    "asset_id": "head_injury_support_head_in_place_01",
+    "file_name": "head_injury_support_head_in_place_01.png",
+    "type": "image",
+    "tags": [
+      "head_injury",
+      "neck",
+      "stabilize"
+    ],
+    "usage_scope": [
+      "head_injury_general"
+    ],
+    "caption": "Support the head in the position you found it",
+    "content_description": "A rescuer stabilizing the head of a cyclist lying still after a crash.",
+    "variants": {
+      "default": "head_injury_support_head_in_place_01.png"
+    }
+  },
+  {
+    "asset_id": "head_injury_support_head_with_helmet_01",
+    "file_name": "head_injury_support_head_with_helmet_01.png",
+    "type": "image",
+    "tags": [
+      "head_injury",
+      "helmet",
+      "stabilize"
+    ],
+    "usage_scope": [
+      "head_injury_general"
+    ],
+    "caption": "Keep the person still and support the head without forcing movement",
+    "content_description": "A rescuer supporting the head of an injured cyclist while the helmet remains in place.",
+    "variants": {
+      "default": "head_injury_support_head_with_helmet_01.png"
+    }
+  },
+  {
+    "asset_id": "seizure_cushion_head_01",
+    "file_name": "seizure_cushion_head_01.png",
+    "type": "image",
+    "tags": [
+      "seizure",
+      "head",
+      "cushion"
+    ],
+    "usage_scope": [
+      "seizure_general"
+    ],
+    "caption": "Protect the head with something soft during the seizure",
+    "content_description": "A jacket being positioned under the head of a person lying on the ground during a seizure.",
+    "variants": {
+      "default": "seizure_cushion_head_01.png"
+    }
   }
 ]

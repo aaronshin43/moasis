@@ -39,7 +39,29 @@
         "as directed"
       ],
       "forbidden_keywords": [],
-      "asset_refs": []
+      "asset_refs": [
+        {
+          "asset_id": "anaphylaxis_epinephrine_device_01",
+          "type": "image",
+          "caption": "Use the person's prescribed epinephrine auto-injector",
+          "content_description": "Two prescribed epinephrine auto-injector devices shown side by side.",
+          "priority": 10
+        },
+        {
+          "asset_id": "anaphylaxis_epinephrine_outer_thigh_01",
+          "type": "image",
+          "caption": "Place the auto-injector against the outer thigh",
+          "content_description": "A responder positioning an epinephrine auto-injector against the outer thigh of a seated child.",
+          "priority": 9
+        },
+        {
+          "asset_id": "anaphylaxis_epinephrine_press_hold_01",
+          "type": "image",
+          "caption": "Press and hold the injector in the outer thigh as directed",
+          "content_description": "A close-up of an epinephrine auto-injector pressed into the outer thigh during use.",
+          "priority": 8
+        }
+      ]
     },
     {
       "step_id": "position_for_anaphylaxis",

@@ -47,7 +47,15 @@
         "groin"
       ],
       "forbidden_keywords": [],
-      "asset_refs": []
+      "asset_refs": [
+        {
+          "asset_id": "heat_stroke_cooling_01",
+          "type": "image",
+          "caption": "Cool the person as fast as possible",
+          "content_description": "A rescuer actively cooling a person with suspected heat stroke near the waterline.",
+          "priority": 10
+        }
+      ]
     },
     {
       "step_id": "call_emergency_immediately",
