@@ -8,6 +8,11 @@ interface ResponseValidator {
         forbiddenKeywords: List<String> = emptyList(),
     ): ValidationResult
 
+    fun validatePersonalizedQuestion(
+        canonicalText: String,
+        responseText: String,
+    ): ValidationResult
+
     fun validateQuestionAnswer(
         canonicalText: String,
         responseText: String,
@@ -57,6 +62,61 @@ class KeywordResponseValidator : ResponseValidator {
         return ValidationResult(
             isValid = true,
             resolvedText = responseText.ifBlank { canonicalText },
+        )
+    }
+
+    override fun validatePersonalizedQuestion(
+        canonicalText: String,
+        responseText: String,
+    ): ValidationResult {
+        val trimmed = responseText.trim()
+        if (trimmed.isBlank()) {
+            return ValidationResult(
+                isValid = false,
+                resolvedText = canonicalText,
+                reason = "Question rewrite was blank.",
+            )
+        }
+
+        val canonicalIsQuestion = canonicalText.trim().endsWith("?")
+        if (canonicalIsQuestion && !trimmed.endsWith("?")) {
+            return ValidationResult(
+                isValid = false,
+                resolvedText = canonicalText,
+                reason = "Question rewrite did not remain a question.",
+            )
+        }
+
+        val normalized = trimmed.lowercase()
+        val imperativeStarts = listOf(
+            "check ",
+            "assess ",
+            "look for ",
+            "inspect ",
+            "determine ",
+            "confirm ",
+            "make sure ",
+            "start ",
+        )
+        if (canonicalIsQuestion && imperativeStarts.any { normalized.startsWith(it) }) {
+            return ValidationResult(
+                isValid = false,
+                resolvedText = canonicalText,
+                reason = "Question rewrite turned into an instruction.",
+            )
+        }
+
+        if (trimmed.length > canonicalText.length + 120) {
+            return ValidationResult(
+                isValid = false,
+                resolvedText = canonicalText,
+                reason = "Question rewrite exceeded safe length bound.",
+            )
+        }
+
+        return ValidationResult(
+            isValid = true,
+            resolvedText = trimmed,
         )
     }
 

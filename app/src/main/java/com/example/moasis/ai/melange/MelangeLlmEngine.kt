@@ -110,9 +110,6 @@ class MelangeLlmEngine(
 
         val systemPrompt = buildString {
             appendLine("You help with first-aid wording.")
-            appendLine("Stay inside the current step.")
-            appendLine("Do not add, remove, reorder, or diagnose.")
-            appendLine("Do not output reasoning.")
         }.trim()
 
         val userPrompt = buildString {
@@ -129,15 +126,11 @@ class MelangeLlmEngine(
                     appendLine("Rules:")
                     appendLine("- Keep the action and order unchanged.")
                     appendLine("- Keep the required words exactly as written.")
-                    if (bodyLocation != null) {
-                        appendLine("- If the step uses a body-part example, you may replace it with the user's mentioned body part.")
-                        appendLine("- Only substitute the body-part reference. Do not change the care action.")
-                    }
-                    appendLine("- Return one sentence only.")
+                    appendLine("- Make the wording more natural and specific to the user's context.")
                 }
 
                 LlmRequestMode.PERSONALIZE_QUESTION -> {
-                    appendLine("Task: rewrite this triage question in one or two short spoken sentences.")
+                    appendLine("Task: rewrite this triage question.")
                     appendLine("Listener: $listener")
                     appendLine("Current question: ${request.canonicalText}")
                     bodyLocation?.let {
@@ -146,11 +139,20 @@ class MelangeLlmEngine(
                     appendLine("Known details: ${request.slots.entries.joinToString(", ") { "${it.key}=${it.value}" }.ifBlank { "none" }}")
                     appendLine("Rules:")
                     appendLine("- If the original manual text is a question, keep it as a question.")
+                    appendLine("- The final sentence must end with a question mark.")
+                    appendLine("- Do not turn the question into an instruction, command, checklist item, or assessment cue.")
                     appendLine("- Keep every risk condition and answer choice.")
                     appendLine("- Make the wording more natural and specific to the user's context.")
                     appendLine("- If the user already mentioned a body part, you may replace a generic reference like \"the burn\" with that body part.")
                     appendLine("- Do not remove any listed red flags or body-part checks.")
                     appendLine("- Return one or two short sentences only.")
+                    appendLine("Examples:")
+                    appendLine("- Source: Is the burn on the face, hands, feet, or genitals?")
+                    appendLine("  Good: Is the burn on your face, hands, feet, or genitals?")
+                    appendLine("  Bad: Check whether the burn is on the face, hands, feet, or genitals.")
+                    appendLine("- Source: Are there blisters, peeled skin, white areas, or charred skin?")
+                    appendLine("  Good: Do you see any blisters, peeled skin, white areas, or charred skin?")
+                    appendLine("  Bad: Assess for blisters, peeled skin, white areas, or charred skin.")
                 }
 
                 LlmRequestMode.ANSWER_QUESTION -> {
@@ -178,7 +180,6 @@ class MelangeLlmEngine(
             append(userPrompt)
             append("<|im_end|>\n")
             append("<|im_start|>assistant\n")
-            append("<think>\n\n</think>\n\n")
         }
     }
 

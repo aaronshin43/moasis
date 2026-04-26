@@ -147,7 +147,7 @@ class InferenceOrchestrator(
             )
         }
 
-        val validation = responseValidator.validatePersonalizedStep(
+        val validation = responseValidator.validatePersonalizedQuestion(
             canonicalText = canonicalQuestion,
             responseText = llmResponse.spokenText,
         )
