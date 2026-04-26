@@ -7,7 +7,7 @@ data class MelangeRuntimeConfig(
     val modelModeName: String = "RUN_AUTO",
     val targetName: String = "LLAMA_CPP",
     val quantTypeName: String = "GGUF_QUANT_Q4_K_M",
-    val apTypeName: String = "CPU",
+    val apTypeName: String = "AUTO",
 ) {
     val isConfigured: Boolean
         get() = personalKey.isNotBlank() && modelName.isNotBlank()

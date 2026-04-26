@@ -32,6 +32,7 @@ fun AttachedImageStrip(
     imagePaths: List<String>,
     onClearImages: () -> Unit,
     onRemoveImage: (String) -> Unit,
+    canRemoveImages: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     if (imagePaths.isEmpty()) {
@@ -46,6 +47,7 @@ fun AttachedImageStrip(
             items(imagePaths) { path ->
                 AttachedImageCard(
                     imagePath = path,
+                    canRemove = canRemoveImages,
                     onRemove = { onRemoveImage(path) },
                 )
             }
@@ -56,6 +58,7 @@ fun AttachedImageStrip(
 @Composable
 private fun AttachedImageCard(
     imagePath: String,
+    canRemove: Boolean,
     onRemove: () -> Unit,
 ) {
     val bitmap = remember(imagePath) {
@@ -90,6 +93,7 @@ private fun AttachedImageCard(
             ) {
                 IconButton(
                     onClick = onRemove,
+                    enabled = canRemove,
                     modifier = Modifier.size(24.dp),
                 ) {
                     Icon(

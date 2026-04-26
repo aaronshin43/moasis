@@ -1,11 +1,5 @@
 package com.example.moasis.ui.component
 
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -14,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
@@ -80,6 +73,7 @@ private val ComposerShadow = Color(0x331B2430)
 fun Composer(
     value: String,
     onValueChange: (String) -> Unit,
+    isInputEnabled: Boolean,
     isVoiceActive: Boolean,
     transcript: String,
     onMic: () -> Unit,
@@ -92,25 +86,8 @@ fun Composer(
     var isAttachmentMenuOpen by remember { mutableStateOf(false) }
     var attachmentAnchorBounds by remember { mutableStateOf(IntRect.Zero) }
     val density = LocalDensity.current
-    val voiceTransition = rememberInfiniteTransition(label = "voiceAura")
-    val voicePulse by voiceTransition.animateFloat(
-        initialValue = 0.18f,
-        targetValue = 0.72f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 2800),
-            repeatMode = RepeatMode.Reverse,
-        ),
-        label = "voicePulse",
-    )
-    val voiceWaveShift by voiceTransition.animateFloat(
-        initialValue = -0.18f,
-        targetValue = 0.18f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 3400, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse,
-        ),
-        label = "voiceWaveShift",
-    )
+    val voicePulse = if (isVoiceActive) 0.45f else 0f
+    val voiceWaveShift = 0f
     val cardBg = if (isVoiceActive) Color(0xFFF7F9FF) else MaterialTheme.colorScheme.surface
     val borderColor = if (isVoiceActive) VoiceBlue else MainOutline
     val shadowColor = if (isVoiceActive) VoiceBlueSoft else ComposerShadow
@@ -120,7 +97,6 @@ fun Composer(
         modifier = modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .imePadding()
             .background(MaterialTheme.colorScheme.background)
             .padding(start = 14.dp, end = 14.dp, top = 10.dp, bottom = 14.dp),
     ) {
@@ -208,6 +184,7 @@ fun Composer(
                     BasicTextField(
                         value = value,
                         onValueChange = onValueChange,
+                        enabled = isInputEnabled,
                         modifier = Modifier.fillMaxWidth(),
                         textStyle = TextStyle(
                             fontSize = 15.sp,
@@ -237,7 +214,12 @@ fun Composer(
             ) {
                 Box {
                     IconButton(
-                        onClick = { isAttachmentMenuOpen = !isAttachmentMenuOpen },
+                        onClick = {
+                            if (isInputEnabled) {
+                                isAttachmentMenuOpen = !isAttachmentMenuOpen
+                            }
+                        },
+                        enabled = isInputEnabled,
                         modifier = Modifier
                             .size(36.dp)
                             .onGloballyPositioned { coordinates ->
@@ -328,6 +310,7 @@ fun Composer(
                 ) {
                     IconButton(
                         onClick = if (isSendMode) onSend else onMic,
+                        enabled = isInputEnabled,
                         modifier = Modifier.size(40.dp),
                     ) {
                         Icon(

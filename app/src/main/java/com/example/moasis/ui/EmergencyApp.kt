@@ -36,6 +36,7 @@ fun EmergencyApp(
 ) {
     val viewModel: EmergencyViewModel = viewModel(factory = factory)
     val viewState by viewModel.viewState.collectAsStateWithLifecycle()
+    val isInputLockedForAi = viewState.isAiEnabled && !viewState.isAiReady
     val context = LocalContext.current
     val imageInputController = remember(context) { ImageInputController(context) }
     val galleryPickerManager = remember { GalleryPickerManager() }
@@ -158,6 +159,10 @@ fun EmergencyApp(
     }
 
     fun startListening() {
+        if (isInputLockedForAi) {
+            viewModel.updateStatus(viewState.aiStatusText ?: "Wait for the AI model to finish loading before speaking.")
+            return
+        }
         val permissionState = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO)
         if (permissionState == PackageManager.PERMISSION_GRANTED) {
             audioController.startListening()
@@ -167,12 +172,20 @@ fun EmergencyApp(
     }
 
     fun openGalleryPicker() {
+        if (isInputLockedForAi) {
+            viewModel.updateStatus(viewState.aiStatusText ?: "Wait for the AI model to finish loading before attaching images.")
+            return
+        }
         galleryPickerLauncher.launch(
             PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
         )
     }
 
     fun captureImage() {
+        if (isInputLockedForAi) {
+            viewModel.updateStatus(viewState.aiStatusText ?: "Wait for the AI model to finish loading before capturing images.")
+            return
+        }
         val permissionState = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
         if (permissionState == PackageManager.PERMISSION_GRANTED) {
             val captureUri = cameraCaptureManager.createCaptureUri()

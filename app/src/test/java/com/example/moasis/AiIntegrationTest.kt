@@ -59,7 +59,7 @@ class AiIntegrationTest {
 
     @Test
     fun validator_missing_required_keyword_falls_back_to_canonical_text() {
-        val validation = validator.validate(
+        val validation = validator.validatePersonalizedStep(
             canonicalText = step.canonicalText,
             responseText = "Cool the burn for a while.",
             mustKeepKeywords = step.mustKeepKeywords,
@@ -68,6 +68,18 @@ class AiIntegrationTest {
 
         assertEquals(false, validation.isValid)
         assertEquals(step.canonicalText, validation.resolvedText)
+    }
+
+    @Test
+    fun question_answer_that_just_repeats_step_falls_back_to_safe_short_answer() {
+        val validation = validator.validateQuestionAnswer(
+            canonicalText = step.canonicalText,
+            responseText = step.canonicalText,
+            forbiddenKeywords = step.forbiddenKeywords,
+        )
+
+        assertEquals(false, validation.isValid)
+        assertTrue(validation.resolvedText.contains("can't confirm", ignoreCase = true))
     }
 
     @Test

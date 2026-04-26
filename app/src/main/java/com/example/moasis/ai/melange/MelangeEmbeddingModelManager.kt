@@ -49,13 +49,18 @@ class MelangeEmbeddingModelManager(
                 "Creating embedding session model=${config.modelName} version=${config.modelVersion ?: "latest"} mode=${config.modelModeName}",
             )
             return runCatching {
-                val model = ZeticMLangeModel(
-                    context = appContext,
-                    personalKey = config.personalKey,
-                    name = config.modelName,
-                    version = config.modelVersion,
-                    modelMode = resolveModelMode(config.modelModeName),
-                )
+                val model = MelangeInitCoordinator.runExclusive(
+                    modelType = "embedding",
+                    modelName = config.modelName,
+                ) {
+                    ZeticMLangeModel(
+                        context = appContext,
+                        personalKey = config.personalKey,
+                        name = config.modelName,
+                        version = config.modelVersion,
+                        modelMode = resolveModelMode(config.modelModeName),
+                    )
+                }
                 val metadata = model.readMetadata()
                 Log.d(
                     TAG,

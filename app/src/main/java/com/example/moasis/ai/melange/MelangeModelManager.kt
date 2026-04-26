@@ -50,6 +50,8 @@ class MelangeModelManager(
         return "${config.modelName}$versionSuffix (${config.targetName}/${config.quantTypeName}/${config.apTypeName})"
     }
 
+    fun configuredModelName(): String = config.modelName
+
     fun inspectCache(): AiCacheSnapshot {
         val llmRoot = cacheRoot.resolve("llm")
         val llmDirs = llmRoot.listFiles { file -> file.isDirectory }.orEmpty()
@@ -92,25 +94,30 @@ class MelangeModelManager(
 
             val model = runCatching {
                 onStatusChanged?.invoke(ModelLoadingStatus.PENDING)
-                withDownloadedBytes(onBytes = onDownloadedBytes) {
-                    ZeticMLangeLLMModel(
-                        context = appContext,
-                        personalKey = config.personalKey,
-                        name = config.modelName,
-                        version = config.modelVersion,
-                        target = resolveTarget(config.targetName),
-                        quantType = resolveQuantType(config.quantTypeName),
-                        apType = resolveApType(config.apTypeName),
-                        onProgress = { progress ->
-                            lastProgress = progress
-                            onProgress?.invoke(progress)
-                            Log.d(TAG, "Melange init progress=${"%.2f".format(progress)}")
-                        },
-                        onStatusChanged = { status ->
-                            onStatusChanged?.invoke(status)
-                            Log.d(TAG, "Melange status=$status")
-                        },
-                    )
+                MelangeInitCoordinator.runExclusive(
+                    modelType = "llm",
+                    modelName = config.modelName,
+                ) {
+                    withDownloadedBytes(onBytes = onDownloadedBytes) {
+                        ZeticMLangeLLMModel(
+                            context = appContext,
+                            personalKey = config.personalKey,
+                            name = config.modelName,
+                            version = config.modelVersion,
+                            target = resolveTarget(config.targetName),
+                            quantType = resolveQuantType(config.quantTypeName),
+                            apType = resolveApType(config.apTypeName),
+                            onProgress = { progress ->
+                                lastProgress = progress
+                                onProgress?.invoke(progress)
+                                Log.d(TAG, "Melange init progress=${"%.2f".format(progress)}")
+                            },
+                            onStatusChanged = { status ->
+                                onStatusChanged?.invoke(status)
+                                Log.d(TAG, "Melange status=$status")
+                            },
+                        )
+                    }
                 }
             }.getOrElse { return Result.failure(it) }
 

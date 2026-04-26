@@ -35,6 +35,7 @@ private val suggestions = listOf(
 @Composable
 fun ChatGreeting(
     onSuggestionPick: (String) -> Unit,
+    isEnabled: Boolean,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -62,6 +63,7 @@ fun ChatGreeting(
             suggestions.forEach { suggestion ->
                 OutlinedButton(
                     onClick = { onSuggestionPick(suggestion.query) },
+                    enabled = isEnabled,
                     shape = RoundedCornerShape(100.dp),
                     contentPadding = PaddingValues(start = 14.dp, end = 18.dp, top = 10.dp, bottom = 10.dp),
                     border = BorderStroke(1.4.dp, MainOutline),

@@ -1,6 +1,7 @@
 package com.example.moasis
 
 import android.os.Bundle
+import android.os.Build
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -32,6 +33,7 @@ import com.example.moasis.presentation.EmergencyViewModelFactory
 import com.example.moasis.ui.EmergencyApp
 import com.example.moasis.ui.theme.MoasisTheme
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -57,7 +59,7 @@ class MainActivity : ComponentActivity() {
             modelModeName = BuildConfig.MELANGE_MODEL_MODE,
             targetName = BuildConfig.MELANGE_TARGET,
             quantTypeName = BuildConfig.MELANGE_QUANT_TYPE,
-            apTypeName = BuildConfig.MELANGE_AP_TYPE,
+            apTypeName = resolveMelangeApType(BuildConfig.MELANGE_AP_TYPE),
         )
         val aiEnabled = BuildConfig.AI_ENABLED && melangeConfig.isConfigured
         val embeddingConfig = MelangeEmbeddingRuntimeConfig(
@@ -87,9 +89,6 @@ class MainActivity : ComponentActivity() {
         } else {
             RegexIntentMatcher()
         }
-        if (embeddingEnabled) {
-            preloadEmbeddingModel()
-        }
         val llmEngine = if (aiEnabled) {
             val modelManager = MelangeModelManager(
                 context = applicationContext,
@@ -101,6 +100,10 @@ class MainActivity : ComponentActivity() {
             )
         } else {
             RuleBasedLlmEngine()
+        }
+        when {
+            aiEnabled && embeddingEnabled -> preloadEmbeddingModelAfterLlmReady()
+            embeddingEnabled -> preloadEmbeddingModel()
         }
         val inferenceOrchestrator = InferenceOrchestrator(
             llmEngine = llmEngine,
@@ -159,7 +162,54 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun preloadEmbeddingModelAfterLlmReady() {
+        val embeddingManager = melangeEmbeddingModelManager ?: return
+        val llmManager = melangeModelManager ?: run {
+            preloadEmbeddingModel()
+            return
+        }
+        if (embeddingManager.isPreparedInMemory()) {
+            Log.d(TAG, "Embedding model ready")
+            return
+        }
+        lifecycleScope.launch(Dispatchers.IO) {
+            repeat(120) {
+                if (llmManager.isPreparedInMemory()) {
+                    Log.d(TAG, "LLM model ready. Starting deferred embedding preload.")
+                    preloadEmbeddingModel()
+                    return@launch
+                }
+                delay(500)
+            }
+            Log.w(TAG, "LLM model was not ready within the wait window. Skipping deferred embedding preload.")
+        }
+    }
+
     companion object {
         private const val TAG = "MainActivity"
+    }
+
+    private fun resolveMelangeApType(requestedApType: String): String {
+        val normalized = requestedApType.trim().uppercase()
+        if (normalized != "AUTO") {
+            Log.d(TAG, "Using configured Melange APType=$normalized")
+            return normalized
+        }
+
+        val isQualcomm = sequenceOf(
+            Build.SOC_MANUFACTURER,
+            Build.HARDWARE,
+            Build.BOARD,
+            Build.PRODUCT,
+        )
+            .filterNotNull()
+            .map { it.lowercase() }
+            .any { value ->
+                "qualcomm" in value || "qcom" in value || "snapdragon" in value
+            }
+
+        val resolved = if (isQualcomm) "GPU" else "CPU"
+        Log.d(TAG, "Resolved Melange APType=$resolved from requested=AUTO")
+        return resolved
     }
 }

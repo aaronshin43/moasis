@@ -109,6 +109,7 @@ fun CurrentStepBlock(
     uiState: UiState,
     quickReplies: List<String>,
     statusText: String?,
+    isInputEnabled: Boolean,
     onQuickReply: (String) -> Unit,
     onAction: (UiAction) -> Unit,
     modifier: Modifier = Modifier,
@@ -188,6 +189,7 @@ fun CurrentStepBlock(
                                 else -> onQuickReply(reply.lowercase())
                             }
                         },
+                        enabled = isInputEnabled,
                         shape = RoundedCornerShape(100.dp),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                     ) {
@@ -200,6 +202,7 @@ fun CurrentStepBlock(
         if (uiState.showCallEmergencyButton) {
             FilledTonalButton(
                 onClick = { onAction(UiAction.CallEmergency) },
+                enabled = isInputEnabled,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(100.dp),
                 colors = ButtonDefaults.filledTonalButtonColors(

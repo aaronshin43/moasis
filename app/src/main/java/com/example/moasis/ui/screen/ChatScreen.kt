@@ -1,12 +1,5 @@
 package com.example.moasis.ui.screen
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -21,6 +14,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -65,12 +59,13 @@ fun ChatScreen(
     var isSettingsSheetOpen by remember { mutableStateOf(false) }
     var isNewSessionMenuOpen by remember { mutableStateOf(false) }
     var composerText by remember { mutableStateOf("") }
+    val isInputLockedForAi = viewState.isAiEnabled && !viewState.isAiReady
 
     val listState = rememberLazyListState()
     val historySize = viewState.chatHistory.size
     LaunchedEffect(historySize) {
         if (historySize > 0) {
-            listState.animateScrollToItem(historySize)
+            listState.scrollToItem(historySize)
         }
     }
 
@@ -91,6 +86,14 @@ fun ChatScreen(
                     color = MaterialTheme.colorScheme.primary,
                 )
             }
+            if (isInputLockedForAi) {
+                Text(
+                    text = viewState.aiStatusText ?: "Preparing AI model. Input is temporarily locked.",
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
 
             // Chat list
             LazyColumn(
@@ -101,7 +104,10 @@ fun ChatScreen(
                 when (viewState.screenMode) {
                     ScreenMode.HOME -> {
                         item {
-                            ChatGreeting(onSuggestionPick = onSubmitText)
+                            ChatGreeting(
+                                onSuggestionPick = onSubmitText,
+                                isEnabled = !isInputLockedForAi,
+                            )
                         }
                     }
                     ScreenMode.ACTIVE -> {
@@ -120,6 +126,7 @@ fun ChatScreen(
                                 uiState = viewState.uiState,
                                 quickReplies = viewState.quickResponses,
                                 statusText = viewState.statusText,
+                                isInputEnabled = !isInputLockedForAi,
                                 onQuickReply = onSubmitText,
                                 onAction = onAction,
                             )
@@ -134,6 +141,7 @@ fun ChatScreen(
                     imagePaths = viewState.attachedImagePaths,
                     onClearImages = onClearImages,
                     onRemoveImage = onRemoveImage,
+                    canRemoveImages = !isInputLockedForAi,
                     modifier = Modifier.padding(horizontal = 12.dp),
                 )
             }
@@ -142,6 +150,7 @@ fun ChatScreen(
             Composer(
                 value = composerText,
                 onValueChange = { composerText = it },
+                isInputEnabled = !isInputLockedForAi,
                 isVoiceActive = viewState.uiState.isListening,
                 transcript = viewState.transcriptDraft,
                 onMic = onVoiceInput,
@@ -160,11 +169,7 @@ fun ChatScreen(
         // Overlays
 
         // Sessions drawer — slides in from left
-        AnimatedVisibility(
-            visible = isSessionsDrawerOpen,
-            enter = slideInHorizontally { -it } + fadeIn(),
-            exit = slideOutHorizontally { -it } + fadeOut(),
-        ) {
+        if (isSessionsDrawerOpen) {
             Box(modifier = Modifier.fillMaxSize()) {
                 // Tap-outside dismisses
                 Box(
@@ -184,11 +189,7 @@ fun ChatScreen(
         }
 
         // Settings sheet — slides up from bottom
-        AnimatedVisibility(
-            visible = isSettingsSheetOpen,
-            enter = slideInVertically { it } + fadeIn(),
-            exit = slideOutVertically { it } + fadeOut(),
-        ) {
+        if (isSettingsSheetOpen) {
             Box(modifier = Modifier.fillMaxSize()) {
                 Box(
                     modifier = Modifier
@@ -211,11 +212,7 @@ fun ChatScreen(
         }
 
         // New session menu — top-right popover
-        AnimatedVisibility(
-            visible = isNewSessionMenuOpen,
-            enter = fadeIn(),
-            exit = fadeOut(),
-        ) {
+        if (isNewSessionMenuOpen) {
             Box(modifier = Modifier.fillMaxSize()) {
                 Box(
                     modifier = Modifier

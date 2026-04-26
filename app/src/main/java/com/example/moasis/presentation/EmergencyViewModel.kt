@@ -177,6 +177,12 @@ class EmergencyViewModel(
     }
 
     fun submitTurn(text: String = "") {
+        if (isInputBlockedUntilAiReady()) {
+            _viewState.value = _viewState.value.copy(
+                statusText = _viewState.value.aiStatusText ?: "Wait for the AI model to finish loading before starting.",
+            )
+            return
+        }
         if (text.isBlank() && pendingImagePaths.isEmpty()) {
             return
         }
@@ -513,6 +519,10 @@ class EmergencyViewModel(
             return null
         }
         return "Avoid: ${step.forbiddenKeywords.joinToString(", ")}"
+    }
+
+    private fun isInputBlockedUntilAiReady(): Boolean {
+        return aiEnabled && !_viewState.value.isAiReady
     }
 
     private fun treeTitle(treeId: String): String {
