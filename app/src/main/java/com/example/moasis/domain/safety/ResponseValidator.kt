@@ -11,6 +11,7 @@ interface ResponseValidator {
     fun validateQuestionAnswer(
         canonicalText: String,
         responseText: String,
+        mustKeepKeywords: List<String> = emptyList(),
         forbiddenKeywords: List<String> = emptyList(),
     ): ValidationResult
 }
@@ -62,6 +63,7 @@ class KeywordResponseValidator : ResponseValidator {
     override fun validateQuestionAnswer(
         canonicalText: String,
         responseText: String,
+        mustKeepKeywords: List<String>,
         forbiddenKeywords: List<String>,
     ): ValidationResult {
         val normalized = responseText.lowercase().trim()
@@ -81,6 +83,17 @@ class KeywordResponseValidator : ResponseValidator {
                 isValid = false,
                 resolvedText = "I can't confirm that safely. Stay with the current step and avoid unsafe additions.",
                 reason = "Forbidden keyword detected: $forbiddenKeyword",
+            )
+        }
+
+        val missingAnchorKeyword = mustKeepKeywords.firstOrNull { keyword ->
+            !normalized.contains(keyword.lowercase())
+        }
+        if (mustKeepKeywords.isNotEmpty() && missingAnchorKeyword != null) {
+            return ValidationResult(
+                isValid = false,
+                resolvedText = "I can't confirm that safely from this step. Stay with the current step only.",
+                reason = "Question answer did not include the required current-step keyword: $missingAnchorKeyword",
             )
         }
 

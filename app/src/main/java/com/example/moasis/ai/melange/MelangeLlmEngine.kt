@@ -236,42 +236,41 @@ class MelangeLlmEngine(
         val forbiddenContent = request.constraints.forbiddenContent
             .joinToString(", ")
             .ifBlank { "none" }
-        val slotSummary = request.slots.entries
-            .joinToString(separator = "\n") { (key, value) -> "- $key: $value" }
-            .ifBlank { "- none" }
+        val listener = request.style?.targetListener ?: "caregiver"
 
         val systemPrompt = buildString {
-            appendLine("You rewrite or answer first-aid guidance.")
-            appendLine("Stay within the provided protocol step.")
-            appendLine("Do not add, reorder, or remove medical actions.")
-            appendLine("Required keywords must appear verbatim.")
-            appendLine("Do not output extra reasoning.")
+            appendLine("You help with first-aid wording.")
+            appendLine("Stay inside the current step.")
+            appendLine("Do not add, remove, reorder, or diagnose.")
+            appendLine("Do not output reasoning.")
         }.trim()
 
         val userPrompt = buildString {
-            appendLine("Scenario: ${request.scenarioId}")
-            appendLine("Protocol: ${request.protocolId}")
-            appendLine("Current step: ${request.stepId ?: request.currentStepId ?: "unknown"}")
-            appendLine("Canonical instruction: ${request.canonicalText}")
-            appendLine("Required keywords: $keepKeywords")
-            appendLine("Forbidden content: $forbiddenContent")
-            appendLine("Slots:")
-            appendLine(slotSummary)
-
             when (request.mode) {
                 LlmRequestMode.PERSONALIZE_STEP -> {
-                    appendLine("Task: Rewrite the canonical instruction in one short sentence.")
-                    appendLine("Target listener: ${request.style?.targetListener ?: "caregiver"}")
-                    appendLine("Keep the same meaning and keep the required keywords unchanged.")
+                    appendLine("Task: rewrite the current step as one short spoken sentence.")
+                    appendLine("Listener: $listener")
+                    appendLine("Current step: ${request.canonicalText}")
+                    appendLine("Must keep exact words: $keepKeywords")
+                    appendLine("Do not say: $forbiddenContent")
+                    appendLine("Rules:")
+                    appendLine("- Keep the action and order unchanged.")
+                    appendLine("- Keep the required words exactly as written.")
+                    appendLine("- Return one sentence only.")
                 }
 
                 LlmRequestMode.ANSWER_QUESTION -> {
-                    appendLine("Task: Answer the question briefly in one or two short sentences.")
-                    appendLine("User question: ${request.userQuestion.orEmpty()}")
-                    appendLine("Answer the user's question directly first.")
-                    appendLine("Do not simply repeat or paraphrase the canonical instruction.")
-                    appendLine("Keep the answer aligned to the current step.")
+                    appendLine("Task: answer the user's question directly in one or two short sentences.")
+                    appendLine("Question: ${request.userQuestion.orEmpty()}")
+                    appendLine("Current step: ${request.canonicalText}")
+                    appendLine("Unsafe or forbidden content: $forbiddenContent")
                     appendLine("Known prohibitions: ${request.knownProhibitions.joinToString(", ").ifBlank { "none" }}")
+                    appendLine("Rules:")
+                    appendLine("- Answer the question first.")
+                    appendLine("- If the asked action is unsafe, start with \"No.\"")
+                    appendLine("- If the asked action is acceptable from this step, start with \"Yes.\"")
+                    appendLine("- Do not repeat the full current step.")
+                    appendLine("- If unsure, say you cannot confirm it safely from this step.")
                 }
             }
         }.trim()
@@ -300,14 +299,18 @@ class MelangeLlmEngine(
             .replace("<end_of_turn>", " ")
             .replace("<eos>", " ")
             .replace("<bos>", " ")
+            .replace("<|im_end|>", " ")
+            .replace("<|im_start|>assistant", " ")
+            .replace("<|im_start|>user", " ")
+            .replace("<|im_start|>system", " ")
             .replace(Regex("\\s+"), " ")
             .trim()
     }
 
     private fun LlmRequest.maxGeneratedTokens(): Int {
         return when (mode) {
-            LlmRequestMode.PERSONALIZE_STEP -> 96
-            LlmRequestMode.ANSWER_QUESTION -> 144
+            LlmRequestMode.PERSONALIZE_STEP -> 64
+            LlmRequestMode.ANSWER_QUESTION -> 96
         }
     }
 

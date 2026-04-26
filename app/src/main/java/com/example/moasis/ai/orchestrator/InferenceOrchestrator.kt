@@ -96,6 +96,7 @@ class InferenceOrchestrator(
         val validation = responseValidator.validateQuestionAnswer(
             canonicalText = step.canonicalText,
             responseText = llmResponse.spokenText,
+            mustKeepKeywords = step.mustKeepKeywords,
             forbiddenKeywords = step.forbiddenKeywords,
         )
         if (!validation.isValid) {
