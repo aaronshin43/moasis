@@ -15,9 +15,7 @@ import com.example.moasis.ai.melange.MelangeEmbeddingRuntimeConfig
 import com.example.moasis.ai.melange.MelangeModelManager
 import com.example.moasis.ai.melange.MelangeSentenceEmbedder
 import com.example.moasis.ai.melange.MelangeRuntimeConfig
-import com.example.moasis.ai.melange.MelangeVisionModelManager
-import com.example.moasis.ai.melange.MelangeVisionRuntimeConfig
-import com.example.moasis.ai.melange.MelangeYoloDetectionEngine
+import com.example.moasis.ai.melange.ScopedKitDetectionEngine
 import com.example.moasis.ai.melange.RuleBasedLlmEngine
 import com.example.moasis.ai.orchestrator.InferenceOrchestrator
 import com.example.moasis.ai.prompt.PromptFactory
@@ -45,7 +43,6 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
     private var melangeModelManager: MelangeModelManager? = null
     private var melangeEmbeddingModelManager: MelangeEmbeddingModelManager? = null
-    private var melangeVisionModelManager: MelangeVisionModelManager? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.Theme_Moasis)
@@ -88,25 +85,14 @@ class MainActivity : ComponentActivity() {
                 holder.markDisabled()
             }
         }
-        val visionConfig = MelangeVisionRuntimeConfig(
-            personalKey = BuildConfig.VISION_PERSONAL_KEY,
-            modelName = BuildConfig.VISION_MODEL_NAME,
-            modelVersion = BuildConfig.VISION_MODEL_VERSION.takeIf { it >= 0 },
-            modelModeName = BuildConfig.VISION_MODEL_MODE,
-            quantTypeName = BuildConfig.VISION_QUANT_TYPE.takeIf { it.isNotBlank() },
-            targetName = BuildConfig.VISION_TARGET.takeIf { it.isNotBlank() },
-            apTypeName = resolveVisionApType(BuildConfig.VISION_AP_TYPE),
-        )
-        val visionEnabled = BuildConfig.VISION_ENABLED && visionConfig.isConfigured
+        val visionOnnxAsset = BuildConfig.VISION_ONNX_ASSET
+        val visionEnabled = BuildConfig.VISION_ENABLED && visionOnnxAsset.isNotBlank()
         Log.d(
             TAG,
             "Embedding classifier enabled=$embeddingEnabled model=${embeddingConfig.modelName} version=${embeddingConfig.modelVersion ?: "latest"} mode=${embeddingConfig.modelModeName}",
         )
         if (visionEnabled) {
-            Log.d(
-                TAG,
-                "YOLO detector enabled=true model=${visionConfig.modelName} version=${visionConfig.modelVersion ?: "latest"} mode=${visionConfig.modelModeName} target=${visionConfig.targetName ?: "auto"} ap=${visionConfig.apTypeName ?: "auto"} quant=${visionConfig.quantTypeName ?: "auto"}",
-            )
+            Log.d(TAG, "YOLO detector enabled=true runtime=ONNX asset=$visionOnnxAsset")
         }
         val intentClassifier = if (embeddingEnabled) {
             val embeddingModelManager = MelangeEmbeddingModelManager(
@@ -136,13 +122,15 @@ class MainActivity : ComponentActivity() {
         } else {
             RuleBasedLlmEngine()
         }
-        if (visionEnabled) {
-            melangeVisionModelManager = MelangeVisionModelManager(
-                context = applicationContext,
-                config = visionConfig,
+        // YOLOE runs via ONNX Runtime (CPU), completely independent from the
+        // Zetic NPU stack. The model is loaded on-demand for each detect()
+        // call and released immediately afterwards — zero idle memory.
+        val visionDetectionEngine = if (visionEnabled) {
+            ScopedKitDetectionEngine(
+                appContext = applicationContext,
+                modelAssetName = visionOnnxAsset,
             )
-        }
-        val visionDetectionEngine = melangeVisionModelManager?.let { MelangeYoloDetectionEngine(it) }
+        } else null
         when {
             aiEnabled && embeddingEnabled -> preloadEmbeddingModelAfterLlmReady(embeddingPreparationStateHolder)
             embeddingEnabled -> preloadEmbeddingModel(embeddingPreparationStateHolder)
@@ -170,7 +158,7 @@ class MainActivity : ComponentActivity() {
             answerQuestionUseCase = answerQuestionUseCase,
             sessionRepository = sessionRepository,
             melangeModelManager = melangeModelManager,
-            melangeVisionModelManager = melangeVisionModelManager,
+            melangeVisionModelManager = null,
             visionDetectionEngine = visionDetectionEngine,
             embeddingPreparationStateHolder = embeddingPreparationStateHolder,
             aiEnabled = aiEnabled,
@@ -190,8 +178,8 @@ class MainActivity : ComponentActivity() {
         melangeModelManager = null
         melangeEmbeddingModelManager?.release()
         melangeEmbeddingModelManager = null
-        melangeVisionModelManager?.release()
-        melangeVisionModelManager = null
+        // ScopedKitDetectionEngine releases its session after every detect()
+        // call, so there is nothing to release here.
         super.onDestroy()
     }
 
@@ -279,30 +267,4 @@ class MainActivity : ComponentActivity() {
         return resolved
     }
 
-    private fun resolveVisionApType(requestedApType: String): String? {
-        val normalized = requestedApType.trim().uppercase()
-        if (normalized.isBlank()) {
-            return null
-        }
-        if (normalized != "AUTO") {
-            Log.d(TAG, "Using configured vision APType=$normalized")
-            return normalized
-        }
-
-        val isQualcomm = sequenceOf(
-            Build.SOC_MANUFACTURER,
-            Build.HARDWARE,
-            Build.BOARD,
-            Build.PRODUCT,
-        )
-            .filterNotNull()
-            .map { it.lowercase() }
-            .any { value ->
-                "qualcomm" in value || "qcom" in value || "snapdragon" in value
-            }
-
-        val resolved = if (isQualcomm) "NPU" else "CPU"
-        Log.d(TAG, "Resolved vision APType=$resolved from requested=AUTO")
-        return resolved
-    }
 }

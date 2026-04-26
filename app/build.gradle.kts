@@ -64,27 +64,8 @@ val visionEnabled = providers.gradleProperty("MOASIS_VISION_ENABLED")
     .orElse("false")
     .get()
     .toBoolean()
-val visionPersonalKey = providers.gradleProperty("MOASIS_VISION_PERSONAL_KEY")
-    .orElse(melangePersonalKey)
-    .get()
-val visionModelName = providers.gradleProperty("MOASIS_VISION_MODEL_NAME")
-    .orElse("")
-    .get()
-val visionModelVersion = providers.gradleProperty("MOASIS_VISION_MODEL_VERSION")
-    .orElse("-1")
-    .get()
-    .toInt()
-val visionModelMode = providers.gradleProperty("MOASIS_VISION_MODEL_MODE")
-    .orElse("RUN_AUTO")
-    .get()
-val visionQuantType = providers.gradleProperty("MOASIS_VISION_QUANT_TYPE")
-    .orElse("")
-    .get()
-val visionTarget = providers.gradleProperty("MOASIS_VISION_TARGET")
-    .orElse("")
-    .get()
-val visionApType = providers.gradleProperty("MOASIS_VISION_AP_TYPE")
-    .orElse("AUTO")
+val visionOnnxAsset = providers.gradleProperty("MOASIS_VISION_ONNX_ASSET")
+    .orElse("yoloe_s.onnx")
     .get()
 val uploadStoreFile = providers.gradleProperty("MOASIS_UPLOAD_STORE_FILE").orNull
 val uploadStorePassword = providers.gradleProperty("MOASIS_UPLOAD_STORE_PASSWORD").orNull
@@ -117,13 +98,7 @@ android {
         buildConfigField("int", "EMBEDDING_MODEL_VERSION", embeddingModelVersion.toString())
         buildConfigField("String", "EMBEDDING_MODEL_MODE", embeddingModelMode.toBuildConfigString())
         buildConfigField("boolean", "VISION_ENABLED", visionEnabled.toString())
-        buildConfigField("String", "VISION_PERSONAL_KEY", visionPersonalKey.toBuildConfigString())
-        buildConfigField("String", "VISION_MODEL_NAME", visionModelName.toBuildConfigString())
-        buildConfigField("int", "VISION_MODEL_VERSION", visionModelVersion.toString())
-        buildConfigField("String", "VISION_MODEL_MODE", visionModelMode.toBuildConfigString())
-        buildConfigField("String", "VISION_QUANT_TYPE", visionQuantType.toBuildConfigString())
-        buildConfigField("String", "VISION_TARGET", visionTarget.toBuildConfigString())
-        buildConfigField("String", "VISION_AP_TYPE", visionApType.toBuildConfigString())
+        buildConfigField("String", "VISION_ONNX_ASSET", visionOnnxAsset.toBuildConfigString())
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -167,6 +142,15 @@ android {
             useLegacyPackaging = true
         }
     }
+    // Keep ONNX model files uncompressed in the APK so they can be
+    // memory-mapped directly without an extra decompression copy.
+    androidResources {
+        noCompress += "onnx"
+    }
+    testOptions {
+        // Allow JVM unit tests to hit android.util.Log etc. without throwing.
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {
@@ -191,6 +175,7 @@ dependencies {
     implementation(libs.androidx.camera.view)
     implementation(libs.androidx.exifinterface)
     implementation("com.zeticai.mlange:mlange:1.6.1")
+    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.17.3")
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

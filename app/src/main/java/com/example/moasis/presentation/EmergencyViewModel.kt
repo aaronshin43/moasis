@@ -344,8 +344,12 @@ class EmergencyViewModel(
         val nextStatus = if (submittedImages.isNotEmpty()) {
             val taskType = visionTaskRouter.route(turn, buildTurnContext())
             if (isVisionTaskSupported(taskType)) {
-                val detectorManager = melangeVisionModelManager
-                if (detectorManager == null || !detectorManager.isConfigured()) {
+                // The detector engine is the source of truth for vision availability.
+                // melangeVisionModelManager may be null when the on-demand
+                // (ScopedKitDetectionEngine) wiring is in use, in which case the
+                // model is loaded fresh per detect() call and never resident.
+                val detectorEngine = visionDetectionEngine
+                if (detectorEngine == null || !detectorEngine.isConfigured()) {
                     "Image attached. ${visionTaskLabel(taskType)} is supported, but the YOLO detector is not configured yet."
                 } else {
                     requestVisionDetection(
@@ -353,7 +357,7 @@ class EmergencyViewModel(
                         taskType = taskType,
                         userText = text,
                     )
-                    if (detectorManager.isPreparedInMemory()) {
+                    if (detectorEngine.isPreparedInMemory()) {
                         "Image attached. Running the YOLO detector for ${visionTaskLabel(taskType).lowercase()}."
                     } else {
                         "Image attached. Preparing the YOLO detector for ${visionTaskLabel(taskType).lowercase()}."

@@ -18,6 +18,10 @@ import kotlin.math.min
 class MelangeYoloDetectionEngine(
     private val modelManager: MelangeVisionModelManager,
 ) : VisionDetectionEngine {
+    override fun isConfigured(): Boolean = modelManager.isConfigured()
+
+    override fun isPreparedInMemory(): Boolean = modelManager.isPreparedInMemory()
+
     override suspend fun prepareIfNeeded(): Result<Unit> {
         return modelManager.getOrCreateSession().map { Unit }
     }

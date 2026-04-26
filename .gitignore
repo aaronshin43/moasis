@@ -14,3 +14,8 @@
 .cxx
 local.properties
 .kotlin/errors/*
+# Large model files (share via drive, not git)
+*.pt
+*.onnx
+# Keep the bundled ONNX asset tracked
+!app/src/main/assets/*.onnx
