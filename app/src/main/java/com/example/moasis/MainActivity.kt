@@ -21,6 +21,8 @@ import com.example.moasis.ai.melange.MelangeYoloDetectionEngine
 import com.example.moasis.ai.melange.RuleBasedLlmEngine
 import com.example.moasis.ai.orchestrator.InferenceOrchestrator
 import com.example.moasis.ai.prompt.PromptFactory
+import com.example.moasis.data.local.AppDatabase
+import com.example.moasis.data.local.SessionRepository
 import com.example.moasis.data.protocol.AndroidAssetTextSource
 import com.example.moasis.data.protocol.JsonProtocolDataSource
 import com.example.moasis.data.protocol.ProtocolRepository
@@ -138,6 +140,9 @@ class MainActivity : ComponentActivity() {
             protocolRepository = protocolRepository,
             inferenceOrchestrator = inferenceOrchestrator,
         )
+        val sessionRepository = SessionRepository(
+            sessionDao = AppDatabase.getInstance(applicationContext).sessionDao(),
+        )
         val viewModelFactory = EmergencyViewModelFactory(
             dialogueStateManager = DialogueStateManager(
                 protocolRepository = protocolRepository,
@@ -147,6 +152,7 @@ class MainActivity : ComponentActivity() {
             visualAssetRepository = visualAssetRepository,
             inferenceOrchestrator = inferenceOrchestrator,
             answerQuestionUseCase = answerQuestionUseCase,
+            sessionRepository = sessionRepository,
             melangeModelManager = melangeModelManager,
             melangeVisionModelManager = melangeVisionModelManager,
             visionDetectionEngine = visionDetectionEngine,

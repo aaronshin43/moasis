@@ -14,8 +14,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.example.moasis.audio.AndroidSpeechRecognizer
 import com.example.moasis.audio.AndroidTtsEngine
 import com.example.moasis.audio.AudioController
@@ -37,6 +40,7 @@ fun EmergencyApp(
     val viewState by viewModel.viewState.collectAsStateWithLifecycle()
     val isInputLockedForAi = viewState.isAiEnabled && !viewState.isAiReady
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     val imageInputController = remember(context) { ImageInputController(context) }
     val galleryPickerManager = remember { GalleryPickerManager() }
     val cameraCaptureManager = remember(context) { CameraCaptureManager(context) }
@@ -157,6 +161,18 @@ fun EmergencyApp(
         }
     }
 
+    DisposableEffect(lifecycleOwner, viewModel) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_STOP) {
+                viewModel.autosaveCurrentSession()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     fun startListening() {
         if (isInputLockedForAi) {
             viewModel.updateStatus(viewState.aiStatusText ?: "Wait for the AI model to finish loading before speaking.")
@@ -197,15 +213,16 @@ fun EmergencyApp(
     ChatScreen(
         viewState = viewState,
         onSubmitText = viewModel::submitText,
-        onResetSession = viewModel::resetSession,
-        onClearSessionArtifacts = viewModel::clearSessionArtifacts,
+        onResetSession = viewModel::startNewSession,
+        onOpenSession = viewModel::openEarlierSession,
+        onDeleteSession = viewModel::deleteEarlierSession,
+        onOfflineModeChange = viewModel::setOfflineModeEnabled,
         onVoiceInput = ::startListening,
         onPickImage = ::openGalleryPicker,
         onCaptureImage = ::captureImage,
         onClearImages = viewModel::clearPendingImages,
         onRemoveImage = viewModel::removeAttachedImage,
         onAction = { action -> viewModel.reduce(com.example.moasis.presentation.AppEvent.UserTappedAction(action)) },
-        onRetryAiPreparation = viewModel::retryAiPreparation,
         modifier = modifier,
     )
 }

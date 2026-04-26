@@ -36,10 +36,10 @@ class ProtocolRepositoryTest {
     }
 
     @Test
-    fun cool_water_step_has_at_least_one_visual_asset() {
+    fun cover_clean_step_has_at_least_one_visual_asset() {
         val assets = visualAssetRepository.getAssetsForStep(
             protocolId = "burn_second_degree_general",
-            stepId = "cool_water",
+            stepId = "cover_clean",
         )
 
         assertTrue(assets.isNotEmpty())

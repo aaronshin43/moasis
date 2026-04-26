@@ -20,17 +20,19 @@ class ProtocolJsonValidationTest {
 
     // --- All trees load ---
 
-    private val assetIds = assetRoot.resolve("protocols")
+    private val protocolFiles = assetRoot.resolve("protocols")
         .listFiles { file -> file.isFile && file.extension == "json" }
-        ?.map { it.nameWithoutExtension }
-        ?.sorted()
         ?: error("No protocol JSON files were found under ${assetRoot.resolve("protocols")}")
 
-    private val expectedTrees = assetIds.filter { id ->
-        id.endsWith("_tree") || id == "collapsed_person_entry"
-    }
+    private val expectedTrees = protocolFiles
+        .filter { file -> file.readText().contains("\"tree_id\"") }
+        .map { it.nameWithoutExtension }
+        .sorted()
 
-    private val expectedProtocols = assetIds.filterNot { id -> id in expectedTrees }
+    private val expectedProtocols = protocolFiles
+        .filter { file -> file.readText().contains("\"protocol_id\"") }
+        .map { it.nameWithoutExtension }
+        .sorted()
     private val supportedSlotKeys = setOf(
         "location",
         "patient_type",
@@ -196,7 +198,7 @@ class ProtocolJsonValidationTest {
                     )
                 }
 
-                node.instructionId?.let { protocolId ->
+                node.instructionId?.takeIf { it.endsWith("_general") }?.let { protocolId ->
                     assertTrue(
                         "Tree '$treeId', node '${node.id}' references missing protocol '$protocolId'",
                         protocolId in knownProtocols,

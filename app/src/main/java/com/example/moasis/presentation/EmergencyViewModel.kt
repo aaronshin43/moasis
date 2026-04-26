@@ -10,14 +10,20 @@ import com.example.moasis.ai.melange.MelangeModelManager
 import com.example.moasis.ai.melange.MelangeVisionModelManager
 import com.example.moasis.ai.orchestrator.InferenceOrchestrator
 import com.example.moasis.ai.orchestrator.VisionDetectionEngine
+import com.example.moasis.data.local.SessionArchiveMessage
+import com.example.moasis.data.local.SessionRepository
 import com.example.moasis.data.protocol.ProtocolRepository
 import com.example.moasis.data.visual.VisualAssetRepository
 import com.example.moasis.domain.model.DialogueState
+import com.example.moasis.domain.model.EmergencySessionDetail
+import com.example.moasis.domain.model.EmergencySessionSummary
 import com.example.moasis.domain.model.FactSource
 import com.example.moasis.domain.model.ObservedFact
+import com.example.moasis.domain.model.Protocol
 import com.example.moasis.domain.model.ProtocolStep
 import com.example.moasis.domain.model.TurnContext
 import com.example.moasis.domain.model.UserTurn
+import com.example.moasis.domain.model.VisualAid
 import com.example.moasis.domain.model.VisionTaskType
 import com.example.moasis.domain.state.DialogueStateManager
 import com.example.moasis.domain.state.ObjectPresenceQueryParser
@@ -31,8 +37,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.UUID
 
 class EmergencyViewModel(
     private val dialogueStateManager: DialogueStateManager,
@@ -40,6 +48,7 @@ class EmergencyViewModel(
     private val visualAssetRepository: VisualAssetRepository,
     private val inferenceOrchestrator: InferenceOrchestrator,
     private val answerQuestionUseCase: AnswerQuestionUseCase,
+    private val sessionRepository: SessionRepository? = null,
     private val melangeModelManager: MelangeModelManager? = null,
     private val melangeVisionModelManager: MelangeVisionModelManager? = null,
     private val visionDetectionEngine: VisionDetectionEngine? = null,
@@ -66,6 +75,13 @@ class EmergencyViewModel(
     private var currentDialogueState: DialogueState? = null
     private var pendingImagePaths: List<String> = emptyList()
     private var recentSubmittedImagePaths: List<String> = emptyList()
+    private var currentSessionId: String? = null
+    private var currentSessionStartedAtMs: Long? = null
+    private var lastSessionProtocolId: String? = null
+    private var lastSessionProtocolTitle: String? = null
+    private var lastSessionProtocolCategory: String? = null
+    private var viewedArchivedSessionId: String? = null
+    private var earlierSessionsFromDb: List<EmergencySessionSummary> = emptyList()
     private var personalizationJob: Job? = null
     private var questionAnswerJob: Job? = null
     private var aiPreparationJob: Job? = null
@@ -75,6 +91,14 @@ class EmergencyViewModel(
     private val questionAnswers = mutableMapOf<String, QuestionAnswerResult>()
 
     init {
+        sessionRepository?.let { repository ->
+            viewModelScope.launch {
+                repository.observeEarlierSessions().collectLatest { sessions ->
+                    earlierSessionsFromDb = sessions
+                    publishEarlierSessions()
+                }
+            }
+        }
         if (aiEnabled && melangeModelManager != null) {
             prepareAiModelIfNeeded()
         }
@@ -106,6 +130,12 @@ class EmergencyViewModel(
         currentDialogueState = null
         pendingImagePaths = emptyList()
         recentSubmittedImagePaths = emptyList()
+        currentSessionId = null
+        currentSessionStartedAtMs = null
+        lastSessionProtocolId = null
+        lastSessionProtocolTitle = null
+        lastSessionProtocolCategory = null
+        viewedArchivedSessionId = null
         _viewState.value = EmergencyViewState(
             screenMode = ScreenMode.HOME,
             uiState = UiState(
@@ -119,17 +149,96 @@ class EmergencyViewModel(
             isAiPreparing = _viewState.value.isAiPreparing,
             isAiReady = _viewState.value.isAiReady,
             canRetryAiPreparation = _viewState.value.canRetryAiPreparation,
+            isOfflineModeEnabled = _viewState.value.isOfflineModeEnabled,
             aiModelLabel = _viewState.value.aiModelLabel,
             aiRouteText = _viewState.value.aiRouteText,
             aiCacheSummaryText = _viewState.value.aiCacheSummaryText,
             aiDiagnosticDetail = _viewState.value.aiDiagnosticDetail,
             chatHistory = emptyList(),
             recentObservedFacts = emptyList(),
+            earlierSessions = _viewState.value.earlierSessions,
+            isViewingArchivedSession = false,
+            viewingArchivedSessionId = null,
         )
+        publishEarlierSessions()
+    }
+
+    fun startNewSession() {
+        val snapshot = buildCurrentSessionArchiveSnapshot()
+        resetSession()
+        val repository = sessionRepository ?: return
+        if (snapshot != null) {
+            viewModelScope.launch(Dispatchers.IO) {
+                repository.archiveSessionSnapshot(snapshot)
+            }
+        }
+    }
+
+    fun deleteEarlierSession(sessionId: String) {
+        val repository = sessionRepository ?: return
+        val shouldClearViewedSession = _viewState.value.isViewingArchivedSession && viewedArchivedSessionId == sessionId
+        if (shouldClearViewedSession) {
+            resetSession()
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.deleteSession(sessionId)
+        }
+    }
+
+    fun openEarlierSession(sessionId: String) {
+        val repository = sessionRepository ?: return
+        val currentSnapshot = buildCurrentSessionArchiveSnapshot()
+        viewModelScope.launch {
+            val detail = withContext(Dispatchers.IO) {
+                if (currentSnapshot != null && currentSnapshot.sessionId != sessionId) {
+                    repository.archiveSessionSnapshot(currentSnapshot)
+                }
+                repository.getSessionDetail(sessionId)
+            } ?: return@launch
+            cancelResponseJobs()
+            currentDialogueState = null
+            pendingImagePaths = emptyList()
+            recentSubmittedImagePaths = emptyList()
+            currentSessionId = null
+            currentSessionStartedAtMs = null
+            lastSessionProtocolId = null
+            lastSessionProtocolTitle = null
+            lastSessionProtocolCategory = null
+            viewedArchivedSessionId = sessionId
+            _viewState.value = _viewState.value.copy(
+                screenMode = ScreenMode.ACTIVE,
+                uiState = UiState(
+                    title = detail.summary.title,
+                    primaryInstruction = "Saved session",
+                    secondaryInstruction = "Read-only history",
+                    guidanceOriginLabel = "Archived session",
+                ),
+                statusText = "Viewing a saved session. Start a new session to continue emergency guidance.",
+                quickResponses = emptyList(),
+                transcriptDraft = "",
+                attachedImagePaths = emptyList(),
+                chatHistory = detail.toChatHistory(),
+                isViewingArchivedSession = true,
+                viewingArchivedSessionId = sessionId,
+            )
+            publishEarlierSessions()
+        }
+    }
+
+    fun autosaveCurrentSession() {
+        val snapshot = buildCurrentSessionArchiveSnapshot() ?: return
+        val repository = sessionRepository ?: return
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.archiveSessionSnapshot(snapshot)
+        }
     }
 
     fun retryAiPreparation() {
         prepareAiModelIfNeeded(force = true)
+    }
+
+    fun setOfflineModeEnabled(enabled: Boolean) {
+        _viewState.value = _viewState.value.copy(isOfflineModeEnabled = enabled)
     }
 
     fun updateListening(isListening: Boolean) {
@@ -203,11 +312,13 @@ class EmergencyViewModel(
             return
         }
 
+        val submittedAtMs = System.currentTimeMillis()
+        ensureCurrentSessionStarted(submittedAtMs)
         val submittedImages = pendingImagePaths
         val turn = UserTurn(
             text = text.takeIf { it.isNotBlank() },
             imageUris = submittedImages,
-            timestamp = System.currentTimeMillis(),
+            timestamp = submittedAtMs,
         )
         val nextStatus = if (submittedImages.isNotEmpty()) {
             val taskType = visionTaskRouter.route(turn, buildTurnContext())
@@ -295,6 +406,118 @@ class EmergencyViewModel(
         return prevHistory + archivedAssistant + ChatMessage.User(userText)
     }
 
+    private fun ensureCurrentSessionStarted(startedAtMs: Long) {
+        if (currentSessionId == null) {
+            currentSessionId = UUID.randomUUID().toString()
+            currentSessionStartedAtMs = startedAtMs
+            publishEarlierSessions()
+        }
+    }
+
+    private fun publishEarlierSessions() {
+        val hiddenSessionIds = setOfNotNull(currentSessionId)
+        _viewState.value = _viewState.value.copy(
+            earlierSessions = earlierSessionsFromDb.filterNot { it.sessionId in hiddenSessionIds },
+        )
+    }
+
+    private fun buildCurrentSessionArchiveSnapshot(): SessionArchiveSnapshot? {
+        val sessionId = currentSessionId ?: return null
+        val createdAtMs = currentSessionStartedAtMs ?: return null
+        val current = _viewState.value
+        if (current.screenMode == ScreenMode.HOME && current.chatHistory.isEmpty()) {
+            return null
+        }
+
+        val protocol = when (val state = currentDialogueState) {
+            is DialogueState.ProtocolMode -> protocolRepository.getProtocol(state.protocolId)
+            is DialogueState.QuestionMode -> protocolRepository.getProtocol(state.protocolId)
+            else -> lastSessionProtocolId?.let { protocolRepository.getProtocol(it) }
+        }
+        val updatedAtMs = System.currentTimeMillis().coerceAtLeast(createdAtMs)
+        return SessionArchiveSnapshot(
+            sessionId = sessionId,
+            title = protocol?.title
+                ?: lastSessionProtocolTitle
+                ?: current.uiState.title.ifBlank { "Emergency session" },
+            category = protocol?.category ?: lastSessionProtocolCategory,
+            protocolId = protocol?.protocolId ?: lastSessionProtocolId,
+            createdAtMs = createdAtMs,
+            updatedAtMs = updatedAtMs,
+            lastStepIndex = current.uiState.currentStep.takeIf { it > 0 },
+            totalSteps = current.uiState.totalSteps.takeIf { it > 0 },
+            messages = buildArchiveMessages(current),
+        )
+    }
+
+    private fun buildArchiveMessages(current: EmergencyViewState): List<SessionArchiveMessage> {
+        val historyMessages = current.chatHistory.map { message ->
+            when (message) {
+                is ChatMessage.User -> SessionArchiveMessage(
+                    role = "user",
+                    title = null,
+                    text = message.text,
+                    secondaryText = null,
+                    warningText = null,
+                    visualAidIds = emptyList(),
+                )
+                is ChatMessage.Assistant -> SessionArchiveMessage(
+                    role = "assistant",
+                    title = message.title,
+                    text = message.primaryInstruction,
+                    secondaryText = message.secondaryInstruction,
+                    warningText = message.warningText,
+                    visualAidIds = message.visualAids.map { it.assetId },
+                )
+            }
+        }
+        val activeAssistant = if (
+            current.screenMode == ScreenMode.ACTIVE &&
+            current.uiState.primaryInstruction.isNotBlank()
+        ) {
+            listOf(
+                SessionArchiveMessage(
+                    role = "assistant",
+                    title = current.uiState.title,
+                    text = current.uiState.primaryInstruction,
+                    secondaryText = current.uiState.secondaryInstruction,
+                    warningText = current.uiState.warningText,
+                    visualAidIds = current.uiState.visualAids.map { it.assetId },
+                )
+            )
+        } else {
+            emptyList()
+        }
+        return historyMessages + activeAssistant
+    }
+
+    private fun EmergencySessionDetail.toChatHistory(): List<ChatMessage> {
+        return messages.map { message ->
+            if (message.role == "user") {
+                ChatMessage.User(message.text)
+            } else {
+                ChatMessage.Assistant(
+                    title = message.title ?: summary.title,
+                    primaryInstruction = message.text,
+                    secondaryInstruction = message.secondaryText,
+                    warningText = message.warningText,
+                    visualAids = message.visualAidIds.mapNotNull { assetId ->
+                        visualAssetRepository.resolveAsset(assetId)?.let { entry ->
+                            VisualAid(
+                                assetId = entry.assetId,
+                                type = entry.type,
+                                caption = entry.caption,
+                                contentDescription = entry.contentDescription,
+                            )
+                        }
+                    },
+                    currentStep = 0,
+                    totalSteps = 0,
+                )
+            }
+        }
+    }
+
     private fun handleAction(action: UiAction) {
         when (action) {
             UiAction.Next -> submitText("next")
@@ -339,6 +562,7 @@ class EmergencyViewModel(
         val protocol = requireNotNull(protocolRepository.getProtocol(dialogueState.protocolId)) {
             "Missing protocol for ${dialogueState.protocolId}"
         }
+        rememberSessionProtocol(protocol)
         val step = requireNotNull(protocol.steps.getOrNull(dialogueState.stepIndex)) {
             "Missing step ${dialogueState.stepIndex} for ${dialogueState.protocolId}"
         }
@@ -383,6 +607,7 @@ class EmergencyViewModel(
             isAiPreparing = _viewState.value.isAiPreparing,
             isAiReady = _viewState.value.isAiReady,
             canRetryAiPreparation = _viewState.value.canRetryAiPreparation,
+            isOfflineModeEnabled = _viewState.value.isOfflineModeEnabled,
             aiModelLabel = _viewState.value.aiModelLabel,
             aiRouteText = _viewState.value.aiRouteText,
             aiCacheSummaryText = _viewState.value.aiCacheSummaryText,
@@ -390,6 +615,9 @@ class EmergencyViewModel(
             transcriptDraft = _viewState.value.transcriptDraft,
             attachedImagePaths = pendingImagePaths.ifEmpty { recentSubmittedImagePaths },
             recentObservedFacts = _viewState.value.recentObservedFacts,
+            earlierSessions = _viewState.value.earlierSessions,
+            isViewingArchivedSession = _viewState.value.isViewingArchivedSession,
+            viewingArchivedSessionId = _viewState.value.viewingArchivedSessionId,
         )
     }
 
@@ -423,6 +651,7 @@ class EmergencyViewModel(
             isAiPreparing = _viewState.value.isAiPreparing,
             isAiReady = _viewState.value.isAiReady,
             canRetryAiPreparation = _viewState.value.canRetryAiPreparation,
+            isOfflineModeEnabled = _viewState.value.isOfflineModeEnabled,
             aiModelLabel = _viewState.value.aiModelLabel,
             aiRouteText = _viewState.value.aiRouteText,
             aiCacheSummaryText = _viewState.value.aiCacheSummaryText,
@@ -430,6 +659,9 @@ class EmergencyViewModel(
             transcriptDraft = _viewState.value.transcriptDraft,
             attachedImagePaths = pendingImagePaths.ifEmpty { recentSubmittedImagePaths },
             recentObservedFacts = _viewState.value.recentObservedFacts,
+            earlierSessions = _viewState.value.earlierSessions,
+            isViewingArchivedSession = _viewState.value.isViewingArchivedSession,
+            viewingArchivedSessionId = _viewState.value.viewingArchivedSessionId,
         )
     }
 
@@ -440,6 +672,7 @@ class EmergencyViewModel(
         val protocol = requireNotNull(protocolRepository.getProtocol(dialogueState.protocolId)) {
             "Missing protocol for ${dialogueState.protocolId}"
         }
+        rememberSessionProtocol(protocol)
         val step = requireNotNull(protocol.steps.getOrNull(dialogueState.stepIndex)) {
             "Missing step ${dialogueState.stepIndex} for ${dialogueState.protocolId}"
         }
@@ -484,6 +717,7 @@ class EmergencyViewModel(
             isAiPreparing = _viewState.value.isAiPreparing,
             isAiReady = _viewState.value.isAiReady,
             canRetryAiPreparation = _viewState.value.canRetryAiPreparation,
+            isOfflineModeEnabled = _viewState.value.isOfflineModeEnabled,
             aiModelLabel = _viewState.value.aiModelLabel,
             aiRouteText = _viewState.value.aiRouteText,
             aiCacheSummaryText = _viewState.value.aiCacheSummaryText,
@@ -491,6 +725,9 @@ class EmergencyViewModel(
             transcriptDraft = _viewState.value.transcriptDraft,
             attachedImagePaths = pendingImagePaths.ifEmpty { recentSubmittedImagePaths },
             recentObservedFacts = _viewState.value.recentObservedFacts,
+            earlierSessions = _viewState.value.earlierSessions,
+            isViewingArchivedSession = _viewState.value.isViewingArchivedSession,
+            viewingArchivedSessionId = _viewState.value.viewingArchivedSessionId,
         )
     }
 
@@ -516,6 +753,7 @@ class EmergencyViewModel(
             isAiPreparing = _viewState.value.isAiPreparing,
             isAiReady = _viewState.value.isAiReady,
             canRetryAiPreparation = _viewState.value.canRetryAiPreparation,
+            isOfflineModeEnabled = _viewState.value.isOfflineModeEnabled,
             aiModelLabel = _viewState.value.aiModelLabel,
             aiRouteText = _viewState.value.aiRouteText,
             aiCacheSummaryText = _viewState.value.aiCacheSummaryText,
@@ -523,6 +761,9 @@ class EmergencyViewModel(
             transcriptDraft = _viewState.value.transcriptDraft,
             attachedImagePaths = pendingImagePaths.ifEmpty { recentSubmittedImagePaths },
             recentObservedFacts = _viewState.value.recentObservedFacts,
+            earlierSessions = _viewState.value.earlierSessions,
+            isViewingArchivedSession = _viewState.value.isViewingArchivedSession,
+            viewingArchivedSessionId = _viewState.value.viewingArchivedSessionId,
         )
     }
 
@@ -530,7 +771,7 @@ class EmergencyViewModel(
         return EmergencyViewState(
             screenMode = ScreenMode.ACTIVE,
             uiState = UiState(
-                title = "Scenario complete",
+                title = lastSessionProtocolTitle ?: "Scenario complete",
                 primaryInstruction = "No further deterministic steps are pending.",
                 secondaryInstruction = "Start a new report if the situation changes.",
                 guidanceOriginLabel = "Deterministic completion state",
@@ -543,6 +784,7 @@ class EmergencyViewModel(
             isAiPreparing = _viewState.value.isAiPreparing,
             isAiReady = _viewState.value.isAiReady,
             canRetryAiPreparation = _viewState.value.canRetryAiPreparation,
+            isOfflineModeEnabled = _viewState.value.isOfflineModeEnabled,
             aiModelLabel = _viewState.value.aiModelLabel,
             aiRouteText = _viewState.value.aiRouteText,
             aiCacheSummaryText = _viewState.value.aiCacheSummaryText,
@@ -550,6 +792,9 @@ class EmergencyViewModel(
             transcriptDraft = _viewState.value.transcriptDraft,
             attachedImagePaths = pendingImagePaths.ifEmpty { recentSubmittedImagePaths },
             recentObservedFacts = _viewState.value.recentObservedFacts,
+            earlierSessions = _viewState.value.earlierSessions,
+            isViewingArchivedSession = _viewState.value.isViewingArchivedSession,
+            viewingArchivedSessionId = _viewState.value.viewingArchivedSessionId,
         )
     }
 
@@ -558,6 +803,12 @@ class EmergencyViewModel(
             return null
         }
         return "Avoid: ${step.forbiddenKeywords.joinToString(", ")}"
+    }
+
+    private fun rememberSessionProtocol(protocol: Protocol) {
+        lastSessionProtocolId = protocol.protocolId
+        lastSessionProtocolTitle = protocol.title
+        lastSessionProtocolCategory = protocol.category
     }
 
     private fun isInputBlockedUntilAiReady(): Boolean {
@@ -1023,6 +1274,32 @@ class EmergencyViewModel(
         questionAnswerJob = null
     }
 
+    private data class SessionArchiveSnapshot(
+        val sessionId: String,
+        val title: String,
+        val category: String?,
+        val protocolId: String?,
+        val createdAtMs: Long,
+        val updatedAtMs: Long,
+        val lastStepIndex: Int?,
+        val totalSteps: Int?,
+        val messages: List<SessionArchiveMessage>,
+    )
+
+    private suspend fun SessionRepository.archiveSessionSnapshot(snapshot: SessionArchiveSnapshot) {
+        archiveSession(
+            sessionId = snapshot.sessionId,
+            title = snapshot.title,
+            category = snapshot.category,
+            protocolId = snapshot.protocolId,
+            createdAtMs = snapshot.createdAtMs,
+            updatedAtMs = snapshot.updatedAtMs,
+            lastStepIndex = snapshot.lastStepIndex,
+            totalSteps = snapshot.totalSteps,
+            messages = snapshot.messages,
+        )
+    }
+
     private fun buildTurnContext(): TurnContext {
         return when (val state = currentDialogueState) {
             is DialogueState.EntryMode -> TurnContext(
@@ -1071,6 +1348,7 @@ class EmergencyViewModelFactory(
     private val visualAssetRepository: VisualAssetRepository,
     private val inferenceOrchestrator: InferenceOrchestrator,
     private val answerQuestionUseCase: AnswerQuestionUseCase,
+    private val sessionRepository: SessionRepository? = null,
     private val melangeModelManager: MelangeModelManager? = null,
     private val melangeVisionModelManager: MelangeVisionModelManager? = null,
     private val visionDetectionEngine: VisionDetectionEngine? = null,
@@ -1085,6 +1363,7 @@ class EmergencyViewModelFactory(
                 visualAssetRepository = visualAssetRepository,
                 inferenceOrchestrator = inferenceOrchestrator,
                 answerQuestionUseCase = answerQuestionUseCase,
+                sessionRepository = sessionRepository,
                 melangeModelManager = melangeModelManager,
                 melangeVisionModelManager = melangeVisionModelManager,
                 visionDetectionEngine = visionDetectionEngine,

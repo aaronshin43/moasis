@@ -1,5 +1,6 @@
 package com.example.moasis.presentation
 
+import com.example.moasis.domain.model.EmergencySessionSummary
 import com.example.moasis.domain.model.ObservedFact
 
 data class EmergencyViewState(
@@ -15,6 +16,7 @@ data class EmergencyViewState(
     val isAiPreparing: Boolean = false,
     val isAiReady: Boolean = false,
     val canRetryAiPreparation: Boolean = false,
+    val isOfflineModeEnabled: Boolean = false,
     val aiModelLabel: String? = null,
     val aiRouteText: String? = null,
     val aiCacheSummaryText: String? = null,
@@ -24,6 +26,9 @@ data class EmergencyViewState(
     val attachedImagePaths: List<String> = emptyList(),
     val chatHistory: List<ChatMessage> = emptyList(),
     val recentObservedFacts: List<ObservedFact> = emptyList(),
+    val earlierSessions: List<EmergencySessionSummary> = emptyList(),
+    val isViewingArchivedSession: Boolean = false,
+    val viewingArchivedSessionId: String? = null,
 )
 
 enum class ScreenMode {
