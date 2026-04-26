@@ -174,10 +174,13 @@ dependencies {
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
     implementation(libs.androidx.exifinterface)
-    // Melange SDK transitively bundles ONNX Runtime (ort_runtime).
-    // We use its ai.onnxruntime.* API directly for YOLOE — do NOT add
-    // a separate onnxruntime-android dependency (causes native lib conflict).
-    implementation("com.zeticai.mlange:mlange:1.6.1")
+    // Melange bundles its own ort_runtime module with an older libonnxruntime.so
+    // that is ABI-incompatible with the official onnxruntime-android JNI bridge.
+    // Exclude it so only onnxruntime-android's matching pair ships in the APK.
+    implementation("com.zeticai.mlange:mlange:1.6.1") {
+        exclude(module = "ort_runtime")
+    }
+    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.17.3")
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
