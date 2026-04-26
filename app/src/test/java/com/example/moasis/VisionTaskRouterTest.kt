@@ -46,10 +46,10 @@ class VisionTaskRouterTest {
         assertEquals(VisionTaskType.STEP_VERIFICATION, result)
     }
 
-    // --- INJURY_OBSERVATION ---
+    // --- Unsupported injury observation path ---
 
     @Test
-    fun entry_mode_with_burn_keyword_routes_to_injury_observation() {
+    fun entry_mode_with_burn_keyword_is_not_routed_to_general_vision() {
         val context = TurnContext(
             dialogueState = DialogueState.EntryMode(
                 treeId = "burn_tree",
@@ -58,11 +58,11 @@ class VisionTaskRouterTest {
             ),
         )
         val result = router.route(turn(text = "I have a burn"), context)
-        assertEquals(VisionTaskType.INJURY_OBSERVATION, result)
+        assertEquals(VisionTaskType.UNKNOWN, result)
     }
 
     @Test
-    fun entry_mode_with_blister_routes_to_injury_observation() {
+    fun entry_mode_with_blister_is_not_routed_to_general_vision() {
         val context = TurnContext(
             dialogueState = DialogueState.EntryMode(
                 treeId = "entry",
@@ -71,11 +71,11 @@ class VisionTaskRouterTest {
             ),
         )
         val result = router.route(turn(text = "there are blisters"), context)
-        assertEquals(VisionTaskType.INJURY_OBSERVATION, result)
+        assertEquals(VisionTaskType.UNKNOWN, result)
     }
 
     @Test
-    fun entry_mode_with_bleeding_routes_to_injury_observation() {
+    fun entry_mode_with_bleeding_is_not_routed_to_general_vision() {
         val context = TurnContext(
             dialogueState = DialogueState.EntryMode(
                 treeId = "entry",
@@ -84,11 +84,11 @@ class VisionTaskRouterTest {
             ),
         )
         val result = router.route(turn(text = "bleeding from the arm"), context)
-        assertEquals(VisionTaskType.INJURY_OBSERVATION, result)
+        assertEquals(VisionTaskType.UNKNOWN, result)
     }
 
     @Test
-    fun entry_mode_with_wound_routes_to_injury_observation() {
+    fun entry_mode_with_wound_is_not_routed_to_general_vision() {
         val context = TurnContext(
             dialogueState = DialogueState.EntryMode(
                 treeId = "entry",
@@ -97,11 +97,11 @@ class VisionTaskRouterTest {
             ),
         )
         val result = router.route(turn(text = "there is a wound on my hand"), context)
-        assertEquals(VisionTaskType.INJURY_OBSERVATION, result)
+        assertEquals(VisionTaskType.UNKNOWN, result)
     }
 
     @Test
-    fun entry_mode_without_injury_keyword_falls_to_general() {
+    fun entry_mode_without_supported_object_query_is_unknown() {
         val context = TurnContext(
             dialogueState = DialogueState.EntryMode(
                 treeId = "entry",
@@ -110,13 +110,13 @@ class VisionTaskRouterTest {
             ),
         )
         val result = router.route(turn(text = "look at this photo"), context)
-        assertEquals(VisionTaskType.GENERAL_MULTIMODAL_QA, result)
+        assertEquals(VisionTaskType.OBJECT_PRESENCE_CHECK, result)
     }
 
-    // --- GENERAL_MULTIMODAL_QA ---
+    // --- OBJECT_PRESENCE_CHECK ---
 
     @Test
-    fun look_at_this_without_entry_mode_routes_to_general_qa() {
+    fun look_at_this_without_entry_mode_routes_to_object_presence() {
         val context = TurnContext(
             dialogueState = DialogueState.ProtocolMode(
                 scenarioId = "burn",
@@ -127,21 +127,21 @@ class VisionTaskRouterTest {
             ),
         )
         val result = router.route(turn(text = "look at this"), context)
-        assertEquals(VisionTaskType.GENERAL_MULTIMODAL_QA, result)
+        assertEquals(VisionTaskType.OBJECT_PRESENCE_CHECK, result)
     }
 
     @Test
-    fun does_this_look_okay_routes_to_general_qa() {
+    fun image_only_turn_routes_to_object_presence() {
+        val context = TurnContext()
+        val result = router.route(turn(text = ""), context)
+        assertEquals(VisionTaskType.OBJECT_PRESENCE_CHECK, result)
+    }
+
+    @Test
+    fun unsupported_generic_multimodal_question_is_unknown() {
         val context = TurnContext()
         val result = router.route(turn(text = "does this look okay"), context)
-        assertEquals(VisionTaskType.GENERAL_MULTIMODAL_QA, result)
-    }
-
-    @Test
-    fun fallback_routes_to_general_qa() {
-        val context = TurnContext()
-        val result = router.route(turn(text = "here is a photo"), context)
-        assertEquals(VisionTaskType.GENERAL_MULTIMODAL_QA, result)
+        assertEquals(VisionTaskType.UNKNOWN, result)
     }
 
     // --- Voice transcript used ---
@@ -156,7 +156,7 @@ class VisionTaskRouterTest {
             ),
         )
         val result = router.route(turn(voice = "I have a burn on my arm"), context)
-        assertEquals(VisionTaskType.INJURY_OBSERVATION, result)
+        assertEquals(VisionTaskType.UNKNOWN, result)
     }
 
     // --- Priority: kit > verification > injury > general ---

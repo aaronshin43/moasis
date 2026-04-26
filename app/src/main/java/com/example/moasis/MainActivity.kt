@@ -15,6 +15,9 @@ import com.example.moasis.ai.melange.MelangeEmbeddingRuntimeConfig
 import com.example.moasis.ai.melange.MelangeModelManager
 import com.example.moasis.ai.melange.MelangeSentenceEmbedder
 import com.example.moasis.ai.melange.MelangeRuntimeConfig
+import com.example.moasis.ai.melange.MelangeVisionModelManager
+import com.example.moasis.ai.melange.MelangeVisionRuntimeConfig
+import com.example.moasis.ai.melange.MelangeYoloDetectionEngine
 import com.example.moasis.ai.melange.RuleBasedLlmEngine
 import com.example.moasis.ai.orchestrator.InferenceOrchestrator
 import com.example.moasis.ai.prompt.PromptFactory
@@ -39,6 +42,7 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
     private var melangeModelManager: MelangeModelManager? = null
     private var melangeEmbeddingModelManager: MelangeEmbeddingModelManager? = null
+    private var melangeVisionModelManager: MelangeVisionModelManager? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.Theme_Moasis)
@@ -69,10 +73,23 @@ class MainActivity : ComponentActivity() {
             modelModeName = BuildConfig.EMBEDDING_MODEL_MODE,
         )
         val embeddingEnabled = BuildConfig.EMBEDDING_ENABLED && embeddingConfig.isConfigured
+        val visionConfig = MelangeVisionRuntimeConfig(
+            personalKey = BuildConfig.VISION_PERSONAL_KEY,
+            modelName = BuildConfig.VISION_MODEL_NAME,
+            modelVersion = BuildConfig.VISION_MODEL_VERSION.takeIf { it >= 0 },
+            modelModeName = BuildConfig.VISION_MODEL_MODE,
+        )
+        val visionEnabled = BuildConfig.VISION_ENABLED && visionConfig.isConfigured
         Log.d(
             TAG,
             "Embedding classifier enabled=$embeddingEnabled model=${embeddingConfig.modelName} version=${embeddingConfig.modelVersion ?: "latest"} mode=${embeddingConfig.modelModeName}",
         )
+        if (visionEnabled) {
+            Log.d(
+                TAG,
+                "YOLO detector enabled=true model=${visionConfig.modelName} version=${visionConfig.modelVersion ?: "latest"} mode=${visionConfig.modelModeName}",
+            )
+        }
         val intentClassifier = if (embeddingEnabled) {
             val embeddingModelManager = MelangeEmbeddingModelManager(
                 context = applicationContext,
@@ -101,6 +118,13 @@ class MainActivity : ComponentActivity() {
         } else {
             RuleBasedLlmEngine()
         }
+        if (visionEnabled) {
+            melangeVisionModelManager = MelangeVisionModelManager(
+                context = applicationContext,
+                config = visionConfig,
+            )
+        }
+        val visionDetectionEngine = melangeVisionModelManager?.let { MelangeYoloDetectionEngine(it) }
         when {
             aiEnabled && embeddingEnabled -> preloadEmbeddingModelAfterLlmReady()
             embeddingEnabled -> preloadEmbeddingModel()
@@ -124,6 +148,8 @@ class MainActivity : ComponentActivity() {
             inferenceOrchestrator = inferenceOrchestrator,
             answerQuestionUseCase = answerQuestionUseCase,
             melangeModelManager = melangeModelManager,
+            melangeVisionModelManager = melangeVisionModelManager,
+            visionDetectionEngine = visionDetectionEngine,
             aiEnabled = aiEnabled,
         )
         setContent {
@@ -141,6 +167,8 @@ class MainActivity : ComponentActivity() {
         melangeModelManager = null
         melangeEmbeddingModelManager?.release()
         melangeEmbeddingModelManager = null
+        melangeVisionModelManager?.release()
+        melangeVisionModelManager = null
         super.onDestroy()
     }
 

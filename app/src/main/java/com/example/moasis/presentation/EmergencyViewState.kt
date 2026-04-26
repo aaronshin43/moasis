@@ -1,5 +1,7 @@
 package com.example.moasis.presentation
 
+import com.example.moasis.domain.model.ObservedFact
+
 data class EmergencyViewState(
     val screenMode: ScreenMode = ScreenMode.HOME,
     val uiState: UiState = UiState(),
@@ -21,6 +23,7 @@ data class EmergencyViewState(
     val speechRequestKey: Int = 0,
     val attachedImagePaths: List<String> = emptyList(),
     val chatHistory: List<ChatMessage> = emptyList(),
+    val recentObservedFacts: List<ObservedFact> = emptyList(),
 )
 
 enum class ScreenMode {

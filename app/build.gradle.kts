@@ -60,6 +60,23 @@ val embeddingModelVersion = providers.gradleProperty("MOASIS_EMBEDDING_MODEL_VER
 val embeddingModelMode = providers.gradleProperty("MOASIS_EMBEDDING_MODEL_MODE")
     .orElse("RUN_AUTO")
     .get()
+val visionEnabled = providers.gradleProperty("MOASIS_VISION_ENABLED")
+    .orElse("false")
+    .get()
+    .toBoolean()
+val visionPersonalKey = providers.gradleProperty("MOASIS_VISION_PERSONAL_KEY")
+    .orElse(melangePersonalKey)
+    .get()
+val visionModelName = providers.gradleProperty("MOASIS_VISION_MODEL_NAME")
+    .orElse("")
+    .get()
+val visionModelVersion = providers.gradleProperty("MOASIS_VISION_MODEL_VERSION")
+    .orElse("-1")
+    .get()
+    .toInt()
+val visionModelMode = providers.gradleProperty("MOASIS_VISION_MODEL_MODE")
+    .orElse("RUN_AUTO")
+    .get()
 val uploadStoreFile = providers.gradleProperty("MOASIS_UPLOAD_STORE_FILE").orNull
 val uploadStorePassword = providers.gradleProperty("MOASIS_UPLOAD_STORE_PASSWORD").orNull
 val uploadKeyAlias = providers.gradleProperty("MOASIS_UPLOAD_KEY_ALIAS").orNull
@@ -90,6 +107,11 @@ android {
         buildConfigField("String", "EMBEDDING_MODEL_NAME", embeddingModelName.toBuildConfigString())
         buildConfigField("int", "EMBEDDING_MODEL_VERSION", embeddingModelVersion.toString())
         buildConfigField("String", "EMBEDDING_MODEL_MODE", embeddingModelMode.toBuildConfigString())
+        buildConfigField("boolean", "VISION_ENABLED", visionEnabled.toString())
+        buildConfigField("String", "VISION_PERSONAL_KEY", visionPersonalKey.toBuildConfigString())
+        buildConfigField("String", "VISION_MODEL_NAME", visionModelName.toBuildConfigString())
+        buildConfigField("int", "VISION_MODEL_VERSION", visionModelVersion.toString())
+        buildConfigField("String", "VISION_MODEL_MODE", visionModelMode.toBuildConfigString())
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -155,6 +177,7 @@ dependencies {
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
+    implementation(libs.androidx.exifinterface)
     implementation("com.zeticai.mlange:mlange:1.6.1")
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)

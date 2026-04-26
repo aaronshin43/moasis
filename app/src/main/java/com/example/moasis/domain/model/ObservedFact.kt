@@ -23,6 +23,7 @@ enum class FactSource {
 enum class VisionTaskType {
     KIT_DETECTION,
     STEP_VERIFICATION,
+    OBJECT_PRESENCE_CHECK,
     INJURY_OBSERVATION,
     GENERAL_MULTIMODAL_QA,
     UNKNOWN,

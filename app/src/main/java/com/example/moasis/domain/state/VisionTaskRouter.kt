@@ -16,14 +16,23 @@ class VisionTaskRouter {
         return when {
             context.currentProtocolId == "first_aid_kit_inventory" -> VisionTaskType.KIT_DETECTION
             !context.expectedVisualCheck.isNullOrBlank() -> VisionTaskType.STEP_VERIFICATION
+            turn.imageUris.isNotEmpty() &&
+                text.containsAny(
+                    "look at this",
+                    "what do you see",
+                    "do you see",
+                    "is there",
+                    "what items",
+                    "what is in this",
+                    "check this image",
+                    "check this photo",
+                    "is this"
+                ) -> VisionTaskType.OBJECT_PRESENCE_CHECK
+            turn.imageUris.isNotEmpty() && text.isBlank() -> VisionTaskType.OBJECT_PRESENCE_CHECK
             context.dialogueState is DialogueState.EntryMode &&
                 text.containsAny("burn", "blister", "bleeding", "arm", "hand", "face", "wound") ->
-                VisionTaskType.INJURY_OBSERVATION
-
-            text.containsAny("look at this", "does this look okay", "what should i do", "based on this photo") ->
-                VisionTaskType.GENERAL_MULTIMODAL_QA
-
-            else -> VisionTaskType.GENERAL_MULTIMODAL_QA
+                VisionTaskType.UNKNOWN
+            else -> VisionTaskType.UNKNOWN
         }
     }
 

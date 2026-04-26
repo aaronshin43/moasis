@@ -15,6 +15,7 @@ coroutinesAndroid = "1.10.2"
 serializationJson = "1.8.1"
 room = "2.8.4"
 cameraX = "1.6.0"
+exifInterface = "1.4.1"
 ksp = "2.3.6"
 
 [libraries]
@@ -44,6 +45,7 @@ androidx-room-compiler = { group = "androidx.room", name = "room-compiler", vers
 androidx-camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "cameraX" }
 androidx-camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "cameraX" }
 androidx-camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "cameraX" }
+androidx-exifinterface = { group = "androidx.exifinterface", name = "exifinterface", version.ref = "exifInterface" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

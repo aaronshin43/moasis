@@ -3,17 +3,25 @@ package com.example.moasis.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import android.util.Log
 import com.example.moasis.BuildConfig
 import com.example.moasis.ai.melange.classifyAiPreparationFailure
 import com.example.moasis.ai.melange.MelangeModelManager
+import com.example.moasis.ai.melange.MelangeVisionModelManager
 import com.example.moasis.ai.orchestrator.InferenceOrchestrator
+import com.example.moasis.ai.orchestrator.VisionDetectionEngine
 import com.example.moasis.data.protocol.ProtocolRepository
 import com.example.moasis.data.visual.VisualAssetRepository
 import com.example.moasis.domain.model.DialogueState
+import com.example.moasis.domain.model.FactSource
+import com.example.moasis.domain.model.ObservedFact
 import com.example.moasis.domain.model.ProtocolStep
 import com.example.moasis.domain.model.TurnContext
 import com.example.moasis.domain.model.UserTurn
+import com.example.moasis.domain.model.VisionTaskType
 import com.example.moasis.domain.state.DialogueStateManager
+import com.example.moasis.domain.state.ObjectPresenceQueryParser
+import com.example.moasis.domain.state.ObservationMerger
 import com.example.moasis.domain.state.VisionTaskRouter
 import com.example.moasis.domain.usecase.AnswerQuestionUseCase
 import com.example.moasis.domain.usecase.QuestionAnswerResult
@@ -33,10 +41,14 @@ class EmergencyViewModel(
     private val inferenceOrchestrator: InferenceOrchestrator,
     private val answerQuestionUseCase: AnswerQuestionUseCase,
     private val melangeModelManager: MelangeModelManager? = null,
+    private val melangeVisionModelManager: MelangeVisionModelManager? = null,
+    private val visionDetectionEngine: VisionDetectionEngine? = null,
     private val aiEnabled: Boolean = BuildConfig.AI_ENABLED,
 ) : ViewModel() {
     private var speechRequestKeyCounter: Int = 0
     private val visionTaskRouter = VisionTaskRouter()
+    private val objectPresenceQueryParser = ObjectPresenceQueryParser()
+    private val observationMerger = ObservationMerger()
     private val _viewState = MutableStateFlow(
         EmergencyViewState(
             uiState = UiState(
@@ -57,6 +69,8 @@ class EmergencyViewModel(
     private var personalizationJob: Job? = null
     private var questionAnswerJob: Job? = null
     private var aiPreparationJob: Job? = null
+    private var visionPreparationJob: Job? = null
+    private var visionDetectionJob: Job? = null
     private val personalizedInstructions = mutableMapOf<String, String>()
     private val questionAnswers = mutableMapOf<String, QuestionAnswerResult>()
 
@@ -110,6 +124,7 @@ class EmergencyViewModel(
             aiCacheSummaryText = _viewState.value.aiCacheSummaryText,
             aiDiagnosticDetail = _viewState.value.aiDiagnosticDetail,
             chatHistory = emptyList(),
+            recentObservedFacts = emptyList(),
         )
     }
 
@@ -168,6 +183,7 @@ class EmergencyViewModel(
             transcriptDraft = "",
             attachedImagePaths = emptyList(),
             chatHistory = emptyList(),
+            recentObservedFacts = emptyList(),
             statusText = "Photos and transcripts cleared from this session.",
         )
     }
@@ -195,7 +211,25 @@ class EmergencyViewModel(
         )
         val nextStatus = if (submittedImages.isNotEmpty()) {
             val taskType = visionTaskRouter.route(turn, buildTurnContext())
-            "Image attached. ${taskType.name} is recognized, but image analysis is not enabled yet."
+            if (isVisionTaskSupported(taskType)) {
+                val detectorManager = melangeVisionModelManager
+                if (detectorManager == null || !detectorManager.isConfigured()) {
+                    "Image attached. ${visionTaskLabel(taskType)} is supported, but the YOLO detector is not configured yet."
+                } else {
+                    requestVisionDetection(
+                        imagePath = submittedImages.last(),
+                        taskType = taskType,
+                        userText = text,
+                    )
+                    if (detectorManager.isPreparedInMemory()) {
+                        "Image attached. Running the YOLO detector for ${visionTaskLabel(taskType).lowercase()}."
+                    } else {
+                        "Image attached. Preparing the YOLO detector for ${visionTaskLabel(taskType).lowercase()}."
+                    }
+                }
+            } else {
+                "Image attached. Vision is currently limited to kit inventory and simple object-presence checks."
+            }
         } else {
             null
         }
@@ -355,6 +389,7 @@ class EmergencyViewModel(
             aiDiagnosticDetail = _viewState.value.aiDiagnosticDetail,
             transcriptDraft = _viewState.value.transcriptDraft,
             attachedImagePaths = pendingImagePaths.ifEmpty { recentSubmittedImagePaths },
+            recentObservedFacts = _viewState.value.recentObservedFacts,
         )
     }
 
@@ -394,6 +429,7 @@ class EmergencyViewModel(
             aiDiagnosticDetail = _viewState.value.aiDiagnosticDetail,
             transcriptDraft = _viewState.value.transcriptDraft,
             attachedImagePaths = pendingImagePaths.ifEmpty { recentSubmittedImagePaths },
+            recentObservedFacts = _viewState.value.recentObservedFacts,
         )
     }
 
@@ -454,6 +490,7 @@ class EmergencyViewModel(
             aiDiagnosticDetail = _viewState.value.aiDiagnosticDetail,
             transcriptDraft = _viewState.value.transcriptDraft,
             attachedImagePaths = pendingImagePaths.ifEmpty { recentSubmittedImagePaths },
+            recentObservedFacts = _viewState.value.recentObservedFacts,
         )
     }
 
@@ -485,6 +522,7 @@ class EmergencyViewModel(
             aiDiagnosticDetail = _viewState.value.aiDiagnosticDetail,
             transcriptDraft = _viewState.value.transcriptDraft,
             attachedImagePaths = pendingImagePaths.ifEmpty { recentSubmittedImagePaths },
+            recentObservedFacts = _viewState.value.recentObservedFacts,
         )
     }
 
@@ -511,6 +549,7 @@ class EmergencyViewModel(
             aiDiagnosticDetail = _viewState.value.aiDiagnosticDetail,
             transcriptDraft = _viewState.value.transcriptDraft,
             attachedImagePaths = pendingImagePaths.ifEmpty { recentSubmittedImagePaths },
+            recentObservedFacts = _viewState.value.recentObservedFacts,
         )
     }
 
@@ -677,6 +716,157 @@ class EmergencyViewModel(
                 )
             }
             aiPreparationJob = null
+        }
+    }
+
+    private fun prepareVisionModelIfNeeded(force: Boolean = false) {
+        val modelManager = melangeVisionModelManager ?: return
+        if (!modelManager.isConfigured()) {
+            return
+        }
+        if (force) {
+            visionPreparationJob?.cancel()
+            visionPreparationJob = null
+        }
+        if (modelManager.isPreparedInMemory() || visionPreparationJob != null) {
+            return
+        }
+
+        visionPreparationJob = viewModelScope.launch(Dispatchers.IO) {
+            val result = modelManager.getOrCreateSession()
+            result
+                .onSuccess {
+                    Log.d(TAG, "YOLO detector ready on demand.")
+                }
+                .onFailure { throwable ->
+                    Log.w(TAG, "YOLO detector lazy init failed: ${throwable.message ?: throwable::class.java.simpleName}")
+                }
+            visionPreparationJob = null
+        }
+    }
+
+    private fun requestVisionDetection(
+        imagePath: String,
+        taskType: VisionTaskType,
+        userText: String,
+    ) {
+        val engine = visionDetectionEngine ?: run {
+            Log.w(TAG, "YOLO detector requested without an engine.")
+            return
+        }
+        visionDetectionJob?.cancel()
+        visionDetectionJob = viewModelScope.launch(Dispatchers.IO) {
+            val result = engine.detect(imagePath = imagePath, taskType = taskType)
+            result
+                .onSuccess { detection ->
+                    val facts = detection.objects
+                        .distinctBy { it.label }
+                        .map { detected ->
+                            ObservedFact(
+                                key = observedFactKeyFor(taskType),
+                                value = detected.label,
+                                confidence = detected.confidence,
+                                source = FactSource.VISION_SUGGESTED,
+                                evidence = taskType.name,
+                            )
+                        }
+                    val mergedFacts = observationMerger.merge(
+                        turn = UserTurn(imageUris = listOf(imagePath), timestamp = System.currentTimeMillis()),
+                        existingFacts = _viewState.value.recentObservedFacts,
+                        newFacts = facts,
+                    )
+                    val summary = buildVisionSummary(
+                        taskType = taskType,
+                        userText = userText,
+                        facts = mergedFacts,
+                        rawLabels = detection.rawObjects.map { it.label }.distinct(),
+                    )
+                    _viewState.value = _viewState.value.copy(
+                        statusText = summary,
+                        recentObservedFacts = mergedFacts,
+                    )
+                }
+                .onFailure { throwable ->
+                    Log.w(TAG, "YOLO detection failed: ${throwable.message ?: throwable::class.java.simpleName}")
+                    _viewState.value = _viewState.value.copy(
+                        statusText = "YOLO detection failed for this image. Deterministic guidance will continue.",
+                    )
+                }
+            visionDetectionJob = null
+        }
+    }
+
+    private fun buildVisionSummary(
+        taskType: VisionTaskType,
+        userText: String,
+        facts: List<ObservedFact>,
+        rawLabels: List<String>,
+    ): String {
+        val labels = facts.map { it.value }.distinct()
+        if (labels.isEmpty()) {
+            if (taskType == VisionTaskType.KIT_DETECTION && rawLabels.isNotEmpty()) {
+                return "The YOLO kit scan did not find any supported kit labels. Generic objects seen: ${rawLabels.joinToString(", ")}."
+            }
+            return "YOLO detector did not find any supported common objects in the attached image."
+        }
+
+        if (taskType == VisionTaskType.OBJECT_PRESENCE_CHECK) {
+            val query = objectPresenceQueryParser.parse(userText)
+            if (query != null) {
+                val matched = labels.any { it.equals(query.canonicalLabel, ignoreCase = true) }
+                return if (matched) {
+                    "Yes. I can see ${articleFor(query.spokenLabel)} ${query.spokenLabel} in the image."
+                } else {
+                    "I do not see ${articleFor(query.spokenLabel)} ${query.spokenLabel} in the image. Detected objects: ${labels.joinToString(", ")}."
+                }
+            }
+            return "I could not map that object request yet. Detected objects: ${labels.joinToString(", ")}."
+        }
+
+        return when (taskType) {
+            VisionTaskType.KIT_DETECTION ->
+                "Detected common kit-visible items: ${labels.joinToString(", ")}."
+            VisionTaskType.STEP_VERIFICATION ->
+                "Detected visible objects for step check: ${labels.joinToString(", ")}."
+            else ->
+                "Detected objects: ${labels.joinToString(", ")}."
+        }
+    }
+
+    private fun articleFor(word: String): String {
+        return if (word.firstOrNull()?.lowercaseChar() in listOf('a', 'e', 'i', 'o', 'u')) "an" else "a"
+    }
+
+    private fun observedFactKeyFor(taskType: VisionTaskType): String {
+        return when (taskType) {
+            VisionTaskType.KIT_DETECTION -> "kit_item_detected"
+            VisionTaskType.STEP_VERIFICATION -> "step_visible_object"
+            VisionTaskType.OBJECT_PRESENCE_CHECK -> "detected_object"
+            VisionTaskType.INJURY_OBSERVATION -> "injury_observation"
+            VisionTaskType.GENERAL_MULTIMODAL_QA -> "general_visual_fact"
+            VisionTaskType.UNKNOWN -> "unknown_visual_fact"
+        }
+    }
+
+    private fun isVisionTaskSupported(taskType: VisionTaskType): Boolean {
+        return when (taskType) {
+            VisionTaskType.KIT_DETECTION,
+            VisionTaskType.STEP_VERIFICATION,
+            VisionTaskType.OBJECT_PRESENCE_CHECK -> true
+            VisionTaskType.INJURY_OBSERVATION,
+            VisionTaskType.GENERAL_MULTIMODAL_QA,
+            VisionTaskType.UNKNOWN -> false
+        }
+    }
+
+    private fun visionTaskLabel(taskType: VisionTaskType): String {
+        return when (taskType) {
+            VisionTaskType.KIT_DETECTION -> "Kit inventory detection"
+            VisionTaskType.STEP_VERIFICATION -> "Simple step verification"
+            VisionTaskType.OBJECT_PRESENCE_CHECK -> "Object-presence check"
+            VisionTaskType.INJURY_OBSERVATION -> "Injury observation"
+            VisionTaskType.GENERAL_MULTIMODAL_QA -> "General multimodal QA"
+            VisionTaskType.UNKNOWN -> "Unsupported vision task"
         }
     }
 
@@ -866,7 +1056,11 @@ class EmergencyViewModel(
     override fun onCleared() {
         aiPreparationJob?.cancel()
         aiPreparationJob = null
+        visionPreparationJob?.cancel()
+        visionPreparationJob = null
         cancelResponseJobs()
+        visionDetectionJob?.cancel()
+        visionDetectionJob = null
         super.onCleared()
     }
 }
@@ -878,6 +1072,8 @@ class EmergencyViewModelFactory(
     private val inferenceOrchestrator: InferenceOrchestrator,
     private val answerQuestionUseCase: AnswerQuestionUseCase,
     private val melangeModelManager: MelangeModelManager? = null,
+    private val melangeVisionModelManager: MelangeVisionModelManager? = null,
+    private val visionDetectionEngine: VisionDetectionEngine? = null,
     private val aiEnabled: Boolean = BuildConfig.AI_ENABLED,
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
@@ -890,9 +1086,13 @@ class EmergencyViewModelFactory(
                 inferenceOrchestrator = inferenceOrchestrator,
                 answerQuestionUseCase = answerQuestionUseCase,
                 melangeModelManager = melangeModelManager,
+                melangeVisionModelManager = melangeVisionModelManager,
+                visionDetectionEngine = visionDetectionEngine,
                 aiEnabled = aiEnabled,
             ) as T
         }
         error("Unsupported ViewModel class: ${modelClass.name}")
     }
 }
+
+private const val TAG = "EmergencyViewModel"
