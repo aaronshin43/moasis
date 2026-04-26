@@ -140,10 +140,6 @@ android {
     packaging {
         jniLibs {
             useLegacyPackaging = true
-            // Melange (Zetic) SDK bundles its own libonnxruntime.so.
-            // Pick the first match so it does not clash with the
-            // onnxruntime-android dependency we added for YOLOE.
-            pickFirsts += "lib/*/libonnxruntime.so"
         }
     }
     // Keep ONNX model files uncompressed in the APK so they can be
@@ -178,8 +174,10 @@ dependencies {
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
     implementation(libs.androidx.exifinterface)
+    // Melange SDK transitively bundles ONNX Runtime (ort_runtime).
+    // We use its ai.onnxruntime.* API directly for YOLOE — do NOT add
+    // a separate onnxruntime-android dependency (causes native lib conflict).
     implementation("com.zeticai.mlange:mlange:1.6.1")
-    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.17.3")
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
