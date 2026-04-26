@@ -26,7 +26,15 @@
         "gasps as not breathing"
       ],
       "forbidden_keywords": [],
-      "asset_refs": []
+      "asset_refs": [
+        {
+          "asset_id": "unresponsive_check_breathing_01",
+          "type": "image",
+          "caption": "Open the airway and look, listen, and feel for normal breathing",
+          "content_description": "A responder tilting the head and listening close to the mouth while checking breathing.",
+          "priority": 10
+        }
+      ]
     },
     {
       "step_id": "recovery_position",

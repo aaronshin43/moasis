@@ -23,7 +23,15 @@
         "not the arms and legs first"
       ],
       "forbidden_keywords": [],
-      "asset_refs": []
+      "asset_refs": [
+        {
+          "asset_id": "hypothermia_warm_core_01",
+          "type": "image",
+          "caption": "Wrap the person and warm the core first",
+          "content_description": "A person wrapped in blankets holding a warm drink during rewarming for mild hypothermia.",
+          "priority": 10
+        }
+      ]
     },
     {
       "step_id": "warm_drink_if_alert",

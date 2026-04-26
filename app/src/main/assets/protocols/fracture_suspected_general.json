@@ -42,7 +42,29 @@
         "splint"
       ],
       "forbidden_keywords": [],
-      "asset_refs": []
+      "asset_refs": [
+        {
+          "asset_id": "fracture_forearm_improvised_splint_01",
+          "type": "image",
+          "caption": "Support the forearm with padding and an improvised rigid splint",
+          "content_description": "A forearm secured against a padded improvised splint with cloth wraps.",
+          "priority": 10
+        },
+        {
+          "asset_id": "fracture_leg_padded_splint_01",
+          "type": "image",
+          "caption": "Immobilize the leg with padding and ties above and below the injury",
+          "content_description": "A leg immobilized with padding and multiple cloth ties to keep the limb still.",
+          "priority": 9
+        },
+        {
+          "asset_id": "fracture_lower_leg_splint_reference_01",
+          "type": "image",
+          "caption": "Secure a lower-leg splint with padding and ties",
+          "content_description": "A lower leg supported with padding and tied in place to limit movement.",
+          "priority": 8
+        }
+      ]
     },
     {
       "step_id": "rice_for_sprains",

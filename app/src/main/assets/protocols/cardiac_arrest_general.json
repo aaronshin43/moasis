@@ -25,7 +25,15 @@
         "heel of one hand"
       ],
       "forbidden_keywords": [],
-      "asset_refs": []
+      "asset_refs": [
+        {
+          "asset_id": "cardiac_cpr_hand_position_01",
+          "type": "image",
+          "caption": "Place the heel of one hand in the center of the chest",
+          "content_description": "A rescuer placing both hands in the center of the chest for CPR compressions.",
+          "priority": 10
+        }
+      ]
     },
     {
       "step_id": "compressions_depth_rate",
@@ -45,7 +53,29 @@
         "follow the voice prompts"
       ],
       "forbidden_keywords": [],
-      "asset_refs": []
+      "asset_refs": [
+        {
+          "asset_id": "cardiac_aed_power_on_01",
+          "type": "image",
+          "caption": "Turn the AED on and follow the voice prompts",
+          "content_description": "A gloved hand pressing the power button on an AED.",
+          "priority": 10
+        },
+        {
+          "asset_id": "cardiac_aed_attach_pad_adult_01",
+          "type": "image",
+          "caption": "Attach the AED pads to the exposed chest as shown",
+          "content_description": "An AED pad being attached to an adult chest in the recommended position.",
+          "priority": 9
+        },
+        {
+          "asset_id": "cardiac_aed_attach_pad_child_01",
+          "type": "image",
+          "caption": "For a child, attach the AED pads in the position shown on the pad diagrams",
+          "content_description": "An AED pad being attached to a child chest using the placement shown on the pad.",
+          "priority": 8
+        }
+      ]
     },
     {
       "step_id": "continue_and_switch",

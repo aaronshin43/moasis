@@ -29,15 +29,7 @@
         "direct ice",
         "pop blisters"
       ],
-      "asset_refs": [
-        {
-          "asset_id": "burn_cool_water_arm_01",
-          "type": "image",
-          "caption": "Example of cooling the burn under running water",
-          "content_description": "An arm burn being held under cool running water",
-          "priority": 10
-        }
-      ]
+      "asset_refs": []
     },
     {
       "step_id": "remove_jewelry_and_loose_clothing",
@@ -74,7 +66,15 @@
         "loosely cover"
       ],
       "forbidden_keywords": [],
-      "asset_refs": []
+      "asset_refs": [
+        {
+          "asset_id": "burn_cover_clean_dressing_01",
+          "type": "image",
+          "caption": "Loosely cover the burn with a clean dressing",
+          "content_description": "A clean rectangular dressing being placed gently over a burn on the forearm.",
+          "priority": 10
+        }
+      ]
     },
     {
       "step_id": "watch_for_severe_burn_signs",

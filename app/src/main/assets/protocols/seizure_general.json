@@ -48,7 +48,15 @@
         "under their head"
       ],
       "forbidden_keywords": [],
-      "asset_refs": []
+      "asset_refs": [
+        {
+          "asset_id": "seizure_cushion_head_01",
+          "type": "image",
+          "caption": "Protect the head with something soft during the seizure",
+          "content_description": "A jacket being positioned under the head of a person lying on the ground during a seizure.",
+          "priority": 10
+        }
+      ]
     },
     {
       "step_id": "after_seizure_recovery_position",

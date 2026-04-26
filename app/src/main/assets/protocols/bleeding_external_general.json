@@ -18,10 +18,10 @@
       "forbidden_keywords": [],
       "asset_refs": [
         {
-          "asset_id": "bandage_wrap_arm_01",
+          "asset_id": "bleeding_apply_direct_pressure_01",
           "type": "image",
-          "caption": "Applying pressure with a clean bandage",
-          "content_description": "A clean bandage being pressed firmly on an arm wound",
+          "caption": "Apply firm direct pressure to the wound",
+          "content_description": "A responder pressing directly on a bleeding arm wound with gloved fingers.",
           "priority": 10
         }
       ]
@@ -37,7 +37,15 @@
         "remove the object",
         "pull out"
       ],
-      "asset_refs": []
+      "asset_refs": [
+        {
+          "asset_id": "bleeding_embedded_object_stabilize_01",
+          "type": "image",
+          "caption": "Leave the embedded object in place and press around it",
+          "content_description": "A responder padding around an embedded object instead of removing it.",
+          "priority": 10
+        }
+      ]
     },
     {
       "step_id": "add_layers_if_soaked",

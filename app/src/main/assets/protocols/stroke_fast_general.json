@@ -17,7 +17,22 @@
         "raise both arms"
       ],
       "forbidden_keywords": [],
-      "asset_refs": []
+      "asset_refs": [
+        {
+          "asset_id": "stroke_fast_face_droop_01",
+          "type": "image",
+          "caption": "Check for facial droop when the person smiles",
+          "content_description": "A face showing one-sided drooping consistent with a FAST stroke check.",
+          "priority": 10
+        },
+        {
+          "asset_id": "stroke_fast_arm_drift_01",
+          "type": "image",
+          "caption": "Ask the person to raise both arms and look for weakness or drift",
+          "content_description": "A person raising both arms unevenly during a FAST stroke check.",
+          "priority": 9
+        }
+      ]
     },
     {
       "step_id": "note_time_symptoms_started",
